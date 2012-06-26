@@ -1,0 +1,52 @@
+\contentsline {section}{\numberline {1}Introduction}{5}
+\contentsline {section}{\numberline {2}Background}{7}
+\contentsline {subsection}{\numberline {2.1}Hui and the Unified Coordinates}{7}
+\contentsline {subsubsection}{\numberline {2.1.1}Coordinate Transformations}{7}
+\contentsline {paragraph}{Benefits \& Challenges of Moving Coordinates}{11}
+\contentsline {paragraph}{Comparison with ALE}{11}
+\contentsline {subsubsection}{\numberline {2.1.2}Euler Equations}{12}
+\contentsline {paragraph}{Time-Dependent Euler Equations}{12}
+\contentsline {subsubsection}{\numberline {2.1.3}Navier-Stokes and Recirculation}{12}
+\contentsline {subsubsection}{\numberline {2.1.4}Other Equation Sets}{12}
+\contentsline {paragraph}{Multi-material Flows}{12}
+\contentsline {paragraph}{MHD Flows}{12}
+\contentsline {paragraph}{Kinetic Flows and BGK Analysis}{13}
+\contentsline {paragraph}{Steady, Supersonic Euler Equations}{13}
+\contentsline {subsubsection}{\numberline {2.1.5}Summary}{13}
+\contentsline {section}{\numberline {3}Preliminary Work}{13}
+\contentsline {subsection}{\numberline {3.1}Time-Dependent Euler Equations}{13}
+\contentsline {subsubsection}{\numberline {3.1.1}Spatial Discretization}{15}
+\contentsline {subsubsection}{\numberline {3.1.2}Flow Solver}{16}
+\contentsline {subsubsection}{\numberline {3.1.3}MUSCL Refinement}{18}
+\contentsline {subsubsection}{\numberline {3.1.4}Boundary Conditions}{18}
+\contentsline {subparagraph}{Grid Communication Boundary}{18}
+\contentsline {subsubsection}{\numberline {3.1.5}Coordinate Advancement}{20}
+\contentsline {subsection}{\numberline {3.2}Steady Riemann Problem}{20}
+\contentsline {subsection}{\numberline {3.3}The Oblique Shock}{23}
+\contentsline {subsection}{\numberline {3.4}Prandtl-Meyer Expansion}{24}
+\contentsline {subsubsection}{\numberline {3.4.1}The Expansion Fan and ``Grid Separation''}{24}
+\contentsline {subsection}{\numberline {3.5}Diamond Shock Train}{26}
+\contentsline {subsection}{\numberline {3.6}A Transonic Duct Flow}{26}
+\contentsline {subsection}{\numberline {3.7}Basic Boundary-Layer Effects in a Uniform Channel}{28}
+\contentsline {subsection}{\numberline {3.8}Model F-14 Inlet}{28}
+\contentsline {section}{\numberline {4}Proposal \& Timeline}{29}
+\contentsline {subsection}{\numberline {4.1}Multi-Stream, Three-Dimensionally Capable Inviscid Solver}{32}
+\contentsline {subsubsection}{\numberline {4.1.1}Three-Dimensional Flows}{32}
+\contentsline {paragraph}{Aside - Why not a fully 3-D code}{32}
+\contentsline {subsubsection}{\numberline {4.1.2}Multi-Stream Flows}{33}
+\contentsline {paragraph}{Separate Grids}{33}
+\contentsline {paragraph}{Aside - MPI Parallelism}{33}
+\contentsline {subsubsection}{\numberline {4.1.3}Goals}{33}
+\contentsline {subsection}{\numberline {4.2}Constraining Grid Motion}{34}
+\contentsline {subsubsection}{\numberline {4.2.1}Goals}{34}
+\contentsline {subsection}{\numberline {4.3}Boundary-Layer Implementation}{34}
+\contentsline {subsubsection}{\numberline {4.3.1}Goals}{34}
+\contentsline {subsection}{\numberline {4.4}Navier-Stokes Solver}{34}
+\contentsline {subsubsection}{\numberline {4.4.1}Stationary Grid Patches and Material Coordinates}{35}
+\contentsline {subsubsection}{\numberline {4.4.2}Boundary Conditions on Viscous Patches}{35}
+\contentsline {subsubsection}{\numberline {4.4.3}Relationship With Boundary-Layer Solver}{35}
+\contentsline {subsubsection}{\numberline {4.4.4}Goals}{35}
+\contentsline {subsection}{\numberline {4.5}Space-Marching Euler Solver}{35}
+\contentsline {paragraph}{Dealing with Bow Shocks and other Normal Shocks}{36}
+\contentsline {subsubsection}{\numberline {4.5.1}Goals}{37}
+\contentsline {section}{\numberline {A}Derivation of Grid-Angle-Preserving ODE for $U$}{39}

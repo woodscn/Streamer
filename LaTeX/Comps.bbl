@@ -1,0 +1,142 @@
+\begin{thebibliography}{10}
+
+\bibitem{jameson97}
+A~Jameson.
+\newblock Re-engineering the design process through computation.
+\newblock {\em Journal of Aircraft}, 36:36--50, January 1997.
+
+\bibitem{steinthorsson95}
+E.~{Steinthorsson} and D.~{Modiano}.
+\newblock {Advanced methodology for simulation of complex flows using
+  structured grid systems}.
+\newblock In {\em Surface Modeling, Grid Generation, and Related Issues in
+  Computational Fluid Dynamic (CFD) Solutions p 697-710 (SEE N95-28723 10-02)},
+  pages 697--710, March 1995.
+
+\bibitem{boeing05}
+F.T. Johnson, E.N. Tinoco, and N.J. Yu.
+\newblock Thirty years of development and application of cfd at boeing
+  commercial airplanes, seattle.
+\newblock {\em Computers \& Fluids}, 34(10):1115 -- 1151, 2005.
+
+\bibitem{badcock00}
+K.J. Badcock, B.E. Richards, and M.A. Woodgate.
+\newblock Elements of computational fluid dynamics on block structured grids
+  using implicit solvers.
+\newblock {\em Progress in Aerospace Sciences}, 36(5-6):351 -- 392, 2000.
+
+\bibitem{IDAreview05}
+D.~Garretson, H.~Mair, C.~Martin, K.~Sullivan, and J.~Teichman.
+\newblock Review of cfd capabilities.
+\newblock Technical report, Institute for Defense Analyses, Science \&
+  Technology Division, Alexandria, VA, September 2005.
+
+\bibitem{venkatakrishnan95}
+V.~Venkatakrishnan.
+\newblock A perspective on unstructured grid flow solvers.
+\newblock Technical report, Institute for Computer Applications in Science and
+  Engineering, NASA Langley Research Center, Hampton, VA, February 1995.
+
+\bibitem{hui99}
+W.~H. Hui, P.~Y. Li, and Z.~W. Li.
+\newblock A unified coordinate system for solving the two-dimensional euler
+  equations.
+\newblock {\em Journal of Computational Physics}, 153:596--673, 1999.
+
+\bibitem{hui07}
+W.~H. Hui.
+\newblock The unified coordinate system in computational fluid dynamics.
+\newblock {\em Communications in Computational Physics}, 2(4):577--610, August
+  2007.
+
+\bibitem{hui01}
+W.~H. Hui and S.~Kudriakov.
+\newblock A unified coordinate system for solving the three-dimensional euler
+  equations.
+\newblock {\em Journal of Computational Physics}, 172:235--260, January 2001.
+
+\bibitem{huigridless}
+W.~Hui, J.~Hu, and G.~Zhao.
+\newblock Gridless computation using the unified coordinates.
+\newblock In Clinton Groth and David~W. Zingg, editors, {\em Computational
+  Fluid Dynamics 2004}, pages 503--508. Springer Berlin Heidelberg, 2006.
+
+\bibitem{jia06}
+P.~Jia, S.~Jiang, and G.~Zhao.
+\newblock Two-dimensional compressible multimaterial flow calculations in a
+  unified coordinate system.
+\newblock {\em Computers and Fluids}, 35:168--188, 2006.
+
+\bibitem{zhilkin07}
+A.G. Zhilkin.
+\newblock A dynamic mesh adaptation method for magnetohydrodynamics problems.
+\newblock {\em Computational Mathematics and Mathematical Physics},
+  47(11):1819--1832, 2007.
+
+\bibitem{jin07}
+C.~Jin and K.~Xu.
+\newblock A unified moving grid gas-kinetic method in eulerian space for
+  viscous flow computation.
+\newblock {\em Journal of Computational Physics}, 2007:155--175, 2007.
+
+\bibitem{jin08}
+C.~Jin and K.~Xu.
+\newblock Numerical study of the unsteady aerodynamics of freely falling
+  plates.
+\newblock {\em Communications in Computational Physics}, 3(4):834--851, April
+  2008.
+
+\bibitem{woodsCFD11}
+C.~N. Woods and R.~P. Starkey.
+\newblock Verification and application of the unified coordinate system in
+  preliminary design.
+\newblock In {\em Proceedings of the 20th AIAA Computational Fluid Dynamics
+  Conference}, Honolulu, HI, June 2011.
+
+\bibitem{woodsJPC11}
+C.~N. Woods and R.~P. Starkey.
+\newblock Propulsion flowpath design using an automatic-mesh,
+  eulerian/lagrangian cfd approach.
+\newblock In {\em Proceedings of the 47th AIAA/ASME/SAE/ASEE Joint Propulsion
+  Conference \& Exhibit}, San Diego, CA, July 2011.
+
+\bibitem{huiviscous07}
+W.H. Hui, Z.~N. Wu, and B.~Gao.
+\newblock Preliminary extension of the unified coordinate system approach to
+  computation of viscous flows.
+\newblock {\em Journal of Scientific Computing}, 30(2):301--344, February 2007.
+
+\bibitem{toro99}
+E.~F. Toro.
+\newblock {\em Riemann Solvers and Numerical Methods for Fluid Dynamics, A
+  Practical Introduction}.
+\newblock Springer-Verlag, 2nd edition, 1999.
+
+\bibitem{schlichtingblayer}
+H.~Schlichting and K.~Gersten.
+\newblock {\em Boundary Layer Theory}.
+\newblock Springer-Verlag, 8th edition, 2000.
+
+\bibitem{anderson_hypersonic}
+J.~D. Anderson.
+\newblock {\em Hypersonic and High-Temperature Gas Dynamics}.
+\newblock AIAA Education Series. American Institute of Aeronautics and
+  Astronautics, 2nd edition, 2006.
+
+\bibitem{rizzi76}
+A.~Rizzi and H.~Bailey.
+\newblock Finite-volume solution of the euler equations for steady
+  three-dimensional transonic flow.
+\newblock In Adriaan van~de Vooren and Pieter Zandbergen, editors, {\em
+  Proceedings of the Fifth International Conference on Numerical Methods in
+  Fluid Dynamics June 28 – July 2, 1976 Twente University, Enschede},
+  volume~59 of {\em Lecture Notes in Physics}, pages 347--352. Springer Berlin
+  / Heidelberg, 1976.
+
+\bibitem{anderson2004modern}
+J.D. Anderson.
+\newblock {\em Modern compressible flow: with historical perspective}.
+\newblock McGraw-Hill series in aeronautical and aerospace engineering.
+  McGraw-Hill, 2004.
+
+\end{thebibliography}

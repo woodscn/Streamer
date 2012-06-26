@@ -1,0 +1,20 @@
+\contentsline {figure}{\numberline {1}{\ignorespaces A Diagram of Information Flow in a Unified CoordinatesProgram}}{17}
+\contentsline {figure}{\numberline {2}{\ignorespaces A Diagram of Computational $\xi $-$\eta $ Space}}{19}
+\contentsline {figure}{\numberline {3}{\ignorespaces A Diagram of the Steady Riemann Problem}}{21}
+\contentsline {figure}{\numberline {4}{\ignorespaces The Similarity Solution of the Riemann Problem}}{21}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {$h = 0$ (Eulerian)}}}{21}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {$h = 0.999$ (Unified)}}}{21}
+\contentsline {figure}{\numberline {5}{\ignorespaces Convergence of Riemann problem}}{22}
+\contentsline {figure}{\numberline {6}{\ignorespaces RMS for the Oblique Shock Problem}}{23}
+\contentsline {figure}{\numberline {7}{\ignorespaces RMS error for Prandtl-Meyer expansion}}{24}
+\contentsline {figure}{\numberline {8}{\ignorespaces Computed Streamlines for Edxpansion at Increasing Angles}}{25}
+\contentsline {figure}{\numberline {9}{\ignorespaces Computed Mach Number for Diamond Shock Train}}{26}
+\contentsline {figure}{\numberline {10}{\ignorespaces Time-Lapse Images of Transonic Duct Flow}}{26}
+\contentsline {figure}{\numberline {11}{\ignorespaces Accuracy Comparison Between Moving and Stationary grids}}{27}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {$h=0$, nominal grid size: $72 \times 20$}}}{27}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {$h=0.25$, nominal grid size: $72 \times 20$}}}{27}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {$h=0$, nominal grid size: $360 \times 100$}}}{27}
+\contentsline {figure}{\numberline {12}{\ignorespaces Channel Flow With a Turbulent Boundary Layer}}{29}
+\contentsline {figure}{\numberline {13}{\ignorespaces Diagram of USAF F-14 Tomcat}}{30}
+\contentsline {figure}{\numberline {14}{\ignorespaces Mach Number in F-14 Inlet}}{31}
+\contentsline {figure}{\numberline {15}{\ignorespaces Proposed Timeline for Dissertation Work and Publications}}{32}

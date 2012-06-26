@@ -1,0 +1,47 @@
+\nomenclatureentry{$t$@[{$t$}]\begingroup Time in physical space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$x$@[{$x$}]\begingroup $x$ component of position in physical space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$y$@[{$y$}]\begingroup $y$ component of position in physical space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$z$@[{$z$}]\begingroup $z$ component of position in physical space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\vec {x}$@[{$\vec {x}$}]\begingroup Vector of physical, cartesian coordinates, including $t$ as the $0^{th}$ component\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$U$@[{$U$}]\begingroup $x$ component of grid velocity, equivalent to $\frac {\partial x}{\partial \tau }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$V$@[{$V$}]\begingroup $y$ component of grid velocity, equivalent to $\frac {\partial y}{\partial \tau }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$W$@[{$W$}]\begingroup $z$ component of grid velocity, equivalent to $\frac {\partial z}{\partial \tau }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$A$@[{$A$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial x}{\partial \xi }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$B$@[{$B$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial y}{\partial \xi }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$C$@[{$C$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial z}{\partial \xi }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$L$@[{$L$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial x}{\partial \eta }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$M$@[{$M$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial y}{\partial \eta }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$N$@[{$N$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial z}{\partial \eta }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$P$@[{$P$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial x}{\partial \zeta }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$Q$@[{$Q$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial y}{\partial \zeta }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$R$@[{$R$}]\begingroup Component of coordinate transformation, equivalent to $\frac {\partial z}{\partial \zeta }$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\tau $@[{$\tau $}]\begingroup Time in computational space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\xi $@[{$\xi $}]\begingroup Component of position in computational space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\eta $@[{$\eta $}]\begingroup Component of position in computational space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\zeta $@[{$\zeta $}]\begingroup Component of position in computational space\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\vec {\xi }$@[{$\vec {\xi }$}]\begingroup Vector of computational coordinates, including $\tau $ as the $0^{th}$ component\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\vec {u}$@[{$\vec {u}$}]\begingroup Fluid velocity 4-vector, with $1$ as the $0^{th}$ component\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$\vec {U}$@[{$\vec {U}$}]\begingroup Grid velocity 3-vector, with Cartesian components given by $U$, $V$, $W$\nomeqref {0}|nompageref}{7}
+\nomenclatureentry{$_{\alpha,\,\beta}$@[{$_{\alpha,\,\beta}$}]\begingroup Summation index running from 0 to 3\nomeqref {2}|nompageref}{7}
+\nomenclatureentry{$_{i,\,j}$@[{$_{i,\,j}$}]\begingroup Summation index running from 1 to 3\nomeqref {2}|nompageref}{7}
+\nomenclatureentry{$J$@[{$J$}]\begingroup Jacobian of the coordinate transformation\nomeqref {5}|nompageref}{8}
+\nomenclatureentry{$\nabla _{\vec {x}}$@[{$\nabla _{\vec {x}}$}]\begingroup Gradient operator with respect to physical spatial coordinates\nomeqref {5}|nompageref}{8}
+\nomenclatureentry{$U_\xi $@[{$U_\xi $}]\begingroup $\xi $ component of grid velocity, equivalent to $\frac {\partial \xi }{\partial t}$\nomeqref {9}|nompageref}{8}
+\nomenclatureentry{$U_\eta $@[{$U_\eta $}]\begingroup $\eta $ component of grid velocity, equivalent to $\frac {\partial \eta }{\partial t}$\nomeqref {9}|nompageref}{8}
+\nomenclatureentry{$U_\zeta $@[{$U_\zeta $}]\begingroup $\zeta $ component of grid velocity, equivalent to $\frac {\partial \zeta }{\partial t}$\nomeqref {9}|nompageref}{8}
+\nomenclatureentry{$\frac{D_{\vec{U}}}{Dt}$@[{$\frac{D_{\vec{U}}}{Dt}$}]\begingroup Material derivative with   respect to grid velocity $\vec{U}$\nomeqref {13}|nompageref}{8}
+\nomenclatureentry{$\frac {D_{\vec {u}} \eta }{Dt}$@[{$\frac {D_{\vec {u}} \eta }{Dt}$}]\begingroup Material derivative with respect to fluid velocity $\vec {u}$\nomeqref {15}|nompageref}{9}
+\nomenclatureentry{$\kappa$@[{$\kappa$}]\begingroup Grid skewness\nomeqref {26}|nompageref}{11}
+\nomenclatureentry{$h$@[{$h$}]\begingroup Grid velocity proportionality function\nomeqref {29}|nompageref}{13}
+\nomenclatureentry{$\bf{E},\bf{F},\bf{G}$@[{$\bf{E},\bf{F},\bf{G}$}]\begingroup Conservative variable and flux vectors\nomeqref {30}|nompageref}{13}
+\nomenclatureentry{$g$@[{$g$}]\begingroup Modified grid motion function\nomeqref {33}|nompageref}{14}
+\nomenclatureentry{$\mathcal{L}_{x,y}^{\Delta z}$@[{$\mathcal{L}_{x,y}^{\Delta z}$}]\begingroup Differential operator   that advances a solution by $\Delta z$, dependent on $x$ and $y$\nomeqref {38}|nompageref}{16}
+\nomenclatureentry{$n$@[{$n$}]\begingroup Time-step index\nomeqref {41}|nompageref}{20}
+\nomenclatureentry{$Ma$@[{$Ma$}]\begingroup Mach number\nomeqref {42}|nompageref}{20}
+\nomenclatureentry{$\theta$@[{$\theta$}]\begingroup Flow angle\nomeqref {42}|nompageref}{20}
+\nomenclatureentry{a$u_\infty$@[{$u_\infty$}]\begingroup Inviscid core velocity condition for   boundary-layer\nomeqref {44}|nompageref}{28}
+\nomenclatureentry{a$Re_x$@[{$Re_x$}]\begingroup Reynolds number with respect to $x$\nomeqref {44}|nompageref}{28}
+\nomenclatureentry{a$\nu$@[{$\nu$}]\begingroup Kinematic viscosity\nomeqref {44}|nompageref}{28}
+\nomenclatureentry{a$R_c$@[{$R_c$}]\begingroup Radius of curvature\nomeqref {47}|nompageref}{36}
+\nomenclatureentry{a$R_s$@[{$R_s$}]\begingroup Bow shock radius of curvature\nomeqref {47}|nompageref}{36}
+\nomenclatureentry{a$\delta$@[{$\delta$}]\begingroup Bow shock standoff distance\nomeqref {47}|nompageref}{36}

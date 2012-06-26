@@ -1,0 +1,174 @@
+\relax 
+\citation{jameson97}
+\citation{steinthorsson95}
+\citation{boeing05}
+\citation{badcock00}
+\citation{IDAreview05}
+\citation{venkatakrishnan95}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background}{7}}
+\newlabel{sec:background}{{2}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Hui and the Unified Coordinates}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Coordinate Transformations}{7}}
+\newlabel{eq:coordinate_transformation}{{1}{7}}
+\newlabel{eq:coordinate_transformation_index}{{2}{7}}
+\newlabel{eq:derivative_transformation_index}{{3}{7}}
+\citation{hui99}
+\newlabel{eq:derivative_transformation}{{4}{8}}
+\newlabel{eq:moving_computational_cells}{{13}{8}}
+\newlabel{eq:compatibility_conditions}{{15}{9}}
+\newlabel{eq:material_coordinates}{{16}{9}}
+\citation{hui07}
+\newlabel{eq:material_coordinate_relations}{{18}{10}}
+\newlabel{eq:material_coordinate_relations_2d}{{20}{10}}
+\newlabel{eq:grid_angle_preserving}{{22}{10}}
+\newlabel{eq:grid_angle_preserving_ODE}{{23}{10}}
+\citation{hui99}
+\citation{hui99}
+\citation{hui01}
+\citation{huigridless}
+\@writefile{toc}{\contentsline {paragraph}{Benefits \& Challenges of Moving Coordinates}{11}}
+\@writefile{toc}{\contentsline {paragraph}{Comparison with ALE}{11}}
+\citation{jia06}
+\citation{zhilkin07}
+\citation{jin07}
+\citation{jin08}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Euler Equations}{12}}
+\@writefile{toc}{\contentsline {paragraph}{Time-Dependent Euler Equations}{12}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Navier-Stokes and Recirculation}{12}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.4}Other Equation Sets}{12}}
+\@writefile{toc}{\contentsline {paragraph}{Multi-material Flows}{12}}
+\@writefile{toc}{\contentsline {paragraph}{MHD Flows}{12}}
+\citation{woodsCFD11}
+\citation{woodsJPC11}
+\citation{hui99}
+\@writefile{toc}{\contentsline {paragraph}{Kinetic Flows and BGK Analysis}{13}}
+\@writefile{toc}{\contentsline {paragraph}{Steady, Supersonic Euler Equations}{13}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.5}Summary}{13}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Preliminary Work}{13}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Time-Dependent Euler Equations}{13}}
+\newlabel{eq:conservation}{{30}{13}}
+\newlabel{eq:vectors}{{31}{14}}
+\newlabel{eq:vector_fluxes}{{32}{14}}
+\newlabel{eq:intermediates}{{33}{14}}
+\newlabel{eq:h}{{34}{14}}
+\citation{hui99}
+\citation{hui07}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Spatial Discretization}{15}}
+\newlabel{sec:spatial_discretization}{{3.1.1}{15}}
+\citation{hui99}
+\citation{huiviscous07}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}Flow Solver}{16}}
+\citation{hui01}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces A Diagram of Information Flow in a Unified CoordinatesProgram}}{17}}
+\newlabel{fig:simulationflow}{{1}{17}}
+\citation{toro99}
+\citation{hui99}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.3}MUSCL Refinement}{18}}
+\newlabel{eq:MUSCL}{{39}{18}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.4}Boundary Conditions}{18}}
+\@writefile{toc}{\contentsline {subparagraph}{Grid Communication Boundary}{18}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A Diagram of Computational $\xi $-$\eta $ Space}}{19}}
+\newlabel{fig:grid}{{2}{19}}
+\newlabel{tab:boundary_conditions}{{3.1.4}{19}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Application of boundary conditions}}{19}}
+\citation{hui99}
+\citation{hui99}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.5}Coordinate Advancement}{20}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Steady Riemann Problem}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces A Diagram of the Steady Riemann Problem}}{21}}
+\newlabel{fig:steadyriemann}{{3}{21}}
+\newlabel{fig:riemann_similarity_0}{{4(a)}{21}}
+\newlabel{sub@fig:riemann_similarity_0}{{(a)}{21}}
+\newlabel{fig:riemann_similarity_9}{{4(b)}{21}}
+\newlabel{sub@fig:riemann_similarity_9}{{(b)}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The Similarity Solution of the Riemann Problem}}{21}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {$h = 0$ (Eulerian)}}}{21}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {$h = 0.999$ (Unified)}}}{21}}
+\newlabel{fig:riemann_similarity}{{4}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Convergence of Riemann problem}}{22}}
+\newlabel{fig:riemann_convergence}{{5}{22}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}The Oblique Shock}{23}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces RMS for the Oblique Shock Problem}}{23}}
+\newlabel{fig:shock_convergence}{{6}{23}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Prandtl-Meyer Expansion}{24}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}The Expansion Fan and ``Grid Separation''}{24}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces RMS error for Prandtl-Meyer expansion}}{24}}
+\newlabel{fig:expansion_convergence}{{7}{24}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Computed Streamlines for Edxpansion at Increasing Angles}}{25}}
+\newlabel{fig:expansion_separation}{{8}{25}}
+\citation{hui99}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Diamond Shock Train}{26}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Computed Mach Number for Diamond Shock Train}}{26}}
+\newlabel{fig:nozzle_flow}{{9}{26}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}A Transonic Duct Flow}{26}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Time-Lapse Images of Transonic Duct Flow}}{26}}
+\newlabel{fig:shock_train_channel_flow}{{10}{26}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Accuracy Comparison Between Moving and Stationary grids}}{27}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {$h=0$, nominal grid size: $72 \times 20$}}}{27}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {$h=0.25$, nominal grid size: $72 \times 20$}}}{27}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {$h=0$, nominal grid size: $360 \times 100$}}}{27}}
+\newlabel{fig:duct_verification}{{11}{27}}
+\citation{schlichtingblayer}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Basic Boundary-Layer Effects in a Uniform Channel}{28}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.8}Model F-14 Inlet}{28}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Channel Flow With a Turbulent Boundary Layer}}{29}}
+\newlabel{fig:bl_shock_train}{{12}{29}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Proposal \& Timeline}{29}}
+\newlabel{sec:timeline}{{4}{29}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Diagram of USAF F-14 Tomcat}}{30}}
+\newlabel{fig:f-14_diagram}{{13}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Mach Number in F-14 Inlet}}{31}}
+\newlabel{fig:f-14_flow}{{14}{31}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Proposed Timeline for Dissertation Work and Publications}}{32}}
+\newlabel{fig:dissertation_timeline}{{15}{32}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Multi-Stream, Three-Dimensionally Capable Inviscid Solver}{32}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Three-Dimensional Flows}{32}}
+\@writefile{toc}{\contentsline {paragraph}{Aside - Why not a fully 3-D code}{32}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Multi-Stream Flows}{33}}
+\@writefile{toc}{\contentsline {paragraph}{Separate Grids}{33}}
+\@writefile{toc}{\contentsline {paragraph}{Aside - MPI Parallelism}{33}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.3}Goals}{33}}
+\citation{huiviscous07}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Constraining Grid Motion}{34}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Goals}{34}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Boundary-Layer Implementation}{34}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Goals}{34}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Navier-Stokes Solver}{34}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Stationary Grid Patches and Material Coordinates}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Boundary Conditions on Viscous Patches}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.3}Relationship With Boundary-Layer Solver}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.4}Goals}{35}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Space-Marching Euler Solver}{35}}
+\citation{anderson_hypersonic}
+\citation{rizzi76}
+\citation{anderson2004modern}
+\@writefile{toc}{\contentsline {paragraph}{Dealing with Bow Shocks and other Normal Shocks}{36}}
+\bibdata{Project}
+\bibcite{jameson97}{1}
+\bibcite{steinthorsson95}{2}
+\bibcite{boeing05}{3}
+\bibcite{badcock00}{4}
+\bibcite{IDAreview05}{5}
+\bibcite{venkatakrishnan95}{6}
+\bibcite{hui99}{7}
+\bibcite{hui07}{8}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.1}Goals}{37}}
+\bibcite{hui01}{9}
+\bibcite{huigridless}{10}
+\bibcite{jia06}{11}
+\bibcite{zhilkin07}{12}
+\bibcite{jin07}{13}
+\bibcite{jin08}{14}
+\bibcite{woodsCFD11}{15}
+\bibcite{woodsJPC11}{16}
+\bibcite{huiviscous07}{17}
+\bibcite{toro99}{18}
+\bibcite{schlichtingblayer}{19}
+\bibcite{anderson_hypersonic}{20}
+\bibcite{rizzi76}{21}
+\bibcite{anderson2004modern}{22}
+\bibstyle{unsrt}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Derivation of Grid-Angle-Preserving ODE for $U$}{39}}
+\newlabel{sec:grid_angle_appendix}{{A}{39}}
+\newlabel{eq:grid_preserving_appendix}{{48}{39}}

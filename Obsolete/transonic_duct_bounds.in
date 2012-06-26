@@ -1,0 +1,35 @@
+Left boundary:
+   Inflow
+      Bounding Points:
+         ((0.0,0.0,0.0),(0.0,0.0,1.0),(0.0,1.0,1.0),(0.0,1.0,0.0))
+      Boundary Surface:
+         f = -x
+      Flow State:
+         Initialized:
+            transonic_duct_bounds.npy
+# May also be written as:
+# self.state = ...
+Right boundary:
+   Outflow
+      Bounding Points:
+         ((3.6,0.0,0.0),(3.6,1.0,0.0),(3.6,1.0,1.0),(3.6,0.0,1.0))
+      Boundary Surface:
+         f = x - 3.6
+      Flow State:
+         None
+Bottom boundary:
+   Transmissive
+      Bounding Points:
+         ((0.0,0.0,0.0),(3.6,0.0,0.0),(3.6,0.0,1.0),(0.0,0.0,1.0))
+Top boundary:
+   Transmissive
+      Bounding Points:
+         ((0.0,1.0,0.0),(3.6,1.0,0.0),(3.6,1.0,1.0),(0.0,1.0,1.0))
+Back boundary:
+   Transmissive
+      Bounding Points:
+         ((0.0,0.0,0.0),(3.6,0.0,0.0),(3.6,1.0,0.0),(0.0,1.0,0.0))
+Front boundary:
+   Transmissive
+      Bounding Points:
+         ((0.0,0.0,1.0),(3.6,0.0,1.0),(3.6,1.0,1.0),(0.0,1.0,1.0))

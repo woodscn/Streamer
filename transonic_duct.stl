@@ -1,0 +1,58 @@
+solid 
+facet normal 0.0e0 -1.0e0 0.0e0
+outer loop
+vertex 0.0e0 1.0e0 0.0e0
+vertex 3.6e0 1.0e0 0.0e0
+vertex 0.0e0 1.0e0 1.0e0
+endloop
+endfacet
+facet normal 0.0e0 -1.0e0 0.0e0
+outer loop
+vertex 3.6e0 1.0e0 0.0e0
+vertex 3.6e0 1.0e0 1.0e0
+vertex 0.0e0 1.0e0 1.0e0
+endloop
+endfacet
+facet normal 0.0e0 1.0e0 0.0e0
+outer loop
+vertex 0.0e0 0.0e0 0.0e0
+vertex 0.0e0 0.0e0 1.0e0
+vertex 0.5e0 0.0e0 0.0e0
+endloop
+endfacet
+facet normal 0.0e0 1.0e0 0.0e0
+outer loop
+vertex 0.0e0 0.0e0 1.0e0
+vertex 0.5e0 0.0e0 1.0e0
+vertex 0.5e0 0.0e0 0.0e0
+endloop
+endfacet
+facet normal -0.25881904510252074e0 0.96592582628906831e0 0.0e0
+outer loop
+vertex 0.5e0 0.0e0 0.0e0
+vertex 0.5e0 0.0e0 1.0e0
+vertex 1.0e0 0.13397459621556135e0 0.0e0
+endloop
+endfacet
+facet normal -0.25881904510252074e0 0.96592582628906831e0 0.0e0
+outer loop
+vertex 1.0e0 0.13397459621556135e0 1.0e0
+vertex 0.5e0 0.0e0 1.0e0
+vertex 1.0e0 0.13397459621556135e0 0.0e0
+endloop
+endfacet
+facet normal 0.0e0 1.0e0 0.0e0
+outer loop
+vertex 1.0e0 0.13397459621556135e0 0.0e0
+vertex 1.0e0 0.13397459621556135e0 1.0e0
+vertex 3.6e0 0.13397459621556135e0 0.0e0
+endloop
+endfacet
+facet normal 0.0e0 1.0e0 0.0e0
+outer loop
+vertex 3.6e0 0.13397459621556135e0 1.0e0
+vertex 1.0e0 0.13397459621556135e0 1.0e0
+vertex 3.6e0 0.13397459621556135e0 0.0e0
+endloop
+endfacet
+endsolid 

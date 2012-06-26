@@ -1,0 +1,46 @@
+Left boundary:
+   Bounding Points: Outflow
+      0.0 0.0 0.0
+      0.0 0.0 .01
+      0.0 .01 .01
+      0.0 .01 0.0
+   Boundary Surface:
+      f = -x
+   Flow State:
+      None
+# May also be written as:
+# self.state = ...
+Right boundary:
+   Bounding Points: Outflow
+      1.0 0.0 0.0
+      1.0 .01 0.0
+      1.0 .01 .01
+      1.0 0.0 .01
+   Boundary Surface:
+      f = x - 1.0
+   Flow State:
+      None
+Bottom boundary:
+   Bounding Points: Transmissive
+      0.0 0.0 0.0
+      1.0 0.0 0.0
+      1.0 0.0 .01
+      0.0 0.0 .01
+Top boundary:
+   Bounding Points: Transmissive
+      0.0 .01 0.0
+      1.0 .01 0.0
+      1.0 .01 .01
+      0.0 .01 .01
+Back boundary:
+   Bounding Points: Transmissive
+      0.0 0.0 0.0
+      1.0 0.0 0.0
+      1.0 .01 0.0
+      0.0 .01 0.0
+Front boundary:
+   Bounding Points: Transmissive
+      0.0 0.0 .01
+      1.0 0.0 .01
+      1.0 .01 .01
+      0.0 .01 .01

@@ -1,0 +1,58 @@
+\begin{thebibliography}{10}
+\newcommand{\enquote}[1]{``#1''}
+
+\bibitem{hui07}
+Hui, W.~H., \enquote{The Unified Coordinate System in Computational Fluid
+  Dynamics,} {\em Communications in Computational Physics\/}, Vol.~2, No.~4,
+  August 2007, pp.~577--610.
+
+\bibitem{hui99}
+Hui, W.~H., Li, P.~Y., and Li, Z.~W., \enquote{A Unified Coordinate System for
+  Solving the Two-Dimensional Euler Equations,} {\em Journal of Computational
+  Physics\/}, Vol.~153, 1999, pp.~596--673.
+
+\bibitem{hui01}
+Hui, W.~H. and Kudriakov, S., \enquote{A Unified Coordinate System for Solving
+  the Three-Dimensional Euler Equations,} {\em Journal of Computational
+  Physics\/}, Vol.~172, January 2001, pp.~235--260.
+
+\bibitem{huiviscous07}
+Hui, W., Wu, Z.~N., and Gao, B., \enquote{Preliminary Extension of the Unified
+  Coordinate System Approach to Computation of Viscous Flows,} {\em Journal of
+  Scientific Computing\/}, Vol.~30, No.~2, February 2007, pp.~301--344.
+
+\bibitem{hui04}
+Hui, W.~H., \enquote{A unified coordinates approach to computational fluid
+  dynamics,} {\em Journal of Computational and Applied Mathematics\/},
+  Vol.~163, 2004, pp.~15--28.
+
+\bibitem{huigridless}
+Hui, W., Hu, J., and Zhao, G., \enquote{Gridless Computation Using the Unified
+  Coordinates,} {\em Computational Fluid Dynamics 2004\/}, edited by C.~Groth
+  and D.~W. Zingg, Springer Berlin Heidelberg, 2006, pp. 503--508.
+
+\bibitem{huimulti}
+Hui, W., Zhao, G., Hu, J., and Zheng, Y., \enquote{Gridless Computation of Two
+  Dimensional Flow Using the Unified Coordinates,} .
+
+\bibitem{jia06}
+Jia, P., Jiang, S., and Zhao, G., \enquote{Two-dimensional compressible
+  multimaterial flow calculations in a unified coordinate system,} {\em
+  Computers and Fluids\/}, Vol.~35, 2006, pp.~168--188.
+
+\bibitem{zhilkin07}
+Zhilkin, A., \enquote{A Dynamic Mesh Adaptation Method for Magnetohydrodynamics
+  Problems,} {\em Computational Mathematics and Mathematical Physics\/},
+  Vol.~47, No.~11, 2007, pp.~1819--1832.
+
+\bibitem{jin07}
+Jin, C. and Xu, K., \enquote{A unified moving grid gas-kinetic method in
+  Eulerian space for viscous flow computation,} {\em Journal of Computational
+  Physics\/}, Vol.~2007, 2007, pp.~155--175.
+
+\bibitem{jin08}
+Jin, C. and Xu, K., \enquote{Numerical Study of the Unsteady Aerodynamics of
+  Freely Falling Plates,} {\em Communications in Computational Physics\/},
+  Vol.~3, No.~4, April 2008, pp.~834--851.
+
+\end{thebibliography}
