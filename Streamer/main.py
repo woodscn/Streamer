@@ -96,20 +96,24 @@ class Stream(object):
         opts.xi_offset = self.xi_offset
         self.bounds(self.main_data,opts)
         self.main_data = Godunov.prim_update(
-            self.main_data,dt,bcextent=1,nx=self.main_data.shape[1]-2,
+            self.main_data,cfl=.7,bcextent=1,nx=self.main_data.shape[1]-2,
             ny=self.main_data.shape[2]-2,nz=self.main_data.shape[3]-2)
         #! Check to see if a new column needs to be created
         check_create_column = TAS.checkcreatecolumn(
             self.main_data[:,1,1:-1,1:-1],self.main_data[:,0,1:-1,1:-1])
+            #        import pdb;pdb.set_trace()
         if check_create_column:
+            # print "Creating a column"
+            pass
             new_column = TAS.createcolumn(self.main_data[:,1,1:-1,1:-1],
                                           self.main_data[:,0,1:-1,1:-1],
                 self.main_data.shape[2]-2,self.main_data.shape[3]-2)
             dims = self.main_data.shape
             self.main_data = numpy.concatenate((
-                numpy.zeros((dims[0],1,dims[2],dims[3])),self.main_data),axis=1)
+                numpy.empty((dims[0],1,dims[2],dims[3])),self.main_data),axis=1)
             self.main_data[:,1,1:-1,1:-1] = new_column
             self.xi_offset = self.xi_offset + 1
+        import pdb;pdb.set_trace()
         return None
 
 def run(input_file,interactive=False):
@@ -125,8 +129,9 @@ def run(input_file,interactive=False):
         print "Input file does not contain an init() function"
         sys.exit()
     streams = [Stream(bounds_init, initial_conds,stream_options)]
-    dt = .0001
+    dt = .0001 
     for step in range(2500):
+        print "Time step = ",step
         for stream in streams:
             stream.advance(dt)
     cgns.write_initial_data(stream.main_data,'test.cgns')
@@ -143,10 +148,13 @@ if __name__=='__main__':
     except IndexError:
         print "Error: First argument must be an input file!"
         sys.exit()
-    options, args = getopt.getopt(sys.argv[2:],'ihp', ['interactive','help','profile'])
+    options, args = getopt.getopt(sys.argv[2:],'ihp',
+                                  ['interactive','help','profile'])
     if len(options)>1:
         print "No support yet for multiple options"
         sys.exit()
+    elif len(options) == 0:
+        run(filename)
     for option, value in options:
         if option in ('-i', '--interactive'):
             run(filename,interactive=True)
@@ -157,8 +165,7 @@ if __name__=='__main__':
             cProfile.run('run(filename)','cProfout')
             import pstats
             p=pstats.Stats('cProfout')
-            p.sort_stats('time').print_stats(10)
-        
+            p.sort_stats('time').print_stats(10)        
 #    usage = ""
 #    try:
 #        if sys.argv[1].startswith('-'):

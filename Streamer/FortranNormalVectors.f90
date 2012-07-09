@@ -1,91 +1,41 @@
 ! -*- f90 -*-
-!******************************************************************************
-!*                      Code generated with sympy 0.7.1                       *
-!*                                                                            *
-!*              See http://www.sympy.org/ for more information.               *
-!*                                                                            *
-!*                       This file is part of 'project'                       *
-!******************************************************************************
 
-REAL*8 function gradx4322108816()
+module FortranNormalVectors
+contains
+subroutine ApplyReflectionConditions(main_data,patch_id,out,nx,ny,dim,t)
+use BoundaryConditionsStuff, only: WallReflect
 implicit none
-
-gradx4322108816 = 1
-
-end function
-
-!******************************************************************************
-!*                      Code generated with sympy 0.7.1                       *
-!*                                                                            *
-!*              See http://www.sympy.org/ for more information.               *
-!*                                                                            *
-!*                       This file is part of 'project'                       *
-!******************************************************************************
-
-REAL*8 function grady4322108816()
-implicit none
-
-grady4322108816 = 0
-
-end function
-
-!******************************************************************************
-!*                      Code generated with sympy 0.7.1                       *
-!*                                                                            *
-!*              See http://www.sympy.org/ for more information.               *
-!*                                                                            *
-!*                       This file is part of 'project'                       *
-!******************************************************************************
-
-REAL*8 function gradz4322108816()
-implicit none
-
-gradz4322108816 = 0
-
-end function
-
-!******************************************************************************
-!*                      Code generated with sympy 0.7.1                       *
-!*                                                                            *
-!*              See http://www.sympy.org/ for more information.               *
-!*                                                                            *
-!*                       This file is part of 'project'                       *
-!******************************************************************************
-
-REAL*8 function gradx4336484048()
-implicit none
-
-gradx4336484048 = -1
-
-end function
-
-!******************************************************************************
-!*                      Code generated with sympy 0.7.1                       *
-!*                                                                            *
-!*              See http://www.sympy.org/ for more information.               *
-!*                                                                            *
-!*                       This file is part of 'project'                       *
-!******************************************************************************
-
-REAL*8 function grady4336484048()
-implicit none
-
-grady4336484048 = 0
-
-end function
-
-!******************************************************************************
-!*                      Code generated with sympy 0.7.1                       *
-!*                                                                            *
-!*              See http://www.sympy.org/ for more information.               *
-!*                                                                            *
-!*                       This file is part of 'project'                       *
-!******************************************************************************
-
-REAL*8 function gradz4336484048()
-implicit none
-
-gradz4336484048 = 0
-
-end function
-
+integer, intent(in) :: nx, ny, dim
+real(8), intent(out), dimension(21,nx,ny) :: out
+real(8), intent(in), dimension(21,nx,ny) :: main_data
+integer(8), intent(in) :: patch_id
+integer :: i, j
+real(8) :: x, y, z, t
+intent(in) :: t
+real(8), dimension(3) :: normal
+do i = 1, size(main_data,2)
+do j = 1, size(main_data,3)
+x = main_data(18,i,j)
+y = main_data(19,i,j)
+z = main_data(20,i,j)
+select case (patch_id)
+case(4322100880_8)
+normal=[real(1,8),real(0,8),real(0,8)]
+case(4336137040_8)
+normal=[real(-1,8),real(0,8),real(0,8)]
+case(4336137680_8)
+normal=[real(0,8),real(1,8),real(0,8)]
+case(4336137104_8)
+normal=[real(0.267949192431000d0,8),real(-1,8),real(0,8)]
+case(4336139152_8)
+normal=[real(0,8),real(1,8),real(0,8)]
+case(4336138320_8)
+normal=[real(0,8),real(-1,8),real(0,8)]
+end select
+out(:,i,j) = WallReflect(main_data(:,i,j), normal,&
+reshape([0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0],[3,3]),&
+int(dim,4))
+end do
+end do
+end subroutine ApplyReflectionConditions
+end module FortranNormalVectors

@@ -1,62 +1,11 @@
 module BoundaryConditionsStuff
+  use GeneralUtilities
   implicit none
 contains
 ! This function does not work in f2py. Perhaps it has something to do with the 
 ! use of too many callback functions (>1). This means that I will basically have
 ! a more complicated calling sequence when I use normal vectors, but that should
 ! be acceptable. (18 May 2012)
-!!$  function combined_normal_vector(norm_x,norm_y,norm_z,x,y,z,t)
-!!$    implicit none
-!!$    real(8) :: norm_x, norm_y, norm_z
-!!$!f2py intent(callback) norm_x
-!!$!f2py x = norm_x(x,x,x,x)
-!!$    external :: norm_x
-!!$!f2py intent(callback) norm_y
-!!$!f2py x = norm_y(x,x,x,x)
-!!$    external :: norm_y
-!!$!f2py intent(callback) norm_z
-!!$!f2py x = norm_z(x,x,x,x)
-!!$    external :: norm_z
-!!$    real(8), intent(in), optional :: x, y, z, t
-!!$    real(8), dimension(3) :: combined_normal_vector 
-!!$    if(present(x) .and. present(y) .and. present(z) .and. present(t))then
-!!$       combined_normal_vector = [norm_x(x,y,z,t), norm_y(x,y,z,t), norm_z(x,y,z,t)]
-!!$    else
-!!$       combined_normal_vector = [norm_x(0,0,0,0), norm_y(0,0,0,0), norm_z(0,0,0,0)]
-!!$    end if
-!!$  end function combined_normal_vector
-
-  
-!!$  subroutine inflow_outflow(points,just_inside,flow_state,normal,nx1,nx2)
-!!$    implicit none
-!!$    real(8), intent(inout), dimension(21,nx1,nx2) :: points
-!!$    real(8), intent(in), dimension(21,nx1,nx2) :: just_inside, flow_state
-!!$    integer, intent(in) :: nx1, nx2
-!!$    real(8), intent(in) :: normal
-!!$!    logical, intent(in) :: in
-!!$    integer :: inda, indb
-!!$    real(8), dimension(3) :: gradXi, gradEta, gradZeta
-!!$    real(8) :: sound_speed, relative_streamwise_velocity
-!!$    
-!!$    if(normal(1)**2+normal(2)**2+normal(3)**2)then
-!!$       
-!!$    do inda = 1, nx1
-!!$       do indb = 1, nx2
-!!$          call ComputationalGrads(just_inside(6:14,inda,indb),&
-!!$               just_inside(21,inda,indb), &
-!!$               gradXi, gradEta, gradZeta)
-!!$          
-!!$          sound_speed = sqrt(1.4d0*just_inside(1,inda,indb)/&
-!!$               just_inside(2,inda,indb))
-!!$          relative_streamwise_velocity = matmul(gradXi,&
-!!$               just_inside(3:5,inda,indb)-just_inside(15:17,inda,indb))
-!!$          if(relative_streamwise_velocity>0.)then
-!!$             if
-!!$             
-!!$       end do
-!!$    end do
-!!$  end subroutine inflow_outflow
-
   function WallReflect(point, normal, vertices,dim)
     ! I need to work out a way to include the effects of metric components
     ! and the actual location of the .stl boundary. I'm not currently sure
@@ -182,8 +131,8 @@ contains
     integer :: i, j, k
     real(8) :: displacement, min_displ
     integer, dimension(3) :: min_index, FindClosestPoint
-    
-    min_displ = .5d0*maxexponent(1.d0)
+
+    min_displ = 5.d0**300
     do k = 1, nz
        do j = 1, ny
           do i = 1, nx
@@ -194,7 +143,7 @@ contains
              end if
           end do
        end do
-    end do
+    end do    
     FindClosestPoint = min_index
   end function FindClosestPoint
 
@@ -250,6 +199,32 @@ contains
     end do
   end subroutine ApplyOutflowConditions
 
+!!$  subroutine ApplyReflectionConditions(main_data,patch_id,out,nx,ny,dim,t)
+!!$    implicit none
+!!$    integer, intent(in) :: nx, ny, dim
+!!$    real(8), intent(out), dimension(21,nx,ny) :: out
+!!$    real(8), intent(in), dimension(21,nx,ny) :: main_data
+!!$    integer, intent(in) :: patch_id
+!!$    integer :: i, j
+!!$    real(8) :: x, y, z, t
+!!$    intent(in) :: t
+!!$    real(8), dimension(3) :: normal
+!!$    !f2py(
+!!$    do i = 1, size(main_data,2)
+!!$       do j = 1, size(main_data,3)
+!!$          !  function WallReflect(point, normal, vertices,dim)
+!!$          x = main_data(18,i,j)
+!!$          y = main_data(19,i,j)
+!!$          z = main_data(20,i,j)
+!!$!          call normal_func(x,y,z,t,normal)
+!!$          normal = normal_func(x,y,z,t)
+!!$          out(:,i,j) = WallReflect(main_data(:,i,j), normal,&
+!!$               reshape([0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0],[3,3]),&
+!!$               dim)
+!!$       end do
+!!$    end do
+!!$  end subroutine ApplyReflectionConditions
+!!$
   logical function CheckSupersonic(point,direction_in)
     implicit none
     real(8), intent(in), dimension(21) :: point
@@ -373,53 +348,6 @@ contains
     ComputeCompuCoordsDelta = [&
          sum(gradXi*diff), sum(gradEta*diff), sum(gradZeta*diff) ]
   end function ComputeCompuCoordsDelta
-
-  subroutine ComputationalGrads(Metric,Jac,gradXi,gradEta,gradZeta)
-    implicit none
-    ! Metric has the form:
-    !   1  2  3  4  5  6  7  8  9  
-    ! [ A, B, C, L, M, N, P, Q, R ]
-    ! Gradients are taken with respect to global Cartesian system
-    real(8), intent(in), dimension(9) :: Metric
-    real(8), intent(in) :: Jac
-    real(8), intent(out), dimension(3) :: gradXi
-    real(8), intent(out), dimension(3) :: gradEta
-    real(8), intent(out), dimension(3) :: gradZeta
-    real(8) :: J
-
-!!$    J = Metric(1)*Metric(5)*Metric(9)&
-!!$         + Metric(3)*Metric(4)*Metric(8)&
-!!$         + Metric(2)*Metric(6)*Metric(7)&
-!!$         - Metric(3)*Metric(5)*Metric(7)&
-!!$         - Metric(1)*Metric(6)*Metric(8)&
-!!$         - Metric(2)*Metric(4)*Metric(9)
-!!$    write(*,*) "Jac = ",Jac
-!!$    write(*,*) "J = ",J
-
-    J = Jac
-    
-    gradXi   = [ Metric(5)*Metric(9) - Metric(6)*Metric(8),&
-                 Metric(6)*Metric(7) - Metric(4)*Metric(9),&
-                 Metric(4)*Metric(8) - Metric(5)*Metric(7) ]/J
-
-    gradEta  = [ Metric(3)*Metric(8) - Metric(2)*Metric(9),&
-                 Metric(1)*Metric(9) - Metric(3)*Metric(7),&
-                 Metric(2)*Metric(7) - Metric(1)*Metric(8) ]/J
-
-    gradZeta = [ Metric(2)*Metric(6) - Metric(3)*Metric(5),&
-                 Metric(3)*Metric(4) - Metric(1)*Metric(6),&
-                 Metric(1)*Metric(5) - Metric(2)*Metric(4) ]/J
-    if(sum((matmul(transpose(reshape(metric,[3,3])),&
-         reshape([gradXi,gradEta,gradZeta],[3,3]))&
-         - reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2) > 1.d-10)then
-       write(*,*) "Failed matrix inverse test!"
-       write(*,*) (matmul(transpose(reshape(metric,[3,3])),&
-            reshape([gradXi,gradEta,gradZeta],[3,3]))&
-            - reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2
-       read(*,*)
-    end if
-    
-  end subroutine ComputationalGrads
 
   logical function pnpoly(npol,xp,yp,x,y)
     ! Check to see if a point lies on the interior of a polygon.

@@ -1,8 +1,10 @@
 module Godunov
+  use GeneralUtilities
   implicit none
 !!$  integer, parameter :: SGL = 4
 !!$  integer, parameter :: DBL = 8
    real(8), parameter :: EPS = 5.d-15
+   real(8), parameter :: max_dt = 1.d0
 !!$  integer, parameter :: eqn_of_state = 1 ! 1 = Ideal Gas Law
 !!$  integer, parameter :: prim_length = 21 ! Number of elements in primitive variables vector
 !!$  integer, parameter :: cons_length =  5 ! Number of elements in conservative variables vector
@@ -29,10 +31,11 @@ contains
 !    gt0 = ishft( int(sign(1.d0,x) + 1) , -1 )
 !  end function gt0
 
-  function riemann_solve( left, right, verbose_flag, t_out )
+  function riemann_solve( left, right, max_wave_speed, verbose_flag, t_out )
     implicit none
     real(8), dimension(:), intent(in) :: left, right
     real(8), dimension(5) :: riemann_solve
+    real(8), intent(out) :: max_wave_speed
     logical, intent(in), optional :: verbose_flag
     real(8), intent(in), optional :: t_out
     real(8) :: tout = 1.d0
@@ -72,6 +75,18 @@ contains
     Ustar = .5*(UR+fR+UL-fL)
     DstarL = beta(Pstar/PL)*DL
     DstarR = beta(Pstar/PR)*DR
+    if(PsiL<1.d0)then
+       max_wave_speed = abs(left(3) - .5d0*(UL+UR) - aL)
+    else
+       max_wave_speed = abs(left(3)-.5d0*(UL+UR)-aL*sqrt((gamma_const+1.d0)/&
+            (2.d0*gamma_const)*(PsiL-1.d0)+1.d0))
+    end if
+    if(PsiR<1.d0)then
+       max_wave_speed = max(abs(right(3) - .5d0*(UL+UR) + aR),max_wave_speed)
+    else
+       max_wave_speed = max(abs(right(3)-.5*(UL+UR)+aR*sqrt((gamma_const+1.d0)/&
+            (2.d0*gamma_const)*(PsiR-1.d0)+1.d0)),max_wave_speed)
+    end if
     if(verbose)write(*,*) Ustar , DstarL , DstarR
     call sample(0.D0,left,right,Pstar,Ustar,DstarL,DstarR,riemann_solve,verbose)
     if(verbose)write(*,*)"RiemannSolve = ", riemann_solve
@@ -245,22 +260,6 @@ contains
     end if
   end subroutine sample
 
-  ! Computes the determinant of a 3 x 3 matrix using a brute-force method:
-  !       | A L P |
-  !  J =  | B M Q |
-  !       | C N R |
-  ! Assumes the structure of in(:) is :
-  !   1  2  3  4  5  6  7  8  9 
-  ! [ A, B, C, L, M, N, P, Q, R ]
-  real(8) function Jacobian(in)
-    implicit none
-    real(8), dimension(9), intent(in) :: in
-    Jacobian = &
-         in(1)*in(5)*in(9) - in(1)*in(6)*in(8) + & ! A*M*R - A*N*Q
-         in(2)*in(6)*in(7) - in(2)*in(4)*in(9) + & ! B*N*P - B*L*R
-         in(3)*in(4)*in(8) - in(3)*in(5)*in(7)     ! C*L*Q - C*M*P
-  end function Jacobian
-
   ! Computes specific energy, given the array [ p, rho, u, v, w ]
   real(8) function energy_func(in)
     implicit none
@@ -348,7 +347,7 @@ contains
     in(15:17) = matmul(matrix,in(15:17))
   end subroutine vels_transform
     
-  subroutine prim_update(main,dt,bcextent,nx,ny,nz)
+  subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
 ! Advance the solution using the integral form of the equations
 ! This subroutine assumes that main is the full array of primitive variables. main 
 ! must also include the boundary cell values. That is, main contains a 0-index and 
@@ -356,29 +355,47 @@ contains
     implicit none
     real(8), dimension(21,nx+2*bcextent,ny+2*bcextent,nz+2*bcextent), intent(inout) :: main
 !f2py intent(in,out) :: main
-    real(8), intent(in) :: dt
+    real(8), intent(in), optional :: dt_in
+    real(8), intent(in), optional :: CFL
     integer, intent(in) :: nx,ny,nz,bcextent
     integer :: i, j, k
     real(8), dimension(14,3,nx+1,ny+1,nz+1) :: fluxes
     real(8), dimension(14,nx,ny,nz) :: temp
+    real(8) :: max_wave_speed, dt
     fluxes = 0.d0
-!    write(*,*) "Got this far"
     do k = 1, nz + 1
        do j = 1, ny + 1
           do i = 1, nx + 1
-             fluxes( 1: 5,1,i,j,k) = flux(riemann_solve(main(:,i,j+1,k+1),main(:,i+1,j+1,k+1)),&
+             fluxes( 1: 5,1,i,j,k) = flux(riemann_solve(main(:,i,j+1,k+1),&
+                  main(:,i+1,j+1,k+1),max_wave_speed),&
                   .5d0*(main(:,i,j+1,k+1)+main(:,i+1,j+1,k+1)),1)
-!!$             fluxes( 1: 5,1,i,j,k) = riemann_solve(main(:,i,j+1,k+1),main(:,i+1,j+1,k+1))
-             fluxes( 1: 5,2,i,j,k) = flux(riemann_solve(main(:,i+1,j,k+1),main(:,i+1,j+1,k+1)),&
+             fluxes( 1: 5,2,i,j,k) = flux(riemann_solve(main(:,i+1,j,k+1),&
+                  main(:,i+1,j+1,k+1),max_wave_speed),&
                   .5d0*(main(:,i+1,j,k+1)+main(:,i+1,j+1,k+1)),2)
-             fluxes( 1: 5,3,i,j,k) = flux(riemann_solve(main(:,i+1,j+1,k),main(:,i+1,j+1,k+1)),&
+             fluxes( 1: 5,3,i,j,k) = flux(riemann_solve(main(:,i+1,j+1,k),&
+                  main(:,i+1,j+1,k+1),max_wave_speed),&
                   .5d0*(main(:,i+1,j+1,k)+main(:,i+1,j+1,k+1)),3)
-             fluxes( 6: 8,1,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+main(15:17,i,j+1,k+1))
-             fluxes( 9:11,2,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+main(15:17,i+1,j,k+1))
-             fluxes(12:14,3,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+main(15:17,i+1,j+1,k))
+             fluxes( 6: 8,1,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+&
+                  main(15:17,i,j+1,k+1))
+             fluxes( 9:11,2,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+&
+                  main(15:17,i+1,j,k+1))
+             fluxes(12:14,3,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+&
+                  main(15:17,i+1,j+1,k))
           end do
        end do
     end do
+    max_wave_speed = max(max_wave_speed,EPS)
+    if(dt_in > 0.d0)then
+       dt = dt_in
+    elseif(CFL>0.d0)then
+       dt = min(CFL/max_wave_speed,max_dt)
+    else
+       write(*,*) "Error in Godunov prim_update, no time step information given"
+       read(*,*)
+       stop
+    end if
+    write(*,*) "I need to implement a system to keep the grid from advancing too far in a single step!"
+    stop
     call primtocons(main,nx,ny,nz)
     main(1:14,2:nx+1,2:ny+1,2:nz+1) = main(1:14,2:nx+1,2:ny+1,2:nz+1) - (&
          (fluxes(:,1,2:nx+1,:,:)-fluxes(:,1,1:nx,:,:))*deta*dzeta&! + &
