@@ -129,26 +129,25 @@ end module FortranNormalVectors
             yield face
     def __call__(self,main,opts,t=0):
         '''
-        Call each Face object with the appropriate subset of your return array.
-        The main_data array is passed in it's entirety, to simplify any future
-        higher-order boundary condition implementation that may require more
-        than just the first interior point.
+Call each Face object with the appropriate subset of your return array.
+The main_data array is passed in it's entirety, to simplify any future
+higher-order boundary condition implementation that may require more
+than just the first interior point.
 
-        Ex:
-        main[:,0,1:-1,1:-1] = left_face(main_data = main[:,1:-1,1:-1,1:-1],
-                                             time = t,
-                                              out = main[:, 0,1:-1,1:-1],
-                                          options = opts)
+Ex:
+main[:,0,1:-1,1:-1] = left_face(main_data = main[:,1:-1,1:-1,1:-1],
+                                time = t,
+                                out = main[:, 0,1:-1,1:-1],
+                                options = opts)
         
-        Args:
-          self: Bounds object containing the initialized boundary conditions.
-          main: Array object containing the state information for the Stream.
-          t: Simulation time; used for time-dependent boundary conditions.
+Args:
+  self: Bounds object containing the initialized boundary conditions.
+  main: Array object containing the state information for the Stream.
+  t: Simulation time; used for time-dependent boundary conditions.
 
-        Returns:
-          self: Updated boundary computational coordinates.
-          main: Updated Array of state variables.
-        '''
+Returns:
+  self: Updated boundary computational coordinates.
+  main: Updated Array of state variables.'''
         opts.t = t
         main[:, 0,1:-1,1:-1] =   self.left_face(main[:,1:-1,1:-1,1:-1], t,
                                                 main[:, 0,1:-1,1:-1],opts)
@@ -198,28 +197,27 @@ class Face(object):
             yield patch
     def __call__(self,main_data,t,out,opts):
         '''
-        Call each Patch object with the appropriate subset of main and
-        the appropriate subset of your return array.
+Call each Patch object with the appropriate subset of main and
+the appropriate subset of your return array.
 
-        Since the computational coordinates of a given point are intimately
-        connected with the array indices of that point, this is done by first
-        computing the computational coordinates of each Patch, and then using
-        those coordinates to pass along the appropriate array subset.
+Since the computational coordinates of a given point are intimately
+connected with the array indices of that point, this is done by first
+computing the computational coordinates of each Patch, and then using
+those coordinates to pass along the appropriate array subset.
 
-        The current implementation is only valid for 2-dimensional simulations.
-        '''
+The current implementation is only valid for 2-dimensional simulations.'''
         prev_pri_max = 0
         prev_sec_max = 0
         for patch in self.patches:
             # First, I need to advance the positions of boundary patches.
             try:
                 test = bool(patch.bounding_points_xi)
-            except ValueError:
+	    except ValueError:
                 test = patch.bounding_points_xi.any()
-            if not test:
-                # Compute the appropriate computational coordinates
-                # self.bounding_points_xi will be None unless it has been
-                # initialized previously.
+	    if not test:
+		    # Compute the appropriate computational coordinates
+		    # self.bounding_points_xi will be None unless it has been
+		    # initialized previously.
                 ccc = self._compute_computational_coordinates
                 patch.bounding_points_xi = ccc(patch,main_data,
                                                opts)
@@ -232,8 +230,8 @@ class Face(object):
             # Only pass the points that lie completely within the patch.
             # I believe that using only computational coordinates may obviate
             # the problems with overlapping boundaries and such.
-            xi_min   =  np.ceil(min(patch.bounding_points_xi[:,0]))
-            xi_max   = np.floor(max(patch.bounding_points_xi[:,0]))
+            xi_min   =  np.ceil(min(patch.bounding_points_xi[:,0]))+opts.xi_offset
+            xi_max   = np.floor(max(patch.bounding_points_xi[:,0]))+opts.xi_offset
             eta_min  =  np.ceil(min(patch.bounding_points_xi[:,1]))
             eta_max  = np.floor(max(patch.bounding_points_xi[:,1]))
             zeta_min =  np.ceil(min(patch.bounding_points_xi[:,2]))
@@ -278,7 +276,7 @@ class Face(object):
                 raise Error()
                 sysexit()
             if main_pass.size>0:
-                out_pass = patch(main_pass,opts,out_pass)
+		out_pass[:,:,:] = patch(main_pass,opts,out_pass)
                 # What happens here? Do I get all of the patches?
                 # import pdb;pdb.set_trace()
             prev_pri_max = key_ind_max
@@ -302,7 +300,7 @@ class Face(object):
            patch: the Patch object for which coordinates are being computed. In
               particular, must contain the field self.bounding_points. 
            input_points: the NumPy array containing all simulation data 
-              associated with the current stream. The metric components
+              associated with the dcurrent stream. The metric components
               A,B,C,L,M,N,P,Q,R are stored in input_points[5:14,:,:,:] (Python
               numbering), and the global coordinates X,Y,Z are stored in 
               input_points[17:20,:,:,:].
@@ -405,7 +403,8 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
         '''
         Apply boundary conditions to the main data points bounding the patch
         '''
-        out = self._apply_patch(main_data,opts,out)
+        out[:,:,:] = self._apply_patch(main_data,opts,out)
+        return out
     def _apply_patch(self,main_data,opts,out):
         '''
         '''

@@ -279,7 +279,7 @@ contains
     !      .5*rho*(u^2+v^2+w^2) + p/(gamma-1)
     real(8), dimension(:,:,:,:), intent(inout) :: main
     integer :: nx, ny, nz
-    real(8), dimension(nx+2,ny+2,nz+2) :: energy
+    real(8), dimension(nx,ny,nz) :: energy
     energy = main(21,:,:,:)*( main(1,:,:,:)*gamma1 + 0.5d0*main(2,:,:,:)&
          *( main(3,:,:,:)**2 + main(4,:,:,:)**2 + main(5,:,:,:)**2 ) )
     main(1,:,:,:) = main(2,:,:,:)*main(21,:,:,:)
@@ -301,7 +301,7 @@ contains
     !      .5*rho*(u^2+v^2+w^2) + p/(gamma-1)
     real(8), dimension(:,:,:,:), intent(inout) :: main
     integer, intent(in) :: nx, ny, nz
-    real(8), dimension(nx+2,ny+2,nz+2) :: temp1, temp2, p
+    real(8), dimension(nx,ny,nz) :: temp1, temp2, p
     temp1 = 1.d0/main(21,:,:,:)
     temp2 = 1.d0/main(1,:,:,:)
     p = gamma2*temp1*( main(5,:,:,:) - .5d0*temp2&
@@ -361,7 +361,9 @@ contains
     integer :: i, j, k
     real(8), dimension(14,3,nx+1,ny+1,nz+1) :: fluxes
     real(8), dimension(14,nx,ny,nz) :: temp
-    real(8) :: max_wave_speed, dt
+    real(8) :: max_wave_speed, dt, max_dt_grid
+    real(8), dimension(3) :: gradXi, gradEta, gradZeta
+    real(8), dimension(5) :: junk
     fluxes = 0.d0
     do k = 1, nz + 1
        do j = 1, ny + 1
@@ -389,27 +391,38 @@ contains
        dt = dt_in
     elseif(CFL>0.d0)then
        dt = min(CFL/max_wave_speed,max_dt)
+       dt = min(maxval((main(6,2,2:ny+1,2:nz+1)-main(18,2,2:ny+1,2:nz+1))&
+            /main(15,2,2:ny+1,2:nz+1)),dt)
     else
        write(*,*) "Error in Godunov prim_update, no time step information given"
        read(*,*)
        stop
     end if
-    write(*,*) "I need to implement a system to keep the grid from advancing too far in a single step!"
-    stop
-    call primtocons(main,nx,ny,nz)
+!!$    write(*,*) "Dt = ", dt
+
+!!$    write(*,*) "I need to implement a system to keep the grid from advancing too far in a single step!"
+!!$    stop
+    call primtocons(main(:,2:nx+1,2:ny+1,2:nz+1),nx,ny,nz)
     main(1:14,2:nx+1,2:ny+1,2:nz+1) = main(1:14,2:nx+1,2:ny+1,2:nz+1) - (&
-         (fluxes(:,1,2:nx+1,:,:)-fluxes(:,1,1:nx,:,:))*deta*dzeta&! + &
+         (fluxes(:,1,2:nx+1,:,:)-fluxes(:,1,1:nx,:,:))*deta*dzeta + &
+         (fluxes(:,2,:,2:ny+1,:)-fluxes(:,2,:,1:ny,:))*dxi*dzeta + &
+         (fluxes(:,3,:,:,2:nz+1)-fluxes(:,3,:,:,1:nz))*dxi*deta &
          )*dt*dV_inv
- !!$         (fluxes(:,2,:,2:ny+1,:)-fluxes(:,2,:,1:ny,:))*dxi*dzeta + &
- !!$         (fluxes(:,3,:,:,2:nz+1)-fluxes(:,3,:,:,1:nz))*dxi*deta &
-    call constoprim(main,nx,ny,nz)
+    call constoprim(main(:,2:nx+1,2:ny+1,2:nz+1),nx,ny,nz)
 ! Update grid velocity
-!!$  call grid_velocity_update(main)
+!!$    call grid_velocity_update(main)
+!!$    main(15:17,:,:,:) = main(3:5,:,:,:)*.25d0
 ! Update grid position
     main(18:20,2:nx+1,2:ny+1,2:nz+1) = main(18:20,2:nx+1,2:ny+1,2:nz+1) + &
          main(15:17,2:nx+1,2:ny+1,2:nz+1)*dt
 ! Update extra variables
-!!$  call jacobian
+  do k = 2, nz+1
+     do j = 2, ny+1
+        do i = 2, nx+1
+           main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+        end do
+     end do
+  end do
   end subroutine prim_update
 
   function flux(in,geom_avg,case_no)
@@ -434,9 +447,9 @@ contains
             geom_avg( 7)*geom_avg(12) - geom_avg( 6)*geom_avg(13) ]*Jinv
     case(3)
        grad = [&
-            (geom_avg( 7)*geom_avg(11) - geom_avg( 8)*geom_avg(10)) , &
-            (geom_avg( 8)*geom_avg( 9) - geom_avg( 6)*geom_avg(11)) , &
-            (geom_avg( 6)*geom_avg(10) - geom_avg( 7)*geom_avg( 9)) ]*Jinv
+            geom_avg( 7)*geom_avg(11) - geom_avg( 8)*geom_avg(10) , &
+            geom_avg( 8)*geom_avg( 9) - geom_avg( 6)*geom_avg(11) , &
+            geom_avg( 6)*geom_avg(10) - geom_avg( 7)*geom_avg( 9) ]*Jinv
 !!$    case default
 !!$       write(*,*) "Error in flux -- invalid case_no: ",case_no
     end select
