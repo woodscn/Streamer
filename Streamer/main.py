@@ -137,6 +137,8 @@ def run(input_file,interactive=False):
     for step in range(50000):
         print "Time step = ",step
         for stream in streams:
+            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:
+                import pdb;pdb.set_trace()
             stream.advance(dt)
     cgns.write_initial_data(stream.main_data,'test.cgns')
     if interactive_flag:
