@@ -9,6 +9,15 @@
       real(kind=8) jacobianf2pywrap
       jacobianf2pywrap = jacobian(in)
       end subroutine f2pywrap_generalutilities_jacobian
+      subroutine f2pywrap_generalutilities_gradstomatrix (gradstomatrixf&
+     &2pywrap, grad1, grad2, grad3)
+      use generalutilities, only : gradstomatrix
+      real(kind=8) grad1(3)
+      real(kind=8) grad2(3)
+      real(kind=8) grad3(3)
+      real(kind=8) gradstomatrixf2pywrap(3,3)
+      gradstomatrixf2pywrap = gradstomatrix(grad1, grad2, grad3)
+      end subroutine f2pywrap_generalutilities_gradstomatrix
       
       subroutine f2pyinitgeneralutilities(f2pysetupfunc)
       use generalutilities, only : computationalgrads
@@ -19,27 +28,33 @@
       real(kind=8) jacobian
       real(kind=8) in(9)
       real(kind=8) jacobianf2pywrap
-      end subroutine f2pywrap_generalutilities_jacobian
+      end subroutine f2pywrap_generalutilities_jacobian 
+      subroutine f2pywrap_generalutilities_gradstomatrix (gradstomatrixf&
+     &2pywrap, gradstomatrix, grad1, grad2, grad3)
+      real(kind=8) grad1(3)
+      real(kind=8) grad2(3)
+      real(kind=8) grad3(3)
+      real(kind=8) gradstomatrix(3,3)
+      real(kind=8) gradstomatrixf2pywrap(3,3)
+      end subroutine f2pywrap_generalutilities_gradstomatrix
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(computationalgrads,f2pywrap_generalutilities_ja&
-     &cobian,twodgradient)
+     &cobian,f2pywrap_generalutilities_gradstomatrix,twodgradient)
       end subroutine f2pyinitgeneralutilities
 
       subroutine f2pywrap_godunov_riemann_solve (riemann_solvef2pywrap, &
-     &left, right, max_wave_speed, verbose_flag, t_out, f2py_left_d0, f2&
-     &py_right_d0)
+     &left, right, geom_avg, max_wave_speed, verbose_flag, t_out)
       use godunov, only : riemann_solve
       real(kind=8) max_wave_speed
       logical verbose_flag
       real(kind=8) t_out
-      integer f2py_left_d0
-      integer f2py_right_d0
-      real(kind=8) left(f2py_left_d0)
-      real(kind=8) right(f2py_right_d0)
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      real(kind=8) geom_avg(21)
       real(kind=8) riemann_solvef2pywrap(5)
-      riemann_solvef2pywrap = riemann_solve(left, right, max_wave_speed,&
-     & verbose_flag, t_out)
+      riemann_solvef2pywrap = riemann_solve(left, right, geom_avg, max_w&
+     &ave_speed, verbose_flag, t_out)
       end subroutine f2pywrap_godunov_riemann_solve
       subroutine f2pywrap_godunov_guessp (guesspf2pywrap, left, right, f&
      &2py_left_d0, f2py_right_d0)
@@ -66,9 +81,9 @@
       real(kind=8) betaf2pywrap
       betaf2pywrap = beta(psi)
       end subroutine f2pywrap_godunov_beta
-      subroutine f2pywrap_godunov_sample (x, left, right, pstar, ustar, &
-     &dstarl, dstarr, out, verbose, f2py_left_d0, f2py_right_d0, f2py_ou&
-     &t_d0)
+      subroutine f2pywrap_godunov_sample (x, left, right, geom_avg, psta&
+     &r, ustar, dstarl, dstarr, out, verbose, f2py_left_d0, f2py_right_d&
+     &0, f2py_geom_avg_d0, f2py_out_d0)
       use godunov, only : sample
       real(kind=8) x
       real(kind=8) pstar
@@ -78,12 +93,14 @@
       logical verbose
       integer f2py_left_d0
       integer f2py_right_d0
+      integer f2py_geom_avg_d0
       integer f2py_out_d0
       real(kind=8) left(f2py_left_d0)
       real(kind=8) right(f2py_right_d0)
+      real(kind=8) geom_avg(f2py_geom_avg_d0)
       real(kind=8) out(f2py_out_d0)
-      call sample(x, left, right, pstar, ustar, dstarl, dstarr, out, ver&
-     &bose)
+      call sample(x, left, right, geom_avg, pstar, ustar, dstarl, dstarr&
+     &, out, verbose)
       end subroutine f2pywrap_godunov_sample
       subroutine f2pywrap_godunov_energy_func (energy_funcf2pywrap, in, &
      &f2py_in_d0)
@@ -137,6 +154,23 @@
       real(kind=8) tangential2(3)
       call grid_coords(grad, normal, tangential1, tangential2)
       end subroutine f2pywrap_godunov_grid_coords
+      subroutine f2pywrap_godunov_compute_fluxes (statel, stater, geom_a&
+     &vg, flux_vec, case_no, max_wave_speed, f2py_statel_d0, f2py_stater&
+     &_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
+      use godunov, only : compute_fluxes
+      integer case_no
+      real(kind=8) max_wave_speed
+      integer f2py_statel_d0
+      integer f2py_stater_d0
+      integer f2py_geom_avg_d0
+      integer f2py_flux_vec_d0
+      real(kind=8) statel(f2py_statel_d0)
+      real(kind=8) stater(f2py_stater_d0)
+      real(kind=8) geom_avg(f2py_geom_avg_d0)
+      real(kind=8) flux_vec(f2py_flux_vec_d0)
+      call compute_fluxes(statel, stater, geom_avg, flux_vec, case_no, m&
+     &ax_wave_speed)
+      end subroutine f2pywrap_godunov_compute_fluxes
       subroutine f2pywrap_godunov_flux (fluxf2pywrap, in, geom_avg, case&
      &_no, f2py_in_d0, f2py_geom_avg_d0)
       use godunov, only : flux
@@ -167,19 +201,17 @@
       use godunov, only : eps
       use godunov, only : dxi_inv
       use godunov, only : gamma_const
-      use godunov, only : vels_transform
       use godunov, only : prim_update
       interface 
       subroutine f2pywrap_godunov_riemann_solve (riemann_solvef2pywrap, &
-     &riemann_solve, left, right, max_wave_speed, verbose_flag, t_out, f&
-     &2py_left_d0, f2py_right_d0)
+     &riemann_solve, left, right, geom_avg, max_wave_speed, verbose_flag&
+     &, t_out)
       real(kind=8) max_wave_speed
       logical verbose_flag
       real(kind=8) t_out
-      integer f2py_left_d0
-      integer f2py_right_d0
-      real(kind=8) left(f2py_left_d0)
-      real(kind=8) right(f2py_right_d0)
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      real(kind=8) geom_avg(21)
       real(kind=8) riemann_solve(5)
       real(kind=8) riemann_solvef2pywrap(5)
       end subroutine f2pywrap_godunov_riemann_solve 
@@ -204,9 +236,9 @@
       real(kind=8) psi
       real(kind=8) betaf2pywrap
       end subroutine f2pywrap_godunov_beta 
-      subroutine f2pywrap_godunov_sample (x, left, right, pstar, ustar, &
-     &dstarl, dstarr, out, verbose, f2py_left_d0, f2py_right_d0, f2py_ou&
-     &t_d0)
+      subroutine f2pywrap_godunov_sample (x, left, right, geom_avg, psta&
+     &r, ustar, dstarl, dstarr, out, verbose, f2py_left_d0, f2py_right_d&
+     &0, f2py_geom_avg_d0, f2py_out_d0)
       real(kind=8) x
       real(kind=8) pstar
       real(kind=8) ustar
@@ -215,9 +247,11 @@
       logical verbose
       integer f2py_left_d0
       integer f2py_right_d0
+      integer f2py_geom_avg_d0
       integer f2py_out_d0
       real(kind=8) left(f2py_left_d0)
       real(kind=8) right(f2py_right_d0)
+      real(kind=8) geom_avg(f2py_geom_avg_d0)
       real(kind=8) out(f2py_out_d0)
       end subroutine f2pywrap_godunov_sample 
       subroutine f2pywrap_godunov_energy_func (energy_funcf2pywrap, ener&
@@ -265,6 +299,20 @@
       real(kind=8) tangential1(3)
       real(kind=8) tangential2(3)
       end subroutine f2pywrap_godunov_grid_coords 
+      subroutine f2pywrap_godunov_compute_fluxes (statel, stater, geom_a&
+     &vg, flux_vec, case_no, max_wave_speed, f2py_statel_d0, f2py_stater&
+     &_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
+      integer case_no
+      real(kind=8) max_wave_speed
+      integer f2py_statel_d0
+      integer f2py_stater_d0
+      integer f2py_geom_avg_d0
+      integer f2py_flux_vec_d0
+      real(kind=8) statel(f2py_statel_d0)
+      real(kind=8) stater(f2py_stater_d0)
+      real(kind=8) geom_avg(f2py_geom_avg_d0)
+      real(kind=8) flux_vec(f2py_flux_vec_d0)
+      end subroutine f2pywrap_godunov_compute_fluxes 
       subroutine f2pywrap_godunov_flux (fluxf2pywrap, flux, in, geom_avg&
      &, case_no, f2py_in_d0, f2py_geom_avg_d0)
       integer case_no
@@ -283,7 +331,8 @@
      &ywrap_godunov_u_fun,f2pywrap_godunov_beta,f2pywrap_godunov_sample,&
      &f2pywrap_godunov_energy_func,f2pywrap_godunov_primtocons,f2pywrap_&
      &godunov_constoprim,f2pywrap_godunov_invnorm3,f2pywrap_godunov_grid&
-     &_coords,vels_transform,prim_update,f2pywrap_godunov_flux)
+     &_coords,prim_update,f2pywrap_godunov_compute_fluxes,f2pywrap_godun&
+     &ov_flux)
       end subroutine f2pyinitgodunov
 
 

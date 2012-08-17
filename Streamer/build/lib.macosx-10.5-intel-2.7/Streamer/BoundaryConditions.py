@@ -363,28 +363,6 @@ class Patch(object):
         self.boundary_surface = init.boundary_surface
         self.flow_state = init.flow_state
         if self.boundary_surface:
-            # gradxsrc = codegen(
-            #     ('gradx'+str(id(self)),
-            #      sp.diff(sp.sympify(
-            #          self.boundary_surface.split('=')[1].strip()),
-            #          sp.Symbol('x'))),'F95','junk',
-            #          argument_sequence=(sp.Symbol('x'),sp.Symbol('y'),
-            #                             sp.Symbol('z'),sp.Symbol('t')))[0]
-            # gradysrc = codegen(
-            #     ('grady'+str(id(self)),
-            #      sp.diff(sp.sympify(
-            #          self.boundary_surface.split('=')[1].strip()),
-            #          sp.Symbol('y'))),'F95','junk',
-            #          argument_sequence=(sp.Symbol('x'),sp.Symbol('y'),
-            #                             sp.Symbol('z'),sp.Symbol('t')))[0]
-            # gradzsrc = codegen(
-            #     ('gradz'+str(id(self)),
-            #      sp.diff(sp.sympify(
-            #          self.boundary_surface.split('=')[1].strip()),
-            #          sp.Symbol('z'))),'F95','junk',
-            #          argument_sequence=(sp.Symbol('x'),sp.Symbol('y'),
-            #                             sp.Symbol('z'),sp.Symbol('t')))[0]
-            # self.gradsrc = gradxsrc[1]+'\n'+gradysrc[1]+'\n'+gradzsrc[1]+'\n'
             self.gradsrc = '''
 case('''+str(id(self))+'''_8)
 normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].strip()),sp.Symbol('x')),source_format='free')+',8),real('+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].strip()),sp.Symbol('y')),source_format='free')+',8),real('+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].strip()),sp.Symbol('z')),source_format='free')+''',8)]'''
@@ -426,8 +404,8 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
             fnv = FortranNormalVectors.fortrannormalvectors
             # ApplyReflectionConditions(main_data,patch_id,out,nx,ny,dim,t)
             try:
-                out[:,:,:] = fnv.applyreflectionconditions(main_data,str(id(self)),
-                                                           self.dim,opts.t)
+                out[:,:,:] = fnv.applyreflectionconditions(
+                    main_data,str(id(self)),self.dim,opts.t)
             except ValueError:
                 import pdb;pdb.set_trace()
         else:
@@ -435,12 +413,6 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
             raise(Error)
         return out
                 
-#if __name__ == "__main__":
-#    str = 'x**2'
-#    callable = autowrap(normalvec(sympify(str),'x','y','z')[0],args=('x','y','z','t'))
-#    print callable(1),callable(0)
-
-            
 def leadingEdgeSearchSTL(leading_face_array, nodes_x, faces_x, face_nodes_x):
     '''LeadingEdgeSearchSTL searches for boundary conditions that may apply to
     a two-dimensional array of grid points representing the leading edge of 

@@ -31,9 +31,10 @@ contains
 !    gt0 = ishft( int(sign(1.d0,x) + 1) , -1 )
 !  end function gt0
 
-  function riemann_solve( left, right, max_wave_speed, verbose_flag, t_out )
+  function riemann_solve( left, right, geom_avg, max_wave_speed, verbose_flag, t_out )
     implicit none
-    real(8), dimension(:), intent(in) :: left, right
+    real(8), dimension(5), intent(in) :: left, right
+    real(8), dimension(21), intent(in) :: geom_avg
     real(8), dimension(5) :: riemann_solve
     real(8), intent(out) :: max_wave_speed
     logical, intent(in), optional :: verbose_flag
@@ -88,7 +89,7 @@ contains
             (2.d0*gamma_const)*(PsiR-1.d0)+1.d0)),max_wave_speed)
     end if
     if(verbose)write(*,*) Ustar , DstarL , DstarR
-    call sample(0.D0,left,right,Pstar,Ustar,DstarL,DstarR,riemann_solve,verbose)
+    call sample(0.D0,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,riemann_solve,verbose)
     if(verbose)write(*,*)"RiemannSolve = ", riemann_solve
   end function riemann_solve
 
@@ -150,9 +151,9 @@ contains
     end if
   end function beta
 
-  subroutine sample(x,left,right,Pstar,Ustar,DstarL,DstarR,out,verbose)
+  subroutine sample(x,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,out,verbose)    
     implicit none
-    real(8), dimension(:), intent(in) :: left, right
+    real(8), dimension(:), intent(in) :: left, right, geom_avg
     real(8), intent(in) :: Pstar, Ustar, DstarL, DstarR, x
     real(8), dimension(:) , intent(out) :: out
     logical, intent(in) :: verbose
@@ -162,7 +163,7 @@ contains
     logical :: test_flag = .false.
     real(8) :: Uavg
     if(verbose) test_flag = .true.
-    Uavg = .5d0*(left(15)+right(15)) ! The average of the normal grid velocity
+    Uavg = geom_avg(15) ! The average of the normal grid velocity
     PsiL = Pstar/left(1)
     PsiR = Pstar/right(1)
     aL   = sqrt(gamma_const* left(1)/ left(2))
@@ -340,49 +341,58 @@ contains
     end if
   end subroutine grid_coords
   
-  subroutine vels_transform(in, matrix)
-    real(8), dimension(21), intent(inout) :: in
-    real(8), dimension(3,3), intent(in) :: matrix
-    in(3:5) = matmul(matrix,in(3:5))
-    in(15:17) = matmul(matrix,in(15:17))
-  end subroutine vels_transform
-    
   subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
 ! Advance the solution using the integral form of the equations
 ! This subroutine assumes that main is the full array of primitive variables. main 
 ! must also include the boundary cell values. That is, main contains a 0-index and 
 ! an n + 1 index containing the contents prescribed by the boundary conditions.
     implicit none
-    real(8), dimension(21,nx+2*bcextent,ny+2*bcextent,nz+2*bcextent), intent(inout) :: main
+    real(8), dimension(21,-1*bcextent:nx+bcextent-1,-1*bcextent:ny+bcextent-1,&
+         -1*bcextent:nz+bcextent-1), intent(inout) :: main
 !f2py intent(in,out) :: main
     real(8), intent(in), optional :: dt_in
     real(8), intent(in), optional :: CFL
     integer, intent(in) :: nx,ny,nz,bcextent
     integer :: i, j, k
-    real(8), dimension(14,3,nx+1,ny+1,nz+1) :: fluxes
+!    real(8), dimension(14,3,nx+1,ny+1,nz+1) :: fluxes
+    real(8), dimension(14,0:nx,0:ny-1,0:nz-1) :: fluxx
+    real(8), dimension(14,0:nx-1,0:ny,0:nz-1) :: fluxy
+    real(8), dimension(14,0:nx-1,0:ny-1,0:nz) :: fluxz
     real(8), dimension(14,nx,ny,nz) :: temp
     real(8) :: max_wave_speed, dt, max_dt_grid
     real(8), dimension(3) :: gradXi, gradEta, gradZeta
-    real(8), dimension(5) :: junk
-    fluxes = 0.d0
-    do k = 1, nz + 1
-       do j = 1, ny + 1
-          do i = 1, nx + 1
-             fluxes( 1: 5,1,i,j,k) = flux(riemann_solve(main(:,i,j+1,k+1),&
-                  main(:,i+1,j+1,k+1),max_wave_speed),&
-                  .5d0*(main(:,i,j+1,k+1)+main(:,i+1,j+1,k+1)),1)
-             fluxes( 1: 5,2,i,j,k) = flux(riemann_solve(main(:,i+1,j,k+1),&
-                  main(:,i+1,j+1,k+1),max_wave_speed),&
-                  .5d0*(main(:,i+1,j,k+1)+main(:,i+1,j+1,k+1)),2)
-             fluxes( 1: 5,3,i,j,k) = flux(riemann_solve(main(:,i+1,j+1,k),&
-                  main(:,i+1,j+1,k+1),max_wave_speed),&
-                  .5d0*(main(:,i+1,j+1,k)+main(:,i+1,j+1,k+1)),3)
-             fluxes( 6: 8,1,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+&
-                  main(15:17,i,j+1,k+1))
-             fluxes( 9:11,2,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+&
-                  main(15:17,i+1,j,k+1))
-             fluxes(12:14,3,i,j,k) = 0.5d0*(main(15:17,i+1,j+1,k+1)+&
-                  main(15:17,i+1,j+1,k))
+    real(8), dimension(3) :: GradX, GradY, GradZ
+    real(8), dimension(9) :: geom_avg
+    real(8), dimension(3,3) :: dXidX, dXdXi
+    real(8), dimension(5) :: interface_vars
+    real(8), dimension(21) :: StateL, StateR
+    real(8), dimension(14) :: junk
+  ! Riemann_solve expects the left and right states to express velocities in
+  ! grid-oriented components: normal, tangential, tangential.
+    do k = 0, nz-1
+       do j = 0, ny-1
+          do i = 0, nx
+             call compute_fluxes(main(1:5,i-1,j,k), main(1:5,i,j,k),&
+                  .5d0*(main(:,i-1,j,k)+main(:,i,j,k)),fluxx(:,i,j,k),&
+                  1,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
+          end do
+       end do
+    end do
+    do k = 0, nz-1
+       do j = 0, ny
+          do i = 0, nx-1
+             call compute_fluxes(main(1:5,i,j-1,k), main(1:5,i,j,k),&
+                  .5d0*(main(:,i,j-1,k)+main(:,i,j,k)),fluxy(:,i,j,k),&
+                  2,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta],debug_flag=.true.)
+          end do
+       end do
+    end do
+    do k = 0, nz
+       do j = 0, ny-1
+          do i = 0, nx-1
+             call compute_fluxes(main(1:5,i,j,k-1), main(1:5,i,j,k),&
+                  .5d0*(main(:,i,j,k-1)+main(:,i,j,k)),fluxz(:,i,j,k),&
+                  3,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
           end do
        end do
     end do
@@ -391,8 +401,8 @@ contains
        dt = dt_in
     elseif(CFL>0.d0)then
        dt = min(CFL/max_wave_speed,max_dt)
-       dt = min(maxval((main(6,2,2:ny+1,2:nz+1)-main(18,2,2:ny+1,2:nz+1))&
-            /main(15,2,2:ny+1,2:nz+1)),dt)
+       dt = min(maxval((main(6,0,0:ny-1,0:nz-1)-main(18,0,0:ny-1,0:nz-1))&
+            /main(15,0,0:ny-1,0:nz-1)),dt)
     else
        write(*,*) "Error in Godunov prim_update, no time step information given"
        read(*,*)
@@ -402,67 +412,238 @@ contains
 
 !!$    write(*,*) "I need to implement a system to keep the grid from advancing too far in a single step!"
 !!$    stop
-    call primtocons(main(:,2:nx+1,2:ny+1,2:nz+1),nx,ny,nz)
-    main(1:14,2:nx+1,2:ny+1,2:nz+1) = main(1:14,2:nx+1,2:ny+1,2:nz+1) - (&
-         (fluxes(:,1,2:nx+1,:,:)-fluxes(:,1,1:nx,:,:))*deta*dzeta + &
-         (fluxes(:,2,:,2:ny+1,:)-fluxes(:,2,:,1:ny,:))*dxi*dzeta + &
-         (fluxes(:,3,:,:,2:nz+1)-fluxes(:,3,:,:,1:nz))*dxi*deta &
+!!$    write(*,*) "Compute fluxes inputs:"
+!!$    write(*,*) "Left state = "
+!!$    write(*,*) main(1:5,0,0,0)
+!!$    write(*,*) "Center state = "
+!!$    write(*,*) main(1:5,0,1,0)
+!!$    write(*,*) "Right state = "
+!!$    write(*,*) main(1:5,0,2,0)
+!!$    write(*,*) "Left interface = "
+!!$  subroutine compute_fluxes(inL, inR, geom_avg, flux_vec, case_no,&
+!!$       max_wave_speed,dt,dV_in,debug_flag)
+!!$    write(*,*) 
+    call compute_fluxes(main(1:5,0,0,0),main(1:5,0,1,0),&
+         .5d0*(main(:,0,0,0)+main(:,0,1,0)), junk, 2, max_wave_speed,&
+         dt,[dxi,deta,dzeta],debug_flag=.false.)
+!!$    write(*,*) "Right interface = "
+    call compute_fluxes(main(1:5,0,1,0),main(1:5,0,2,0),&
+         .5d0*(main(:,0,1,0)+main(:,0,2,0)), junk, 2, max_wave_speed,&
+         dt,[dxi,deta,dzeta],debug_flag=.false.)
+!!$    
+!!$    write(*,*) "Geometry = "
+!!$    write(*,*) .5d0*(main(6:14,1,2,1)+main(6:14,1,1,1))
+!!$    write(*,*) "dV = ", [dxi,deta,dzeta]
+!!$    write(*,*) "Grid motion = "
+!!$    write(*,*) main(15:17,0,0,0)
+!!$    write(*,*) main(15:17,0,1,0)
+!!$    write(*,*) main(15:17,0,2,0)
+!!$    write(*,*) "Left flux = "
+!!$    write(*,*) fluxy(1:5,0,1,0)
+!!$    write(*,*) "Right flux = "
+!!$    write(*,*) fluxy(1:5,0,2,0)
+!!$    write(*,*) "Total change in conservative variables (y):"
+!!$    write(*,*) "( Mass, Momentum(x), Momentum(y), Momentum(z), Energy)"
+!!$    write(*,*) - ( &
+!!$         (fluxy(1:5,0,2,0)-fluxy(1:5,0,1,0)) &
+!!$         )
+!!$    read(*,*)
+!!!$             call compute_fluxes(main(1:5,i,j,k-1), main(1:5,i,j,k),&
+!!!$                  .5d0*(main(:,i,j,k-1)+main(:,i,j,k)),fluxz(:,i,j,k),&
+!!!$                  3,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
+    call primtocons(main(:,0:nx-1,0:ny-1,0:nz-1),nx,ny,nz)
+    main(1:14,0:nx-1,0:ny-1,0:nz-1) = main(1:14,0:nx-1,0:ny-1,0:nz-1) - (&
+         (fluxx(:,1:nx,:,:)-fluxx(:,0:nx-1,:,:))*deta*dzeta + &
+         (fluxy(:,:,1:ny,:)-fluxy(:,:,0:ny-1,:))*dxi*dzeta + &
+         (fluxz(:,:,:,1:nz)-fluxz(:,:,:,0:nz-1))*dxi*deta &
          )*dt*dV_inv
-    call constoprim(main(:,2:nx+1,2:ny+1,2:nz+1),nx,ny,nz)
+
+    call constoprim(main(:,0:nx-1,0:ny-1,0:nz-1),nx,ny,nz)
 ! Update grid velocity
 !!$    call grid_velocity_update(main)
-!!$    main(15:17,:,:,:) = main(3:5,:,:,:)*.25d0
+    main(15:17,:,:,:) = main(3:5,:,:,:)*.25d0
 ! Update grid position
-    main(18:20,2:nx+1,2:ny+1,2:nz+1) = main(18:20,2:nx+1,2:ny+1,2:nz+1) + &
-         main(15:17,2:nx+1,2:ny+1,2:nz+1)*dt
+    main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1) + &
+         main(15:17,0:nx-1,0:ny-1,0:nz-1)*dt
 ! Update extra variables
-  do k = 2, nz+1
-     do j = 2, ny+1
-        do i = 2, nx+1
+  do k = 0, nz-1
+     do j = 0, ny-1
+        do i = 0, nx-1
            main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
         end do
      end do
   end do
   end subroutine prim_update
 
+  subroutine compute_fluxes(inL, inR, geom_avg, flux_vec, case_no,&
+       max_wave_speed,dt,dV_in,debug_flag)
+    implicit none
+    real(8), dimension(:), intent(in) :: inL, inR
+    real(8), dimension(5) :: StateL, StateR
+    real(8), dimension(:) :: geom_avg
+    real(8), dimension(3),intent(in) :: dV_in
+    real(8) :: dA, dV_inv
+    real(8),intent(in) :: dt
+    integer, intent(in) :: case_no
+    logical, intent(in), optional :: debug_flag
+    real(8), dimension(:), intent(out) :: flux_vec
+    real(8), intent(inout) :: max_wave_speed
+    real(8), dimension(5) :: interface_vars
+    real(8), dimension(3) :: GradXi, GradEta, GradZeta
+    real(8), dimension(3) :: GradX, GradY, GradZ
+    real(8), dimension(3,3) :: dX_dXi_u, dXi_dX_u
+    real(8) :: temp_wave_speed
+    integer, dimension(3,3) :: row_ops_mat
+    StateL = inL
+    StateR = inR
+    flux_vec = 0.d0
+    dV_inv = 1.d0/(product(dV_in))
+    call ComputationalGrads(geom_avg(6:14),Jacobian(geom_avg(6:14)),&
+         GradXi,GradEta,gradZeta)
+    GradX = geom_avg(6:12:3)
+    GradY = geom_avg(7:13:3)
+    GradZ = geom_avg(8:14:3)
+    ! Create normalized transformation matrices
+    ! These matrices are given as:
+    ! dXi_dX = | GradXi(1)  GradEta(1)  GradZeta(1) |
+    !          | GradXi(2)  GradEta(2)  GradZeta(2) |
+    !          | GradXi(3)  GradEta(3)  GradZeta(3) |
+    ! However, when computing fluxes for the eta and zeta directions,
+    ! these must be reordered to fit with the riemann solver, which 
+    ! requires that vector components be given as | normal, tangential, tangential |.
+    ! dX_dXi begins as the matrix inverse of dXi_dX, but this re-ordering,
+    ! corresponding to elementary column operations, affects this inverse
+    ! property. In order to mirror this effect, dX_dXi must also be 
+    ! re-ordered, though with row operations instead. 
+    dXi_dX_u = GradstoMatrix(GradXi/sqrt(sum(GradXi**2)),&
+         GradEta/sqrt(sum(GradEta**2)),GradZeta/sqrt(sum(GradZeta**2)))
+    dX_dXi_u = GradstoMatrix(GradX/sqrt(sum(GradX**2)),&
+         GradY/sqrt(sum(GradY**2)),GradZ/sqrt(sum(GradZ**2)))
+    select case(case_no)
+    case(1)
+       row_ops_mat = reshape([&
+            1,0,0,&
+            0,1,0,&
+            0,0,1],&
+            [3,3])
+       flux_vec(6:8) = -geom_avg(15:17)
+       dA = dV_in(2)*dV_in(3)
+    case(2)
+       row_ops_mat = reshape([&
+            0,1,0,&
+            0,0,1,&
+            1,0,0],&
+            [3,3])
+       flux_vec(9:11) = -geom_avg(15:17)
+       dA = dV_in(1)*dV_in(3)
+    case(3)
+       row_ops_mat = reshape([&
+            0,0,1,&
+            1,0,0,&
+            0,1,0],&
+            [3,3])
+       flux_vec(12:14) = -geom_avg(15:17)
+       dA = dV_in(1)*dV_in(2)
+    case default
+       write(*,*) "Invalid case_no in compute_fluxes -- case_no = ",case_no
+       stop
+    end select
+    dXi_dX_u = matmul(dXi_dX_u,transpose(row_ops_mat))
+    dX_dXi_u = matmul(row_ops_mat,dX_dXi_u)
+    if(maxval(matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3]))>1d-14)then
+       write(*,*) "Inverses not working!"
+       write(*,*) 
+       write(*,*) dXi_dX_u
+       write(*,*) dX_dXi_u
+       read(*,*)
+    end if
+    StateL(3:5) = matmul(dXi_dX_u,StateL(3:5))
+    StateR(3:5) = matmul(dXi_dX_u,StateR(3:5))
+    geom_avg(15:17) = matmul(dXi_dX_u,geom_avg(15:17))
+    interface_vars = riemann_solve(StateL,StateR,geom_avg,temp_wave_speed)
+    interface_vars(3:5) = matmul(dX_dXi_u,interface_vars(3:5))
+!!$    write(*,*) "Interface = "
+!!$    write(*,*) interface_vars
+    geom_avg(15:17) = matmul(dX_dXi_u,geom_avg(15:17))
+!!$    geom_avg(6:14) = geom_avg(6:14)-flux_vec(6:14)*dt*dV_inv
+!!$    flux_vec(6:14) = 0.d0
+    flux_vec(1:5) = flux(interface_vars,geom_avg,case_no)
+    max_wave_speed = max(max_wave_speed,temp_wave_speed)
+  end subroutine compute_fluxes
+
   function flux(in,geom_avg,case_no)
     implicit none
     real(8), dimension(:), intent(in) :: in, geom_avg
     integer, intent(in) :: case_no
     real(8), dimension(5) :: flux
-    real(8) :: D, grad(3), J, Jinv
+    real(8) :: D, grads(3,3), grad(3), J, Jinv
 !!$    write(*,*) "Got this far"
-    J = geom_avg(21)!Jacobian(geom_avg(6:14))
+    J = geom_avg(21)
+    J = Jacobian(geom_avg(6:14))
     Jinv = 1.d0/geom_avg(21)
-    select case(case_no)
-    case(1)
-       grad = [&
-            geom_avg(10)*geom_avg(14) - geom_avg(11)*geom_avg(13) , &
-            geom_avg(11)*geom_avg(12) - geom_avg( 9)*geom_avg(14) , &
-            geom_avg( 9)*geom_avg(13) - geom_avg(10)*geom_avg(12) ]*Jinv
-    case(2)
-       grad = [&
-            geom_avg( 8)*geom_avg(13) - geom_avg( 7)*geom_avg(14) , &
-            geom_avg( 6)*geom_avg(14) - geom_avg( 8)*geom_avg(12) , &
-            geom_avg( 7)*geom_avg(12) - geom_avg( 6)*geom_avg(13) ]*Jinv
-    case(3)
-       grad = [&
-            geom_avg( 7)*geom_avg(11) - geom_avg( 8)*geom_avg(10) , &
-            geom_avg( 8)*geom_avg( 9) - geom_avg( 6)*geom_avg(11) , &
-            geom_avg( 6)*geom_avg(10) - geom_avg( 7)*geom_avg( 9) ]*Jinv
-!!$    case default
-!!$       write(*,*) "Error in flux -- invalid case_no: ",case_no
-    end select
-    D = sum(([ in(3), in(4), in(5) ] - [ geom_avg(15), geom_avg(16), geom_avg(17) ])*grad)
+    call ComputationalGrads(geom_avg(6:14),J,grads(:,1),grads(:,2),grads(:,3))
+    grad = grads(:,case_no)
+    D = sum(([ in(3), in(4), in(5) ] - &
+         [ geom_avg(15), geom_avg(16), geom_avg(17) ])*grad)
     flux = [&
          in(2)*J*D, &
          in(2)*J*D*in(3) + J*grad(1)*in(1), &
          in(2)*J*D*in(4) + J*grad(2)*in(1), &
          in(2)*J*D*in(5) + J*grad(3)*in(1), &
          in(2)*J*D*energy_func(in(1:5)) + J*sum(grad*in(3:5))*in(1) ]
+!!$    write(*,*) "J = ", J
+!!$    write(*,*) "D = ", D
+!!$    write(*,*) "e = ", energy_func(in(1:5))
+!!$    write(*,*) "v = ", in(3:5)
+!!$    write(*,*) "V = ", geom_avg(15:17)
+!!$    write(*,*) "grad = ", grad
+!!$    write(*,*) "Energy term = ", J*in(2)*D*energy_func(in(1:5))
+!!$    write(*,*) "Case No. = ", case_no
   end function flux
 
 end module Godunov
+
+program Godunov_tester
+  use Godunov
+  implicit none
+  real(8), dimension(21,3,4,3) :: main
+  real(8), dimension(3) :: gradxi, gradeta, gradzeta
+  integer :: i, j
+
+  main( 1,:,:,:) = 1.d0
+  main( 2,:,:,:) = 1.d0
+  main( 3,:,:,:) = 2.4d0*sqrt(1.4d0*main(1,:,:,:)/main(2,:,:,:))
+  main( 4,:,:,:) = 0.d0
+  main( 5,:,:,:) = 0.d0
+  main( 6,:,:,:) = 1.d0/99.d0
+  main( 7,:,:,:) = 0.d0
+  main( 8,:,:,:) = 0.d0
+  main( 9,:,:,:) = 0.d0
+  main(10,:,:,:) = 1.d0/99.d0
+  main(11,:,:,:) = 0.d0
+  main(12,:,:,:) = 0.d0
+  main(13,:,:,:) = 0.d0
+  main(14,:,:,:) = 1.d0
+  main(15,:,:,:) = .25d0*main(3,:,:,:)
+  main(16,:,:,:) = 0.d0
+  main(17,:,:,:) = 0.d0
+  main(18,:,:,:) = 0.d0
+  do j = 2, size(main,3)-1
+     do i = 2, size(main,2)-1
+        main(19,i,j,2) = 1.d0/100.d0*(i-1.5d0)
+        main(20,i,j,2) = 0.d0
+        main(21,i,j,2) = Jacobian(main(6:14,i,j,2))
+     end do
+  end do
+  main(1,:,size(main,3)/2+1:size(main,3),:) = .25d0
+  main(2,:,size(main,3)/2+1:size(main,3),:) = .5d0
+  main(3,:,size(main,3)/2+1:size(main,3),:) = 7.d0*&
+       sqrt(1.4d0*.25d0/.5d0)
+  main(15,:,:,:) = .25d0*main(3,:,:,:)
+  call prim_update(main,1,.001d0,.25d0,size(main,2)-2,size(main,3)-2,&
+       size(main,4)-2)
+
+end program Godunov_tester
 !!$module grid_velocity
 !!$contains
 !!$  subroutine grid_velocity_update(main)

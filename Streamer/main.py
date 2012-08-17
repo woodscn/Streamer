@@ -81,24 +81,35 @@ class Stream(object):
         for face in bounds:
             for patch in face:
                 if patch.type is 'Inflow':
+                    if not (patch.which_face == 'left' 
+                            or patch.which_face == 'right'):
+                        print "Inflow condition detected on eta or zeta boundary!"
+                        sysexit()
                     inflows.append(patch)
-        try:
-            if len(inflows)>1:
-                raise IndexError('More than 1 Inflow condition!')
-        except IndexError:
-            print "Multiple Inflow conditions not supported!"
-            sysexit()
-        initial_condition = inflows[0].flow_state.copy()
+            sorted(inflows, key=lambda inflow: min(inflow.bounding_points[:][2]))
+#        try:
+#            if len(inflows)>1:
+#                raise IndexError('More than 1 Inflow condition!')
+#        except IndexError:
+#            print "Multiple Inflow conditions not supported!"
+#            sysexit()
+        initial_condition = numpy.concatenate(
+            [inflow.flow_state.copy() for inflow in inflows],axis=1)
         return initial_condition
 #    def _find_computational_coords(self,
         
     def advance(self,dt,opts=Options()):
         opts.xi_offset = self.xi_offset
+#        import pdb;pdb.set_trace()
         self.bounds(self.main_data,opts)
+        for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
+            if numpy.isnan(element):
+                print ind
+                import pdb;pdb.set_trace()
 #        print self.main_data[1,:,:,1]
 #        import pdb;pdb.set_trace()
         self.main_data = Godunov.prim_update(
-            numpy.asfortranarray(self.main_data),cfl=.25,bcextent=1,
+            numpy.asfortranarray(self.main_data),dt_in=.001,cfl=.25,bcextent=1,
             nx=self.main_data.shape[1]-2,
             ny=self.main_data.shape[2]-2,
             nz=self.main_data.shape[3]-2)
@@ -137,8 +148,8 @@ def run(input_file,interactive=False):
     for step in range(50000):
         print "Time step = ",step
         for stream in streams:
-            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:
-                import pdb;pdb.set_trace()
+#            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:
+#                import pdb;pdb.set_trace()
             stream.advance(dt)
     cgns.write_initial_data(stream.main_data,'test.cgns')
     if interactive_flag:

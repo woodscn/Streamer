@@ -9,6 +9,15 @@
       real(kind=8) jacobianf2pywrap
       jacobianf2pywrap = jacobian(in)
       end subroutine f2pywrap_generalutilities_jacobian
+      subroutine f2pywrap_generalutilities_gradstomatrix (gradstomatrixf&
+     &2pywrap, grad1, grad2, grad3)
+      use generalutilities, only : gradstomatrix
+      real(kind=8) grad1(3)
+      real(kind=8) grad2(3)
+      real(kind=8) grad3(3)
+      real(kind=8) gradstomatrixf2pywrap(3,3)
+      gradstomatrixf2pywrap = gradstomatrix(grad1, grad2, grad3)
+      end subroutine f2pywrap_generalutilities_gradstomatrix
       
       subroutine f2pyinitgeneralutilities(f2pysetupfunc)
       use generalutilities, only : computationalgrads
@@ -19,11 +28,19 @@
       real(kind=8) jacobian
       real(kind=8) in(9)
       real(kind=8) jacobianf2pywrap
-      end subroutine f2pywrap_generalutilities_jacobian
+      end subroutine f2pywrap_generalutilities_jacobian 
+      subroutine f2pywrap_generalutilities_gradstomatrix (gradstomatrixf&
+     &2pywrap, gradstomatrix, grad1, grad2, grad3)
+      real(kind=8) grad1(3)
+      real(kind=8) grad2(3)
+      real(kind=8) grad3(3)
+      real(kind=8) gradstomatrix(3,3)
+      real(kind=8) gradstomatrixf2pywrap(3,3)
+      end subroutine f2pywrap_generalutilities_gradstomatrix
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(computationalgrads,f2pywrap_generalutilities_ja&
-     &cobian,twodgradient)
+     &cobian,f2pywrap_generalutilities_gradstomatrix,twodgradient)
       end subroutine f2pyinitgeneralutilities
 
       subroutine f2pywrap_boundaryconditionsstuff_wallreflect (wallrefle&
