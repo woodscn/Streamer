@@ -3,19 +3,34 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
     opts={'debug':'--debug --noopt --noarch','run':'--opt=-O3'}
     config = Configuration('Streamer',parent_package,top_path)
     config.add_extension('Godunov',prepend_GU("Godunov.f90"),
-        extra_compile_args=["-fbounds-check"])
-    config.add_extension('BoundaryConditionsStuff',
-                         prepend_GU("BoundaryConditionsStuff.f90"),
-                         extra_compile_args=["-fbounds-check"])
-
+                         extra_compile_args=["-fbounds-check"],
+                         include_dirs=['/usr/local/include','/usr/include'],
+                         libraries=['lapack'],
+                         library_dirs=['/usr/local/lib','/usr/lib']
+                         )
+#    config.add_extension('BoundaryConditionsStuff',
+#                         prepend_GU("BoundaryConditionsStuff.f90"),
+#                         extra_compile_args=["-fbounds-check"],
+#                         include_dirs=['/usr/local/include','/usr/include'],
+#                         libraries=['lapack'],
+#                         library_dirs=['/usr/local/lib','/usr/lib']
+#                         )
     config.add_extension('STLA_IO','stla_io.f90',        
-                         extra_compile_args=["-fbounds-check"])
+                         extra_compile_args=["-fbounds-check"],
+                         include_dirs=['/usr/local/include','/usr/include'],
+                         libraries=['lapack'],
+                         library_dirs=['/usr/local/lib','/usr/lib']
+                         )
     config.add_extension('TimeAdvancementStuff',
                          prepend_GU("TimeAdvancementStuff.f90"),
-        extra_compile_args=["-fbounds-check"])
+                         extra_compile_args=["-fbounds-check"],
+                         include_dirs=['/usr/local/include','/usr/include'],
+                         libraries=['lapack'],
+                         library_dirs=['/usr/local/lib','/usr/lib']
+                         )
     config.add_extension('CGNS_Interface','cgns_interface.f90',
                          include_dirs=['/usr/local/include','/usr/include'],
-                         libraries=['cgns'],
+                         libraries=['cgns','lapack'],
                          library_dirs=['/usr/local/lib','/usr/lib'],
                          extra_compile_args=["-fbounds-check"])
     return config

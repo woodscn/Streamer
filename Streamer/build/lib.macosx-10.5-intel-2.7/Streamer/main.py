@@ -102,7 +102,7 @@ class Stream(object):
         opts.xi_offset = self.xi_offset
 #        import pdb;pdb.set_trace()
         self.bounds(self.main_data,opts)
-        for ind,element in numpy.ndenumerate(self.main_data):
+        for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
             if numpy.isnan(element):
                 print ind
                 import pdb;pdb.set_trace()

@@ -1,5 +1,5 @@
-GFORTRAN module version '6' created from GeneralUtilities.f90 on Mon Aug  6 11:00:47 2012
-MD5:32646bff74b3fc6334e8096790064db2 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '6' created from GeneralUtilities.f90 on Fri Aug 31 20:20:45 2012
+MD5:c98b305cebd5e598f671e756fcc5ea2b -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () () ()
 () () ())
@@ -17,79 +17,132 @@ MD5:32646bff74b3fc6334e8096790064db2 -- If you edit this, you'll get what you de
 (2 'computationalgrads' 'generalutilities' 'computationalgrads' 1 ((
 PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE) (
 UNKNOWN 0 0 0 UNKNOWN ()) 3 0 (4 5 6 7 8) () 0 () () () 0 0)
-9 'generalutilities' 'generalutilities' 'generalutilities' 1 ((MODULE
+9 'eps' 'generalutilities' 'eps' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.16849b86a12b9b@-11') () 0 () () () 0
+0)
+10 'epss' 'generalutilities' 'epss' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.68db8bac710cb4@-3') () 0 () () () 0 0)
+11 'gamma1' 'generalutilities' 'gamma1' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.28000000000002@1') () 0 () () () 0 0)
+12 'gamma2' 'generalutilities' 'gamma2' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.66666666666660@0') () 0 () () () 0 0)
+13 'gamma3' 'generalutilities' 'gamma3' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.24924924924922@0') () 0 () () () 0 0)
+14 'gamma4' 'generalutilities' 'gamma4' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.70000000000008@1') () 0 () () () 0 0)
+15 'gamma5' 'generalutilities' 'gamma5' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.2aaaaaaaaaaaa8@0') () 0 () () () 0 0)
+16 'gamma6' 'generalutilities' 'gamma6' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.6aaaaaaaaaaaac@0') () 0 () () () 0 0)
+17 'gamma7' 'generalutilities' 'gamma7' 1 ((PARAMETER UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
+CONSTANT (REAL 8 0 0 REAL ()) 0 '0.70000000000008@1') () 0 () () () 0 0)
+18 'gamma_const' 'generalutilities' 'gamma_const' 1 ((PARAMETER
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL
+()) 0 0 () (CONSTANT (REAL 8 0 0 REAL ()) 0 '0.16666666666666@1') () 0 ()
+() () 0 0)
+19 'generalutilities' 'generalutilities' 'generalutilities' 1 ((MODULE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0) (UNKNOWN 0 0 0 UNKNOWN
 ()) 0 0 () () 0 () () () 0 0)
-10 'gradstomatrix' 'generalutilities' 'gradstomatrix' 1 ((PROCEDURE
+20 'gradstomatrix' 'generalutilities' 'gradstomatrix' 1 ((PROCEDURE
 UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 DIMENSION FUNCTION
-IMPLICIT_PURE ALWAYS_EXPLICIT) (REAL 8 0 0 REAL ()) 11 0 (12 13 14) (2 0
+IMPLICIT_PURE ALWAYS_EXPLICIT) (REAL 8 0 0 REAL ()) 21 0 (22 23 24) (2 0
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '3') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
-CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '3')) 10 () () () 0 0)
-15 'jacobian' 'generalutilities' 'jacobian' 1 ((PROCEDURE UNKNOWN-INTENT
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '3')) 20 () () () 0 0)
+25 'jacobian' 'generalutilities' 'jacobian' 1 ((PROCEDURE UNKNOWN-INTENT
 MODULE-PROC DECL UNKNOWN 0 0 FUNCTION IMPLICIT_PURE) (REAL 8 0 0 REAL ())
-16 0 (17) () 15 () () () 0 0)
-18 'twodgradient' 'generalutilities' 'twodgradient' 1 ((PROCEDURE
+26 0 (27) () 25 () () () 0 0)
+28 'metricinverse' 'generalutilities' 'metricinverse' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 DIMENSION FUNCTION
+ALWAYS_EXPLICIT) (REAL 8 0 0 REAL ()) 29 0 (30) (1 0 EXPLICIT (CONSTANT
+(INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
+'9')) 28 () () () 0 0)
+31 'metrictomatrix' 'generalutilities' 'metrictomatrix' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 DIMENSION FUNCTION
+IMPLICIT_PURE ALWAYS_EXPLICIT) (REAL 8 0 0 REAL ()) 32 0 (33) (2 0
+EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
+4 0 0 INTEGER ()) 0 '3') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '3')) 31 () () () 0 0)
+34 'twodgradient' 'generalutilities' 'twodgradient' 1 ((PROCEDURE
 UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE) (
-UNKNOWN 0 0 0 UNKNOWN ()) 19 0 (20 21 22 23 24 25 26) () 0 () () () 0 0)
+UNKNOWN 0 0 0 UNKNOWN ()) 35 0 (36 37 38 39 40 41 42) () 0 () () () 0 0)
+30 'metric' '' 'metric' 29 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0
+0 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
+'9')) 0 () () () 0 0)
+33 'metric' '' 'metric' 32 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0
+0 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
+'9')) 0 () () () 0 0)
 4 'metric' '' 'metric' 3 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
 '9')) 0 () () () 0 0)
 5 'jac' '' 'jac' 3 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-6 'gradxi' '' 'gradxi' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
-DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
-INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
-'3')) 0 () () () 0 0)
-7 'gradeta' '' 'gradeta' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0
+6 'grad_xi' '' 'grad_xi' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0
 0 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
 '3')) 0 () () () 0 0)
-8 'gradzeta' '' 'gradzeta' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN
+7 'grad_eta' '' 'grad_eta' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN
 0 0 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '3')) 0 () () () 0 0)
-17 'in' '' 'in' 16 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+8 'grad_zeta' '' 'grad_zeta' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN
+UNKNOWN 0 0 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '3')) 0 () () () 0 0)
+27 'in' '' 'in' 26 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
 '9')) 0 () () () 0 0)
-12 'grad1' '' 'grad1' 11 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+22 'grad1' '' 'grad1' 21 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
 '3')) 0 () () () 0 0)
-13 'grad2' '' 'grad2' 11 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+23 'grad2' '' 'grad2' 21 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
 '3')) 0 () () () 0 0)
-14 'grad3' '' 'grad3' 11 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+24 'grad3' '' 'grad3' 21 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
 '3')) 0 () () () 0 0)
-20 'in' '' 'in' 19 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+36 'in' '' 'in' 35 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0 INTEGER ()) 0
-23 ()) (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4
-0 0 INTEGER ()) 0 24 ())) 0 () () () 0 0)
-21 'dx' '' 'dx' 19 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
+39 ()) (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4
+0 0 INTEGER ()) 0 40 ())) 0 () () () 0 0)
+37 'dx' '' 'dx' 35 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-22 'dy' '' 'dy' 19 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
+38 'dy' '' 'dy' 35 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-23 'nx' '' 'nx' 19 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
+39 'nx' '' 'nx' 35 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-24 'ny' '' 'ny' 19 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
+40 'ny' '' 'ny' 35 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-25 'gradx' '' 'gradx' 19 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+41 'gradx' '' 'gradx' 35 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0 INTEGER ()) 0
-23 ()) (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4
-0 0 INTEGER ()) 0 24 ())) 0 () () () 0 0)
-26 'grady' '' 'grady' 19 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+39 ()) (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4
+0 0 INTEGER ()) 0 40 ())) 0 () () () 0 0)
+42 'grady' '' 'grady' 35 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0 INTEGER ()) 0
-23 ()) (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4
-0 0 INTEGER ()) 0 24 ())) 0 () () () 0 0)
+39 ()) (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4
+0 0 INTEGER ()) 0 40 ())) 0 () () () 0 0)
 )
 
-('computationalgrads' 0 2 'generalutilities' 0 9 'gradstomatrix' 0 10
-'jacobian' 0 15 'twodgradient' 0 18)
+('computationalgrads' 0 2 'eps' 0 9 'epss' 0 10 'gamma1' 0 11 'gamma2' 0
+12 'gamma3' 0 13 'gamma4' 0 14 'gamma5' 0 15 'gamma6' 0 16 'gamma7' 0 17
+'gamma_const' 0 18 'generalutilities' 0 19 'gradstomatrix' 0 20 'jacobian'
+0 25 'metricinverse' 0 28 'metrictomatrix' 0 31 'twodgradient' 0 34)

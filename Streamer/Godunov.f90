@@ -1,70 +1,60 @@
-module Godunov
+module Riemann
   use GeneralUtilities
-  implicit none
-!!$  integer, parameter :: SGL = 4
-!!$  integer, parameter :: DBL = 8
-   real(8), parameter :: EPS = 5.d-15
-   real(8), parameter :: max_dt = 1.d0
-!!$  integer, parameter :: eqn_of_state = 1 ! 1 = Ideal Gas Law
-!!$  integer, parameter :: prim_length = 21 ! Number of elements in primitive variables vector
-!!$  integer, parameter :: cons_length =  5 ! Number of elements in conservative variables vector
-  real(8), parameter :: gamma_const = 1.4d0
-  real(8), parameter :: gamma1 = 1.d0/(gamma_const-1.d0)
-  real(8), parameter :: gamma2 = (gamma_const-1.d0)
-  real(8), parameter :: gamma3 = (gamma_const - 1.d0)/(2.d0*gamma_const)
-  real(8), parameter :: gamma4 = 1.d0/gamma3
-  real(8), parameter :: gamma5 = (gamma_const-1.d0)/(gamma_const+1.d0)
-  real(8), parameter :: gamma6 = 1.d0/(gamma_const+1.d0)
-  real(8), parameter :: gamma7 = 1.d0/gamma3
-!!$  integer :: nx, ny, nz
-  real(8), parameter :: dxi   = 1.d0
-  real(8), parameter :: deta  = 1.d0
-  real(8), parameter :: dzeta = 1.d0
-  real(8), parameter :: dxi_inv   = 1.d0/dxi
-  real(8), parameter :: deta_inv  = 1.d0/deta
-  real(8), parameter :: dzeta_inv = 1.d0/dzeta
-  real(8), parameter :: dV_inv = dxi_inv*deta_inv*dzeta_inv
-contains
-!  integer elemental function gt0(x)
-!    implicit none
-!    real(8), intent(in) :: x
-!    gt0 = ishft( int(sign(1.d0,x) + 1) , -1 )
-!  end function gt0
+  logical :: verbose = .false.
+  logical :: riemann_test_flag 
+  logical :: test_flag = .false.
+  real(8), dimension(4) :: test_sol
 
-  function riemann_solve( left, right, geom_avg, max_wave_speed, verbose_flag, t_out )
+contains
+
+  function riemann_solve( left, right, geom_avg, max_wave_speed, t_out )
+    ! Riemann_solve accepts two physical flow states of the form:
+    !     [ pressure, mass density, velocity_normal, velocity_tangential_1,
+    !       velocity_tangential_2 ]
+    !   as well as an average geometric state of the form:
+    !     [ pressure, density, v_norm, v_tan1, v_tan2, A, B, C, L, M, N, 
+    !       P, Q, R, U, V, W, x, y, z, J ]
+    ! Riemann_solve solves the 1-dimensional riemann problem given by 
+    !   the left and right states, as well as the grid motion U, V, W.
+    !   It returns the state value [ p, rho, v_norm, v_tan1, v_tan2 ] 
+    !   at x/t = 0. It also updates the maximum wavespeed encountered,
+    !   for use in computing an optimal time step. 
+    ! With some small updates, it is possible to have riemann_solve return
+    !   the flow state as an array for various values of x/t. This is more
+    !   useful for debugging, and is the purpose of the optional argument
+    !   t_out.
     implicit none
     real(8), dimension(5), intent(in) :: left, right
     real(8), dimension(21), intent(in) :: geom_avg
     real(8), dimension(5) :: riemann_solve
     real(8), intent(out) :: max_wave_speed
-    logical, intent(in), optional :: verbose_flag
     real(8), intent(in), optional :: t_out
     real(8) :: tout = 1.d0
-    logical :: verbose = .false.
     integer :: n
     integer, parameter :: nx = 1000
 
-    real(8) :: DL, PL, UL, VL, AL
-    real(8) :: DR, PR, UR, VR, AR
+    real(8) :: DL, PL, UL, VL, WL, AL
+    real(8) :: DR, PR, UR, VR, WR, AR
     real(8) :: Pstar, Ustar, DstarL, DstarR
     real(8) :: tol = 1.d-10, x
     real(8) :: PsiL, PsiR, temp=1.d0, fL, fR, dfL, dfR
     real(8), dimension(nx,5) :: data
 
-    if(present(verbose_flag))verbose=verbose_flag
     if(present(t_out)) tout = t_out
-!!$    left = tempL ; right = tempR
-    DL =  left(2) ; PL =  left(1) ; UL =  left(3) ; VL =  left(4)
-    DR = right(2) ; PR = right(1) ; UR = right(3) ; VR = right(4)
-
+    DL =  left(2) ; PL =  left(1) ; UL =  left(3) ; VL =  left(4) ; WL =  left(5)
+    DR = right(2) ; PR = right(1) ; UR = right(3) ; VR = right(4) ; WR = right(5)
     AL = sqrt(gamma_const*PL/DL) ; AR = sqrt(gamma_const*PR/DR)
+
     Pstar = guessp(left,right)
     if(verbose)write(*,*) "Initial guess P = " , Pstar
     temp = 1.d0 ; n = 0
     do while(abs(temp) .gt. tol)
-       if(verbose)write(*,*) n , "Pstar = " , Pstar; 
+       if(verbose)write(*,*) "Step ",n , "Pstar = " , Pstar; 
        n = n + 1
-       if(n .gt. 10)then ;  write(*,*) "Failed Convergence" ; stop ; end if
+       if(n .gt. 10)then 
+          write(*,*) "Failed Convergence" 
+          stop 
+       end if
        PsiL = Pstar/PL
        call u_fun( left,Pstar,fL,dfL)
        PsiR = Pstar/PR
@@ -76,6 +66,15 @@ contains
     Ustar = .5*(UR+fR+UL-fL)
     DstarL = beta(Pstar/PL)*DL
     DstarR = beta(Pstar/PR)*DR
+    if(test_flag)then
+       riemann_test_flag = sqrt(sum(([Pstar,Ustar,DstarL,DstarR]-test_sol)**2&
+            /test_sol)/4d0)>1d-4 ! Toro only give the results in significant figures
+!!$       if(riemann_test_flag)then
+!!$          write(*,*) [Pstar,Ustar,DstarL,DstarR]
+!!$          write(*,*) test_sol
+!!$          read(*,*)
+!!$       end if
+    end if
     if(PsiL<1.d0)then
        max_wave_speed = abs(left(3) - .5d0*(UL+UR) - aL)
     else
@@ -89,7 +88,7 @@ contains
             (2.d0*gamma_const)*(PsiR-1.d0)+1.d0)),max_wave_speed)
     end if
     if(verbose)write(*,*) Ustar , DstarL , DstarR
-    call sample(0.D0,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,riemann_solve,verbose)
+    call sample(0.D0,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,riemann_solve)
     if(verbose)write(*,*)"RiemannSolve = ", riemann_solve
   end function riemann_solve
 
@@ -151,12 +150,11 @@ contains
     end if
   end function beta
 
-  subroutine sample(x,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,out,verbose)    
+  subroutine sample(x,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,out)    
     implicit none
     real(8), dimension(:), intent(in) :: left, right, geom_avg
     real(8), intent(in) :: Pstar, Ustar, DstarL, DstarR, x
     real(8), dimension(:) , intent(out) :: out
-    logical, intent(in) :: verbose
     real(8) :: PsiL , SL , SR , DeltaL, DeltaR
     real(8) :: PsiR , aL , aR , betaL , betaR
     real(8) :: cL , cR , cLT , cLH , cRT , cRH , h
@@ -260,6 +258,114 @@ contains
        end if
     end if
   end subroutine sample
+end module Riemann
+
+module Riemann_tester
+  use Riemann
+  real(8), dimension(5) :: riemann_sol
+  real(8), dimension(21):: test_geom
+  real(8) :: mws_test
+  ! Though it's possible to do specific tests of the guessp algorithm,
+  ! it seems less-effective to do so, since a bad guess will still converge.
+!!!$  real(8), parameter :: guess_p_1 = 
+!!!$  real(8), parameter :: guess_p_2 = 
+!!!$  real(8), parameter :: guess_p_3 = 
+!!!$  real(8), parameter :: guess_p_4 = 
+!!!$  real(8), parameter :: guess_p_5 = 
+contains
+  integer function RieErrorReader(in)
+    implicit none
+    integer, intent(in) :: in
+    select case(in)
+    case(0)
+       write(*,*) "   All tests passed"
+    case(1)
+       write(*,*) "   Failure in one of the Riemann Star state checks"
+    case default
+       write(*,*) "   Unexpected error code"
+    end select
+  end function RieErrorReader
+
+  integer function RieTester()
+    implicit none
+    real(8), dimension(5) :: test_1_left
+    real(8), dimension(5) :: test_1_right
+    real(8), dimension(5) :: test_2_left
+    real(8), dimension(5) :: test_2_right
+    real(8), dimension(5) :: test_3_left
+    real(8), dimension(5) :: test_3_right
+    real(8), dimension(5) :: test_4_left
+    real(8), dimension(5) :: test_4_right
+    real(8), dimension(5) :: test_5_left
+    real(8), dimension(5) :: test_5_right
+    real(8), dimension(4) :: test_1_sol
+    real(8), dimension(4) :: test_2_sol
+    real(8), dimension(4) :: test_3_sol
+    real(8), dimension(4) :: test_4_sol
+    real(8), dimension(4) :: test_5_sol
+    RieTester = 0
+    test_1_left  = [1.d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    test_1_right = [.1d0, .125d0, 0.d0, 0.d0, 0.d0]
+    test_2_left  = [.4d0, 1.d0, -2.d0, 0.d0, 0.d0]
+    test_2_right = [.4d0, 1.d0, 2.d0, 0.d0, 0.d0]
+    test_3_left  = [1.d3, 1.d0, 0.d0, 0.d0, 0.d0]
+    test_3_right = [.01d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    test_4_left  = [.01d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    test_4_right = [1.d2, 1.d0, 0.d0, 0.d0, 0.d0]
+    test_5_left  = [460.894d0, 5.99924d0, 19.5975d0, 0d0, 0d0]
+    test_5_right = [46.095d0, 5.99242d0, -6.19633d0, 0d0, 0d0]
+    test_1_sol = [.30313d0, .92745d0, .42632d0, .26557d0]
+    test_2_sol = [.00189d0, .00000d0, .02185d0, .02185d0]
+    test_3_sol = [460.894d0, 19.5975d0, .57506d0, 5.99924d0]
+    test_4_sol = [46.095d0, -6.19633d0, 5.99242d0, .57511d0]
+    test_5_sol = [1691.64d0, 8.68975d0, 14.2823d0, 31.0426d0]
+    ! Test riemann_solve against the test problems from Toro. This only tests
+    ! whether Pstar, Ustar, DstarL and DstarR are correct.
+    test_flag = .true.
+    test_geom = [0d0,0d0,0d0,0d0,0d0,&
+         1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0,&
+         0d0,0d0,0d0,0d0,0d0,0d0,1d0]
+    test_sol = test_1_sol
+    riemann_sol = riemann_solve(test_1_left,test_1_right,test_geom,mws_test,1.d0)
+    if(riemann_test_flag) RieTester = 1
+    test_sol = test_2_sol
+    riemann_sol = riemann_solve(test_2_left,test_2_right,test_geom,mws_test,1.d0)
+    if(riemann_test_flag) RieTester = 1
+    test_sol = test_3_sol
+    riemann_sol = riemann_solve(test_3_left,test_3_right,test_geom,mws_test,1.d0)
+    if(riemann_test_flag) RieTester = 1
+    test_sol = test_4_sol
+    riemann_sol = riemann_solve(test_4_left,test_4_right,test_geom,mws_test,1.d0)
+    if(riemann_test_flag) RieTester = 1
+    test_sol = test_5_sol
+    riemann_sol = riemann_solve(test_5_left,test_5_right,test_geom,mws_test,1.d0)
+    if(riemann_test_flag) RieTester = 1
+    test_flag = .false.
+    
+    ! Test sample. This is the routine that uses the geometric information, and
+    ! is different from a standard Riemann problem.
+  end function RieTester
+end module Riemann_tester
+
+module Godunov
+  use GeneralUtilities
+  use Riemann
+  implicit none
+  real(8), parameter :: max_dt = 1.d0
+  real(8), parameter :: dxi   = 1.d0
+  real(8), parameter :: deta  = 1.d0
+  real(8), parameter :: dzeta = 1.d0
+  real(8), parameter :: dxi_inv   = 1.d0/dxi
+  real(8), parameter :: deta_inv  = 1.d0/deta
+  real(8), parameter :: dzeta_inv = 1.d0/dzeta
+  real(8), parameter :: dV_inv = dxi_inv*deta_inv*dzeta_inv
+
+contains
+!  integer elemental function gt0(x)
+!    implicit none
+!    real(8), intent(in) :: x
+!    gt0 = ishft( int(sign(1.d0,x) + 1) , -1 )
+!  end function gt0
 
   ! Computes specific energy, given the array [ p, rho, u, v, w ]
   real(8) function energy_func(in)
@@ -408,49 +514,6 @@ contains
        read(*,*)
        stop
     end if
-!!$    write(*,*) "Dt = ", dt
-
-!!$    write(*,*) "I need to implement a system to keep the grid from advancing too far in a single step!"
-!!$    stop
-!!$    write(*,*) "Compute fluxes inputs:"
-!!$    write(*,*) "Left state = "
-!!$    write(*,*) main(1:5,0,0,0)
-!!$    write(*,*) "Center state = "
-!!$    write(*,*) main(1:5,0,1,0)
-!!$    write(*,*) "Right state = "
-!!$    write(*,*) main(1:5,0,2,0)
-!!$    write(*,*) "Left interface = "
-!!$  subroutine compute_fluxes(inL, inR, geom_avg, flux_vec, case_no,&
-!!$       max_wave_speed,dt,dV_in,debug_flag)
-!!$    write(*,*) 
-    call compute_fluxes(main(1:5,0,0,0),main(1:5,0,1,0),&
-         .5d0*(main(:,0,0,0)+main(:,0,1,0)), junk, 2, max_wave_speed,&
-         dt,[dxi,deta,dzeta],debug_flag=.false.)
-!!$    write(*,*) "Right interface = "
-    call compute_fluxes(main(1:5,0,1,0),main(1:5,0,2,0),&
-         .5d0*(main(:,0,1,0)+main(:,0,2,0)), junk, 2, max_wave_speed,&
-         dt,[dxi,deta,dzeta],debug_flag=.false.)
-!!$    
-!!$    write(*,*) "Geometry = "
-!!$    write(*,*) .5d0*(main(6:14,1,2,1)+main(6:14,1,1,1))
-!!$    write(*,*) "dV = ", [dxi,deta,dzeta]
-!!$    write(*,*) "Grid motion = "
-!!$    write(*,*) main(15:17,0,0,0)
-!!$    write(*,*) main(15:17,0,1,0)
-!!$    write(*,*) main(15:17,0,2,0)
-!!$    write(*,*) "Left flux = "
-!!$    write(*,*) fluxy(1:5,0,1,0)
-!!$    write(*,*) "Right flux = "
-!!$    write(*,*) fluxy(1:5,0,2,0)
-!!$    write(*,*) "Total change in conservative variables (y):"
-!!$    write(*,*) "( Mass, Momentum(x), Momentum(y), Momentum(z), Energy)"
-!!$    write(*,*) - ( &
-!!$         (fluxy(1:5,0,2,0)-fluxy(1:5,0,1,0)) &
-!!$         )
-!!$    read(*,*)
-!!!$             call compute_fluxes(main(1:5,i,j,k-1), main(1:5,i,j,k),&
-!!!$                  .5d0*(main(:,i,j,k-1)+main(:,i,j,k)),fluxz(:,i,j,k),&
-!!!$                  3,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
     call primtocons(main(:,0:nx-1,0:ny-1,0:nz-1),nx,ny,nz)
     main(1:14,0:nx-1,0:ny-1,0:nz-1) = main(1:14,0:nx-1,0:ny-1,0:nz-1) - (&
          (fluxx(:,1:nx,:,:)-fluxx(:,0:nx-1,:,:))*deta*dzeta + &
@@ -550,11 +613,12 @@ contains
     end select
     dXi_dX_u = matmul(dXi_dX_u,transpose(row_ops_mat))
     dX_dXi_u = matmul(row_ops_mat,dX_dXi_u)
-    if(maxval(matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3]))>1d-14)then
+    if(maxval(matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3]))>EPS)then
        write(*,*) "Inverses not working!"
        write(*,*) 
        write(*,*) dXi_dX_u
        write(*,*) dX_dXi_u
+       write(*,*) matmul(dXi_dX_u,dX_dXi_u)
        read(*,*)
     end if
     StateL(3:5) = matmul(dXi_dX_u,StateL(3:5))
@@ -603,47 +667,153 @@ contains
 
 end module Godunov
 
-program Godunov_tester
+module Godunov_tester
+  ! Test the following routines:
+  ! function riemann_solve(left, right, geom_avg, max_wave_speed, verbose_flag, t_out)
+  ! function energy_func(in)
+  ! subroutine primtocons(main,nx,ny,nz)
+  ! subroutine constoprim(main,nx,ny,nz)
+  ! function invnorm3(in)
+  ! subroutine grid_coords(grad, normal, tangential1, tangential2)
+  ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
+  ! subroutine compute_fluxes(inL, inR, geom_avg, flux_vec, case_no,&
+  !      max_wave_speed,dt,dV_in,debug_flag)
+  ! function flux(in,geom_avg,case_no)
   use Godunov
-  implicit none
-  real(8), dimension(21,3,4,3) :: main
-  real(8), dimension(3) :: gradxi, gradeta, gradzeta
-  integer :: i, j
+contains
+  integer function GodErrorReader(in)
+    integer, intent(in) :: in
+    select case(in)
+    case(0) 
+       write(*,*) "   All tests passed"
+    case(1)
+       write(*,*) "   Primitive-Conservative mutual inverse test failed"
+    case(2)
+       write(*,*) "   Grid_coords failed to return an orthonormal system"
+    case(3)
+       write(*,*) "   Flux fails provided test problem"
+    case default
+       write(*,*) "   Unexpected error code"
+    end select
+    GodErrorReader = 0
+  end function GodErrorReader
 
-  main( 1,:,:,:) = 1.d0
-  main( 2,:,:,:) = 1.d0
-  main( 3,:,:,:) = 2.4d0*sqrt(1.4d0*main(1,:,:,:)/main(2,:,:,:))
-  main( 4,:,:,:) = 0.d0
-  main( 5,:,:,:) = 0.d0
-  main( 6,:,:,:) = 1.d0/99.d0
-  main( 7,:,:,:) = 0.d0
-  main( 8,:,:,:) = 0.d0
-  main( 9,:,:,:) = 0.d0
-  main(10,:,:,:) = 1.d0/99.d0
-  main(11,:,:,:) = 0.d0
-  main(12,:,:,:) = 0.d0
-  main(13,:,:,:) = 0.d0
-  main(14,:,:,:) = 1.d0
-  main(15,:,:,:) = .25d0*main(3,:,:,:)
-  main(16,:,:,:) = 0.d0
-  main(17,:,:,:) = 0.d0
-  main(18,:,:,:) = 0.d0
-  do j = 2, size(main,3)-1
-     do i = 2, size(main,2)-1
-        main(19,i,j,2) = 1.d0/100.d0*(i-1.5d0)
-        main(20,i,j,2) = 0.d0
-        main(21,i,j,2) = Jacobian(main(6:14,i,j,2))
-     end do
-  end do
-  main(1,:,size(main,3)/2+1:size(main,3),:) = .25d0
-  main(2,:,size(main,3)/2+1:size(main,3),:) = .5d0
-  main(3,:,size(main,3)/2+1:size(main,3),:) = 7.d0*&
-       sqrt(1.4d0*.25d0/.5d0)
-  main(15,:,:,:) = .25d0*main(3,:,:,:)
-  call prim_update(main,1,.001d0,.25d0,size(main,2)-2,size(main,3)-2,&
-       size(main,4)-2)
+  integer function GodTester()
+    implicit none
+    real(8), dimension(21,3,4,3) :: main
+    integer :: i, j
+    real(8), dimension(5) :: riemann_test
+    real(8), dimension(21) :: geom_test
+    real(8), dimension(21,3,3,3) :: constoprimtest1, constoprimtest2
+    real(8), dimension(5) :: left_test, right_test
+    real(8) :: max_wave_speed
+    real(8), dimension(3) :: grad, norm, tan1, tan2
+    real(8) :: test1, test2, test3
+    real(8), dimension(21), parameter :: flux_seed = [0.270991,0.0613936,&
+         0.748627,0.24336,0.374409,-0.423353,0.323678,-0.333788,-0.53982,&
+         -0.991525,0.75888,-0.921888,-0.631486,0.801117,0.634729,-0.750043,&
+         0.412858,-0.0734701,-0.0563167,0.97121,1.]
+    real(8), dimension(5), parameter :: flux_test_x = [-0.0171431,-0.0982248,&
+         -0.0765652,-0.161747,-0.335386]
+    real(8), dimension(5), parameter :: flux_test_y = [-0.0384556,-0.0419378,&
+         -0.184655,-0.167707,-0.548871]
+    real(8), dimension(5), parameter :: flux_test_z = [0.0285833,-0.00172451,&
+         0.142847,0.171804,0.402354]
+    
+    GodTester = 0
 
-end program Godunov_tester
+    ! Check that primtocons and constoprim are mutual inverses
+    ! Are there invertibility problems from non-physical variables,
+    ! such as negative pressures, etc? Random_number only returns
+    ! positive numbers, I suppose.
+    call random_number(constoprimtest1)
+    constoprimtest2 = constoprimtest1
+    call constoprim(constoprimtest1,3,3,3)
+    call primtocons(constoprimtest1,3,3,3)
+    if(sqrt(sum((constoprimtest1-constoprimtest2)**2)&
+         /size(constoprimtest1))>EPS) GodTester = 1
+
+    ! Ensure that the coordinate system returned from grid_coords
+    ! is orthonormal, and that norm is parallel to grad.
+    
+    call random_number(grad)
+    grad = grad - .5d0
+    call grid_coords(grad, norm, tan1, tan2)
+    if(maxval(abs([norm2(norm), norm2(tan1), norm2(tan2)]-1.d0))>EPS)then
+       GodTester = 2
+    end if
+    if(dot_product(grad/norm2(grad),norm)-1.d0>EPS) GodTester = 2
+    if(abs(dot_product(norm,tan1))>EPS) GodTester = 2
+    if(abs(dot_product(norm,tan2))>EPS) GodTester = 2
+    if(abs(dot_product(tan1,tan2))>EPS) GodTester = 2
+       
+    ! Test flux routine against Mathematica-generated test problem & solution
+    ! Mathematica only returns to a set precision.
+    if(sqrt(sum((flux(flux_seed(1:5),flux_seed,1) - flux_test_x)**2)/5.)>EPSs)then
+       GodTester = 3
+    end if
+    if(sqrt(sum((flux(flux_seed(1:5),flux_seed,2) - flux_test_y)**2)/5.)>EPSs)then
+       GodTester = 3
+    end if
+    if(sqrt(sum((flux(flux_seed(1:5),flux_seed,3) - flux_test_z)**2)/5.)>EPSs)then
+       GodTester = 3
+    end if
+
+    ! I haven't yet found a good way to test prim_update. However, that's really
+    ! part of the algorithm test, anyway.
+
+  end function GodTester
+
+  subroutine GodInit(main)
+    implicit none
+    real(8), dimension(21,3,4,3) :: main
+    integer :: i, j
+
+    main( 1,:,:,:) = 1.d0
+    main( 2,:,:,:) = 1.d0
+    main( 3,:,:,:) = 2.4d0*sqrt(1.4d0*main(1,:,:,:)/main(2,:,:,:))
+    main( 4,:,:,:) = 0.d0
+    main( 5,:,:,:) = 0.d0
+    main( 6,:,:,:) = 1.d0/99.d0
+    main( 7,:,:,:) = 0.d0
+    main( 8,:,:,:) = 0.d0
+    main( 9,:,:,:) = 0.d0
+    main(10,:,:,:) = 1.d0/99.d0
+    main(11,:,:,:) = 0.d0
+    main(12,:,:,:) = 0.d0
+    main(13,:,:,:) = 0.d0
+    main(14,:,:,:) = 1.d0
+    main(15,:,:,:) = .25d0*main(3,:,:,:)
+    main(16,:,:,:) = 0.d0
+    main(17,:,:,:) = 0.d0
+    main(18,:,:,:) = 0.d0
+    do j = 2, size(main,3)-1
+       do i = 2, size(main,2)-1
+          main(19,i,j,2) = 1.d0/100.d0*(i-1.5d0)
+          main(20,i,j,2) = 0.d0
+          main(21,i,j,2) = Jacobian(main(6:14,i,j,2))
+       end do
+    end do
+    main(1,:,size(main,3)/2+1:size(main,3),:) = .25d0
+    main(2,:,size(main,3)/2+1:size(main,3),:) = .5d0
+    main(3,:,size(main,3)/2+1:size(main,3),:) = 7.d0*&
+         sqrt(1.4d0*.25d0/.5d0)
+    main(15,:,:,:) = .25d0*main(3,:,:,:)
+  end subroutine GodInit
+end module Godunov_tester
+
+!!$program Godunov_tester_program
+!!$  use Godunov_tester
+!!$  use Riemann_tester
+!!$  integer :: result, junk
+!!$  result = GodTester()
+!!$  write(*,*) "Godunov_tester_program: "
+!!$  junk = GodErrorReader(result)
+!!$  result = RieTester()
+!!$  write(*,*) "Riemann_tester_program: "
+!!$  junk = RieErrorReader(result)
+!!$end program Godunov_tester_program
+
 !!$module grid_velocity
 !!$contains
 !!$  subroutine grid_velocity_update(main)
