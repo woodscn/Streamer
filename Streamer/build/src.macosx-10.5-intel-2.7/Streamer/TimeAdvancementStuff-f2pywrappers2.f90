@@ -32,6 +32,28 @@
       real(kind=8) gradstomatrixf2pywrap(3,3)
       gradstomatrixf2pywrap = gradstomatrix(grad1, grad2, grad3)
       end subroutine f2pywrap_generalutilities_gradstomatrix
+      subroutine f2pywrap_generalutilities_matrixinverse (matrixinversef&
+     &2pywrap, in)
+      use generalutilities, only : matrixinverse
+      real(kind=8) in(3,3)
+      real(kind=8) matrixinversef2pywrap(3,3)
+      matrixinversef2pywrap = matrixinverse(in)
+      end subroutine f2pywrap_generalutilities_matrixinverse
+      subroutine f2pywrap_generalutilities_vectorprojection (vectorproje&
+     &ctionf2pywrap, in, normal)
+      use generalutilities, only : vectorprojection
+      real(kind=8) in(3)
+      real(kind=8) normal(3)
+      real(kind=8) vectorprojectionf2pywrap(3)
+      vectorprojectionf2pywrap = vectorprojection(in, normal)
+      end subroutine f2pywrap_generalutilities_vectorprojection
+      subroutine f2pywrap_generalutilities_soundspeed (soundspeedf2pywra&
+     &p, point)
+      use generalutilities, only : soundspeed
+      real(kind=8) point(21)
+      real(kind=8) soundspeedf2pywrap
+      soundspeedf2pywrap = soundspeed(point)
+      end subroutine f2pywrap_generalutilities_soundspeed
       
       subroutine f2pyinitgeneralutilities(f2pysetupfunc)
       use generalutilities, only : gamma7
@@ -72,14 +94,35 @@
       real(kind=8) grad3(3)
       real(kind=8) gradstomatrix(3,3)
       real(kind=8) gradstomatrixf2pywrap(3,3)
-      end subroutine f2pywrap_generalutilities_gradstomatrix
+      end subroutine f2pywrap_generalutilities_gradstomatrix 
+      subroutine f2pywrap_generalutilities_matrixinverse (matrixinversef&
+     &2pywrap, matrixinverse, in)
+      real(kind=8) in(3,3)
+      real(kind=8) matrixinverse(3,3)
+      real(kind=8) matrixinversef2pywrap(3,3)
+      end subroutine f2pywrap_generalutilities_matrixinverse 
+      subroutine f2pywrap_generalutilities_vectorprojection (vectorproje&
+     &ctionf2pywrap, vectorprojection, in, normal)
+      real(kind=8) in(3)
+      real(kind=8) normal(3)
+      real(kind=8) vectorprojection(3)
+      real(kind=8) vectorprojectionf2pywrap(3)
+      end subroutine f2pywrap_generalutilities_vectorprojection 
+      subroutine f2pywrap_generalutilities_soundspeed (soundspeedf2pywra&
+     &p, soundspeed, point)
+      real(kind=8) soundspeed
+      real(kind=8) point(21)
+      real(kind=8) soundspeedf2pywrap
+      end subroutine f2pywrap_generalutilities_soundspeed
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(gamma7,gamma6,gamma5,gamma4,gamma3,gamma2,gamma&
      &1,eps,gamma_const,epss,f2pywrap_generalutilities_metricinverse,f2p&
      &ywrap_generalutilities_metrictomatrix,computationalgrads,f2pywrap_&
      &generalutilities_jacobian,f2pywrap_generalutilities_gradstomatrix,&
-     &twodgradient)
+     &twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_gene&
+     &ralutilities_vectorprojection,f2pywrap_generalutilities_soundspeed&
+     &)
       end subroutine f2pyinitgeneralutilities
 
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&

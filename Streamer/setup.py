@@ -4,17 +4,17 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
     config = Configuration('Streamer',parent_package,top_path)
     config.add_extension('Godunov',prepend_GU("Godunov.f90"),
                          extra_compile_args=["-fbounds-check"],
+                         include_dirs=['/usr/local/include','/usr/include','..'],
+                         libraries=['lapack','recipes_f90'],
+                         library_dirs=['/usr/local/lib','/usr/lib']
+                         )
+    config.add_extension('BoundaryConditionsStuff',
+                         prepend_GU("BoundaryConditionsStuff.f90"),
+                         extra_compile_args=["-fbounds-check"],
                          include_dirs=['/usr/local/include','/usr/include'],
                          libraries=['lapack'],
                          library_dirs=['/usr/local/lib','/usr/lib']
                          )
-#    config.add_extension('BoundaryConditionsStuff',
-#                         prepend_GU("BoundaryConditionsStuff.f90"),
-#                         extra_compile_args=["-fbounds-check"],
-#                         include_dirs=['/usr/local/include','/usr/include'],
-#                         libraries=['lapack'],
-#                         library_dirs=['/usr/local/lib','/usr/lib']
-#                         )
     config.add_extension('STLA_IO','stla_io.f90',        
                          extra_compile_args=["-fbounds-check"],
                          include_dirs=['/usr/local/include','/usr/include'],

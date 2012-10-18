@@ -109,7 +109,7 @@ class Stream(object):
 #        print self.main_data[1,:,:,1]
 #        import pdb;pdb.set_trace()
         self.main_data = Godunov.prim_update(
-            numpy.asfortranarray(self.main_data),dt_in=.001,cfl=.25,bcextent=1,
+            numpy.asfortranarray(self.main_data),dt_in=.0001,cfl=.25,bcextent=1,
             nx=self.main_data.shape[1]-2,
             ny=self.main_data.shape[2]-2,
             nz=self.main_data.shape[3]-2)
@@ -117,7 +117,7 @@ class Stream(object):
         check_create_column = TAS.checkcreatecolumn(
             self.main_data[:,1,1:-1,1:-1],self.main_data[:,0,1:-1,1:-1])
         if check_create_column:
-            # print "Creating a column"
+            print "Creating a column"
             pass
             new_column = TAS.createcolumn(self.main_data[:,1,1:-1,1:-1],
                                           self.main_data[:,0,1:-1,1:-1],
@@ -128,6 +128,7 @@ class Stream(object):
             self.main_data[:,1,1:-1,1:-1] = new_column
             self.xi_offset = self.xi_offset + 1
         TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
+#        import pdb;pdb.set_trace()
         return None
 
 def run(input_file,interactive=False):
@@ -145,12 +146,13 @@ def run(input_file,interactive=False):
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     dt = .0001 
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
-    for step in range(50000):
+    for step in range(5000):
         print "Time step = ",step
         for stream in streams:
 #            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:
 #                import pdb;pdb.set_trace()
             stream.advance(dt)
+    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=False)
     cgns.write_initial_data(stream.main_data,'test.cgns')
     if interactive_flag:
         import pdb; pdb.set_trace()

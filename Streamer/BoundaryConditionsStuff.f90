@@ -45,6 +45,7 @@ contains
     ! the whole thing. I also have to negate the normal vector, which 
     ! depends on which one that is, xi, eta, zeta.
     matrix_inverse = MatrixInverse(reshape(point(6:14),[3,3]))
+    matrix_inverse = MetrictoMatrix(MetricInverse(point(6:14)))
     matrix_inverse(1,:) = ReflectionOperator(matrix_inverse(1,:),normal)
     matrix_inverse(2,:) = ReflectionOperator(matrix_inverse(2,:),normal)
     matrix_inverse(3,:) = ReflectionOperator(matrix_inverse(3,:),normal)
@@ -75,54 +76,9 @@ contains
     implicit none
     real(8), dimension(3), intent(in) :: in, normal
     real(8), dimension(3) :: ReflectionOperator
-    
-    ReflectionOperator = in-2.d0*normal*&
-         (dot_product(in,normal))/(dot_product(normal,normal))
+    ReflectionOperator = in-2.d0*VectorProjection(in,normal)
   end function ReflectionOperator
   
-  function MatrixInverse(in)
-    ! Compute the inverse of a 3x3 matrix
-    implicit none
-    real(8), dimension(3,3), intent(in) :: in
-    real(8), dimension(3,3) :: MatrixInverse
-    real(8) :: J
-    
-    J = ( &
-         in(1,1)*in(2,2)*in(3,3) + &
-         in(1,2)*in(2,3)*in(3,1) + &
-         in(1,3)*in(2,1)*in(3,2) - &
-         in(1,1)*in(2,3)*in(3,2) - &
-         in(1,2)*in(2,1)*in(3,3) - &
-         in(1,3)*in(2,2)*in(3,1) )
-
-    MatrixInverse = transpose(reshape( [ & 
-         in(3,3)*in(2,2)-in(3,2)*in(2,3) , &
-         in(3,2)*in(1,3)-in(3,3)*in(1,2) , &
-         in(2,3)*in(1,2)-in(2,2)*in(1,3) , &
-         in(3,1)*in(2,3)-in(3,3)*in(2,1) , &
-         in(3,3)*in(1,1)-in(3,1)*in(1,3) , &
-         in(2,1)*in(1,3)-in(2,3)*in(1,1) , &
-         in(3,2)*in(2,1)-in(3,1)*in(2,2) , &
-         in(3,1)*in(1,2)-in(3,2)*in(1,1) , &
-         in(2,2)*in(1,1)-in(2,1)*in(1,2) ] &
-         ,[3,3])/J)
-    if(.true. .and. maxval(matmul(in,MatrixInverse)&
-            -reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2>1.d-15)then
-          write(*,*) "MatrixInverse failed!!"
-          write(*,*) matmul(in,MatrixInverse)
-          stop
-    end if
-  end function MatrixInverse
-
-  function vectorProjection(in,normal)
-    implicit none
-    real(8), intent(in), dimension(3) :: in
-    real(8), intent(in), dimension(3) :: normal
-    real(8), dimension(3) :: vectorProjection
-    vectorProjection = normal*&
-         (dot_product(in,normal)/dot_product(normal,normal))
-  end function vectorProjection
-
   function FindClosestPoint(starting_point, grid_points, nx, ny, nz)
     implicit none
     real(8), intent(in), dimension(3) :: starting_point
@@ -160,11 +116,11 @@ contains
          dot_product(gradEta,displacement),dot_product(gradZeta,displacement)]
   end function ComputationalDisplacement
 
-  integer function FortranXiOffset(xi_offset)
-    implicit none
-    integer, intent(in) :: xi_offset
-    FortranXiOffset = xi_offset - 1
-  end function FortranXiOffset
+!!$  integer function FortranXiOffset(xi_offset)
+!!$    implicit none
+!!$    integer, intent(in) :: xi_offset
+!!$    FortranXiOffset = xi_offset - 1
+!!$  end function FortranXiOffset
 
   subroutine ApplyInflowConditions(main_data,bc_state,out,nx,ny)
     implicit none
@@ -247,151 +203,100 @@ contains
     CheckSupersonic = normal_velocity > SoundSpeed(point)
   end function CheckSupersonic
 
-  real(8) function SoundSpeed(point)
-    implicit none
-    real(8), intent(in), dimension(21) :: point
-    SoundSpeed = sqrt(1.4d0*point(1)/point(2))
-  end function SoundSpeed
+!!$  subroutine LeadingEdgePointSearch(&
+!!$       nodes_x,faces_x,face_nodes_x,point_in,num_nodes,num_faces,inda)
+!!$    implicit none
+!!$    real(8), intent(in), dimension(3,num_nodes) :: nodes_x
+!!$    real(8), intent(in), dimension(3,num_faces) :: faces_x
+!!$    integer, intent(in), dimension(3,num_faces) :: face_nodes_x
+!!$    real(8), intent(in), dimension(21) :: point_in
+!!$    integer, intent(in) :: num_nodes, num_faces
+!!$    integer, intent(out) :: inda
+!!$    real(8), dimension(3) :: normal, xi_normal, point
+!!$    real(8), dimension(3) :: gradXi, gradEta, gradZeta
+!!$    real(8), dimension(3) :: nodea, nodeb, nodec
+!!$    real(8), dimension(9) :: metric
+!!$    real(8), dimension(3) :: diff, unit_normal
+!!$    integer :: i
+!!$    real(8), dimension(3,3) :: nodes
+!!$    real(8) :: test2, v3, u, v, test2min
+!!$    real(8), dimension(3) :: v0, v1, v2
+!!$    real(8) :: jacobian
+!!$    logical :: debug = .false.
+!!$    
+!!$    inda = 0
+!!$    metric = point_in(6:14)
+!!$    point = point_in(18:20)
+!!$    jacobian = point_in(21)
+!!$    call ComputationalGrads(metric, jacobian, gradXi, gradEta, gradZeta)
+!!$    do i = 1, num_faces
+!!$       if(.true.)then
+!!$          nodea = nodes_x(:,face_nodes_x(1,i))
+!!$          nodeb = nodes_x(:,face_nodes_x(2,i))
+!!$          nodec = nodes_x(:,face_nodes_x(3,i))
+!!$          nodes = nodes_x(:,face_nodes_x(:,i))
+!!$          normal = faces_x(:,i)
+!!$          unit_normal = normal/sqrt(sum(normal**2))
+!!$          diff = point - nodea
+!!$!          xi_normal = [dot_product(gradXi,normal),&
+!!$!               dot_product(gradEta,normal),dot_product(gradZeta,normal)]
+!!$!          dx = abs(dot_product(dxin,normal))
+!!$          v3 = dot_product(diff,normal)/dot_product(normal,normal)
+!!$          xi_normal = matmul(reshape([gradXi,gradEta,gradZeta],[3,3]),v3*normal)
+!!$          if(sum(xi_normal**2)>1.)then
+!!$             ! The triangle is too far from the point in the normal direction,
+!!$             ! or the point is on the wrong side of the triangle.
+!!$             !write(*,*) "i = ", i, v3*xi_normal
+!!$          else
+!!$             v2 = diff - v3*normal
+!!$             v0 = nodec - nodea
+!!$             v1 = nodeb - nodea
+!!$             u = (dot_product(v1,v1)*dot_product(v2,v0) - &
+!!$                  dot_product(v1,v0)*dot_product(v2,v1))/ &
+!!$                  (dot_product(v0,v0)*dot_product(v1,v1) - &
+!!$                  dot_product(v0,v1)**2)
+!!$             v = (dot_product(v0,v0)*dot_product(v2,v1) - &
+!!$                  dot_product(v1,v0)*dot_product(v2,v0))/ &
+!!$                  (dot_product(v0,v0)*dot_product(v1,v1) - &
+!!$                  dot_product(v0,v1)**2)
+!!$             test2 = sum(((point-v3*normal)-matmul(nodes,&
+!!$                  [.3333333333333333,.3333333333333333,.3333333333333333]))**2)
+!!$!             if(abs(test2) < test2min)then
+!!$             if( u>=0. .and. v>=0. .and. u+v<=1.)then
+!!$!                test2min = min(abs(test2), test2min)
+!!$                inda = i
+!!$                if(debug)then
+!!$                   write(*,*) 'Point = [',point(1),',',point(2),',',point(3),'];'
+!!$                   write(*,*) 'V2 = [',v2(1),',',v2(2),',',v2(3),'];'
+!!$                   write(*,*) 'NodeA = [',nodea(1),',',nodea(2),',',nodea(3),'];'
+!!$                   write(*,*) 'NodeB = [',nodeb(1),',',nodeb(2),',',nodeb(3),'];'
+!!$                   write(*,*) 'NodeC = [',nodec(1),',',nodec(2),',',nodec(3),'];'
+!!$                   write(*,*) 'Normal = [',normal(1),',',normal(2),',',normal(3),'];'
+!!$                   write(*,*) 'XiNormal = [',xi_normal(1),',',xi_normal(2),','&
+!!$                        ,xi_normal(3),'];'
+!!$                   read(*,*)
+!!$                end if
+!!$             end if
+!!$          end if
+!!$       end if
+!!$    end do
+!!$  end subroutine LeadingEdgePointSearch
 
-  subroutine LeadingEdgePointSearch(&
-       nodes_x,faces_x,face_nodes_x,point_in,num_nodes,num_faces,inda)
-    implicit none
-    real(8), intent(in), dimension(3,num_nodes) :: nodes_x
-    real(8), intent(in), dimension(3,num_faces) :: faces_x
-    integer, intent(in), dimension(3,num_faces) :: face_nodes_x
-    real(8), intent(in), dimension(21) :: point_in
-    integer, intent(in) :: num_nodes, num_faces
-    integer, intent(out) :: inda
-    real(8), dimension(3) :: normal, xi_normal, point
-    real(8), dimension(3) :: gradXi, gradEta, gradZeta
-    real(8), dimension(3) :: nodea, nodeb, nodec
-    real(8), dimension(9) :: metric
-    real(8), dimension(3) :: diff, unit_normal
-    integer :: i
-    real(8), dimension(3,3) :: nodes
-    real(8) :: test2, v3, u, v, test2min
-    real(8), dimension(3) :: v0, v1, v2
-    real(8) :: jacobian
-    logical :: debug = .false.
-    
-    inda = 0
-    metric = point_in(6:14)
-    point = point_in(18:20)
-    jacobian = point_in(21)
-    call ComputationalGrads(metric, jacobian, gradXi, gradEta, gradZeta)
-    do i = 1, num_faces
-       if(.true.)then
-          nodea = nodes_x(:,face_nodes_x(1,i))
-          nodeb = nodes_x(:,face_nodes_x(2,i))
-          nodec = nodes_x(:,face_nodes_x(3,i))
-          nodes = nodes_x(:,face_nodes_x(:,i))
-          normal = faces_x(:,i)
-          unit_normal = normal/sqrt(sum(normal**2))
-          diff = point - nodea
-!          xi_normal = [dot_product(gradXi,normal),&
-!               dot_product(gradEta,normal),dot_product(gradZeta,normal)]
-!          dx = abs(dot_product(dxin,normal))
-          v3 = dot_product(diff,normal)/dot_product(normal,normal)
-          xi_normal = matmul(reshape([gradXi,gradEta,gradZeta],[3,3]),v3*normal)
-          if(sum(xi_normal**2)>1.)then
-             ! The triangle is too far from the point in the normal direction,
-             ! or the point is on the wrong side of the triangle.
-             !write(*,*) "i = ", i, v3*xi_normal
-          else
-             v2 = diff - v3*normal
-             v0 = nodec - nodea
-             v1 = nodeb - nodea
-             u = (dot_product(v1,v1)*dot_product(v2,v0) - &
-                  dot_product(v1,v0)*dot_product(v2,v1))/ &
-                  (dot_product(v0,v0)*dot_product(v1,v1) - &
-                  dot_product(v0,v1)**2)
-             v = (dot_product(v0,v0)*dot_product(v2,v1) - &
-                  dot_product(v1,v0)*dot_product(v2,v0))/ &
-                  (dot_product(v0,v0)*dot_product(v1,v1) - &
-                  dot_product(v0,v1)**2)
-             test2 = sum(((point-v3*normal)-matmul(nodes,&
-                  [.3333333333333333,.3333333333333333,.3333333333333333]))**2)
-!             if(abs(test2) < test2min)then
-             if( u>=0. .and. v>=0. .and. u+v<=1.)then
-!                test2min = min(abs(test2), test2min)
-                inda = i
-                if(debug)then
-                   write(*,*) 'Point = [',point(1),',',point(2),',',point(3),'];'
-                   write(*,*) 'V2 = [',v2(1),',',v2(2),',',v2(3),'];'
-                   write(*,*) 'NodeA = [',nodea(1),',',nodea(2),',',nodea(3),'];'
-                   write(*,*) 'NodeB = [',nodeb(1),',',nodeb(2),',',nodeb(3),'];'
-                   write(*,*) 'NodeC = [',nodec(1),',',nodec(2),',',nodec(3),'];'
-                   write(*,*) 'Normal = [',normal(1),',',normal(2),',',normal(3),'];'
-                   write(*,*) 'XiNormal = [',xi_normal(1),',',xi_normal(2),','&
-                        ,xi_normal(3),'];'
-                   read(*,*)
-                end if
-             end if
-          end if
-       end if
-    end do
-  end subroutine LeadingEdgePointSearch
+!!$  function ComputeCompuCoordsDelta(point, metric, jacobian, base_point)
+!!$    real(8), intent(in), dimension(3) :: point
+!!$    real(8), intent(in), dimension(9) :: metric
+!!$    real(8), intent(in) :: jacobian
+!!$    real(8), intent(in), dimension(3) :: base_point
+!!$
+!!$    integer, dimension(3) :: ComputeCompuCoordsDelta
+!!$    
+!!$    real(8), dimension(3) :: gradXi, gradEta, gradZeta
+!!$    real(8), dimension(3) :: diff
+!!$
+!!$    call ComputationalGrads(metric, jacobian, gradXi, gradEta, gradZeta)
+!!$    diff = point-base_point
+!!$    ComputeCompuCoordsDelta = [&
+!!$         sum(gradXi*diff), sum(gradEta*diff), sum(gradZeta*diff) ]
+!!$  end function ComputeCompuCoordsDelta
 
-  function ComputeCompuCoordsDelta(point, metric, jacobian, base_point)
-    real(8), intent(in), dimension(3) :: point
-    real(8), intent(in), dimension(9) :: metric
-    real(8), intent(in) :: jacobian
-    real(8), intent(in), dimension(3) :: base_point
-
-    integer, dimension(3) :: ComputeCompuCoordsDelta
-    
-    real(8), dimension(3) :: gradXi, gradEta, gradZeta
-    real(8), dimension(3) :: diff
-
-    call ComputationalGrads(metric, jacobian, gradXi, gradEta, gradZeta)
-    diff = point-base_point
-    ComputeCompuCoordsDelta = [&
-         sum(gradXi*diff), sum(gradEta*diff), sum(gradZeta*diff) ]
-  end function ComputeCompuCoordsDelta
-
-  logical function pnpoly(npol,xp,yp,x,y)
-    ! Check to see if a point lies on the interior of a polygon.
-    ! The polygon is given by  x,y points in xp & yp. The point
-    ! to test is given by x, y.
-    ! Returns true if within the polygon, false otherwise.
-
-    ! Uses the method of counting the number of times a ray from 
-    ! the point crosses the polygon. Original C code given on
-    ! http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
-    ! and written by Randolph Franklin.
-
-    ! int pnpoly(int npol, float *xp, float *yp, float x, float y)
-    !     {
-    !       int i, j, c = 0;
-    !       for (i = 0, j = npol-1; i < npol; j = i++) {
-    !         if ((((yp[i] <= y) && (y < yp[j])) ||
-    !              ((yp[j] <= y) && (y < yp[i]))) &&
-    !             (x < (xp[j] - xp[i]) * (y - yp[i]) / (yp[j] - yp[i]) + xp[i]))
-    !           c = !c;
-    !       }
-    !       return c;
-    !     }
-    implicit none
-    integer :: npol
-    real(8) :: x, y
-    real(8), dimension(npol) :: xp, yp
-    integer :: i, j, n
-
-    pnpoly = .false.
-    n = size(xp)
-    do i = 1, size(xp)
-       if(i==1)then
-          j = n
-       else
-          j = i-1
-       end if
-       if((((yp(i)<=y).and.(y<yp(j))).or.&
-            ((yp(j)<=y).and.(y<yp(i)))).and.&
-            (x<(xp(j)-xp(i))*(y-yp(i))/(yp(j)-yp(i))+xp(i)))&
-            pnpoly = .not. pnpoly
-       write(*,*) "i = ",i,"j = ",j       
-    end do
-
-  end function pnpoly
-  
 end module BoundaryConditionsStuff

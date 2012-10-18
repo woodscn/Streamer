@@ -118,10 +118,26 @@ end module FortranNormalVectors
 '''
         if os.access("FortranNormalVectors.f90",os.F_OK):
             os.remove("FortranNormalVectors.f90")
-            os.remove("FortranNormalVectors.so")
+            try:
+                os.remove("FortranNormalVectors.so")
+            except:
+                pass
+        print '''
+Creating .mod files for FortranNormalVectors
+'''
+        cmd = "gfortran -c GeneralUtilities.f90 BoundaryConditionsStuff.f90"
+        try: 
+            os.system(cmd)
+        except:
+            print "Error creating .mod files for FortranNormalVectors!"
+            sys.exit()
+#        f1 = open('GeneralUtilities.f90')
+#        f2 = open('BoundaryConditionsStuff.f90')
+#        f2py.compile(
         f2py.compile(fortran_normal_src,modulename='FortranNormalVectors',
                      verbose=False,source_fn='FortranNormalVectors.f90',
-                     extra_args='--quiet --f90flags=-Wno-unused-dummy-argument')
+                     extra_args=
+                     '--quiet --f90flags=-Wno-unused-dummy-argument')
     def __iter__(self):
         faces = (self.left_face,self.right_face,self.bottom_face,self.top_face,
                  self.back_face,self.front_face)

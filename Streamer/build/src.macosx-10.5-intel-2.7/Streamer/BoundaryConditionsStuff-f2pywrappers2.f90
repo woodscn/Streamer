@@ -32,6 +32,28 @@
       real(kind=8) gradstomatrixf2pywrap(3,3)
       gradstomatrixf2pywrap = gradstomatrix(grad1, grad2, grad3)
       end subroutine f2pywrap_generalutilities_gradstomatrix
+      subroutine f2pywrap_generalutilities_matrixinverse (matrixinversef&
+     &2pywrap, in)
+      use generalutilities, only : matrixinverse
+      real(kind=8) in(3,3)
+      real(kind=8) matrixinversef2pywrap(3,3)
+      matrixinversef2pywrap = matrixinverse(in)
+      end subroutine f2pywrap_generalutilities_matrixinverse
+      subroutine f2pywrap_generalutilities_vectorprojection (vectorproje&
+     &ctionf2pywrap, in, normal)
+      use generalutilities, only : vectorprojection
+      real(kind=8) in(3)
+      real(kind=8) normal(3)
+      real(kind=8) vectorprojectionf2pywrap(3)
+      vectorprojectionf2pywrap = vectorprojection(in, normal)
+      end subroutine f2pywrap_generalutilities_vectorprojection
+      subroutine f2pywrap_generalutilities_soundspeed (soundspeedf2pywra&
+     &p, point)
+      use generalutilities, only : soundspeed
+      real(kind=8) point(21)
+      real(kind=8) soundspeedf2pywrap
+      soundspeedf2pywrap = soundspeed(point)
+      end subroutine f2pywrap_generalutilities_soundspeed
       
       subroutine f2pyinitgeneralutilities(f2pysetupfunc)
       use generalutilities, only : gamma7
@@ -72,14 +94,35 @@
       real(kind=8) grad3(3)
       real(kind=8) gradstomatrix(3,3)
       real(kind=8) gradstomatrixf2pywrap(3,3)
-      end subroutine f2pywrap_generalutilities_gradstomatrix
+      end subroutine f2pywrap_generalutilities_gradstomatrix 
+      subroutine f2pywrap_generalutilities_matrixinverse (matrixinversef&
+     &2pywrap, matrixinverse, in)
+      real(kind=8) in(3,3)
+      real(kind=8) matrixinverse(3,3)
+      real(kind=8) matrixinversef2pywrap(3,3)
+      end subroutine f2pywrap_generalutilities_matrixinverse 
+      subroutine f2pywrap_generalutilities_vectorprojection (vectorproje&
+     &ctionf2pywrap, vectorprojection, in, normal)
+      real(kind=8) in(3)
+      real(kind=8) normal(3)
+      real(kind=8) vectorprojection(3)
+      real(kind=8) vectorprojectionf2pywrap(3)
+      end subroutine f2pywrap_generalutilities_vectorprojection 
+      subroutine f2pywrap_generalutilities_soundspeed (soundspeedf2pywra&
+     &p, soundspeed, point)
+      real(kind=8) soundspeed
+      real(kind=8) point(21)
+      real(kind=8) soundspeedf2pywrap
+      end subroutine f2pywrap_generalutilities_soundspeed
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(gamma7,gamma6,gamma5,gamma4,gamma3,gamma2,gamma&
      &1,eps,gamma_const,epss,f2pywrap_generalutilities_metricinverse,f2p&
      &ywrap_generalutilities_metrictomatrix,computationalgrads,f2pywrap_&
      &generalutilities_jacobian,f2pywrap_generalutilities_gradstomatrix,&
-     &twodgradient)
+     &twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_gene&
+     &ralutilities_vectorprojection,f2pywrap_generalutilities_soundspeed&
+     &)
       end subroutine f2pyinitgeneralutilities
 
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&
@@ -154,21 +197,6 @@
       real(kind=8) reflectionoperatorf2pywrap(3)
       reflectionoperatorf2pywrap = reflectionoperator(in, normal)
       end subroutine f2pywrap_boundaryconditionsstuff_reflectionoperator
-      subroutine f2pywrap_boundaryconditionsstuff_matrixinverse (matrixi&
-     &nversef2pywrap, in)
-      use boundaryconditionsstuff, only : matrixinverse
-      real(kind=8) in(3,3)
-      real(kind=8) matrixinversef2pywrap(3,3)
-      matrixinversef2pywrap = matrixinverse(in)
-      end subroutine f2pywrap_boundaryconditionsstuff_matrixinverse
-      subroutine f2pywrap_boundaryconditionsstuff_vectorprojection (vect&
-     &orprojectionf2pywrap, in, normal)
-      use boundaryconditionsstuff, only : vectorprojection
-      real(kind=8) in(3)
-      real(kind=8) normal(3)
-      real(kind=8) vectorprojectionf2pywrap(3)
-      vectorprojectionf2pywrap = vectorprojection(in, normal)
-      end subroutine f2pywrap_boundaryconditionsstuff_vectorprojection
       subroutine f2pywrap_boundaryconditionsstuff_findclosestpoint (find&
      &closestpointf2pywrap, starting_point, grid_points, nx, ny, nz)
       use boundaryconditionsstuff, only : findclosestpoint
@@ -193,13 +221,6 @@
      &lacement, metric, jacobian)
       end subroutine f2pywrap_boundaryconditionsstuff_computationaldispl&
      &acement
-      subroutine f2pywrap_boundaryconditionsstuff_fortranxioffset (fortr&
-     &anxioffsetf2pywrap, xi_offset)
-      use boundaryconditionsstuff, only : fortranxioffset
-      integer xi_offset
-      integer fortranxioffsetf2pywrap
-      fortranxioffsetf2pywrap = fortranxioffset(xi_offset)
-      end subroutine f2pywrap_boundaryconditionsstuff_fortranxioffset
       subroutine f2pywrap_boundaryconditionsstuff_checksupersonic (check&
      &supersonicf2pywrap, point, direction_in)
       use boundaryconditionsstuff, only : checksupersonic
@@ -209,42 +230,10 @@
       checksupersonicf2pywrap = .not.(.not.checksupersonic(point, direct&
      &ion_in))
       end subroutine f2pywrap_boundaryconditionsstuff_checksupersonic
-      subroutine f2pywrap_boundaryconditionsstuff_soundspeed (soundspeed&
-     &f2pywrap, point)
-      use boundaryconditionsstuff, only : soundspeed
-      real(kind=8) point(21)
-      real(kind=8) soundspeedf2pywrap
-      soundspeedf2pywrap = soundspeed(point)
-      end subroutine f2pywrap_boundaryconditionsstuff_soundspeed
-      subroutine f2pywrap_boundaryconditionsstuff_computecompucoordsdelt&
-     &a (computecompucoordsdeltaf2pywrap, point, metric, jacobian, base_&
-     &point)
-      use boundaryconditionsstuff, only : computecompucoordsdelta
-      real(kind=8) jacobian
-      real(kind=8) point(3)
-      real(kind=8) metric(9)
-      real(kind=8) base_point(3)
-      integer computecompucoordsdeltaf2pywrap(3)
-      computecompucoordsdeltaf2pywrap = computecompucoordsdelta(point, m&
-     &etric, jacobian, base_point)
-      end subroutine f2pywrap_boundaryconditionsstuff_computecompucoords&
-     &delta
-      subroutine f2pywrap_boundaryconditionsstuff_pnpoly (pnpolyf2pywrap&
-     &, npol, xp, yp, x, y)
-      use boundaryconditionsstuff, only : pnpoly
-      integer npol
-      real(kind=8) x
-      real(kind=8) y
-      real(kind=8) xp(npol)
-      real(kind=8) yp(npol)
-      logical pnpolyf2pywrap
-      pnpolyf2pywrap = .not.(.not.pnpoly(npol, xp, yp, x, y))
-      end subroutine f2pywrap_boundaryconditionsstuff_pnpoly
       
       subroutine f2pyinitboundaryconditionsstuff(f2pysetupfunc)
       use boundaryconditionsstuff, only : applyinflowconditions
       use boundaryconditionsstuff, only : applyoutflowconditions
-      use boundaryconditionsstuff, only : leadingedgepointsearch
       interface 
       subroutine f2pywrap_boundaryconditionsstuff_wallreflect (wallrefle&
      &ctf2pywrap, wallreflect, point, normal, vertices, dim)
@@ -263,19 +252,6 @@
       real(kind=8) reflectionoperatorf2pywrap(3)
       end subroutine f2pywrap_boundaryconditionsstuff_reflectionoperator&
      & 
-      subroutine f2pywrap_boundaryconditionsstuff_matrixinverse (matrixi&
-     &nversef2pywrap, matrixinverse, in)
-      real(kind=8) in(3,3)
-      real(kind=8) matrixinverse(3,3)
-      real(kind=8) matrixinversef2pywrap(3,3)
-      end subroutine f2pywrap_boundaryconditionsstuff_matrixinverse 
-      subroutine f2pywrap_boundaryconditionsstuff_vectorprojection (vect&
-     &orprojectionf2pywrap, vectorprojection, in, normal)
-      real(kind=8) in(3)
-      real(kind=8) normal(3)
-      real(kind=8) vectorprojection(3)
-      real(kind=8) vectorprojectionf2pywrap(3)
-      end subroutine f2pywrap_boundaryconditionsstuff_vectorprojection 
       subroutine f2pywrap_boundaryconditionsstuff_findclosestpoint (find&
      &closestpointf2pywrap, findclosestpoint, starting_point, grid_point&
      &s, nx, ny, nz)
@@ -297,58 +273,20 @@
       real(kind=8) computationaldisplacementf2pywrap(3)
       end subroutine f2pywrap_boundaryconditionsstuff_computationaldispl&
      &acement 
-      subroutine f2pywrap_boundaryconditionsstuff_fortranxioffset (fortr&
-     &anxioffsetf2pywrap, fortranxioffset, xi_offset)
-      integer fortranxioffset
-      integer xi_offset
-      integer fortranxioffsetf2pywrap
-      end subroutine f2pywrap_boundaryconditionsstuff_fortranxioffset 
       subroutine f2pywrap_boundaryconditionsstuff_checksupersonic (check&
      &supersonicf2pywrap, checksupersonic, point, direction_in)
       logical checksupersonic
       integer direction_in
       real(kind=8) point(21)
       logical checksupersonicf2pywrap
-      end subroutine f2pywrap_boundaryconditionsstuff_checksupersonic 
-      subroutine f2pywrap_boundaryconditionsstuff_soundspeed (soundspeed&
-     &f2pywrap, soundspeed, point)
-      real(kind=8) soundspeed
-      real(kind=8) point(21)
-      real(kind=8) soundspeedf2pywrap
-      end subroutine f2pywrap_boundaryconditionsstuff_soundspeed 
-      subroutine f2pywrap_boundaryconditionsstuff_computecompucoordsdelt&
-     &a (computecompucoordsdeltaf2pywrap, computecompucoordsdelta, point&
-     &, metric, jacobian, base_point)
-      real(kind=8) jacobian
-      real(kind=8) point(3)
-      real(kind=8) metric(9)
-      real(kind=8) base_point(3)
-      integer computecompucoordsdelta(3)
-      integer computecompucoordsdeltaf2pywrap(3)
-      end subroutine f2pywrap_boundaryconditionsstuff_computecompucoords&
-     &delta 
-      subroutine f2pywrap_boundaryconditionsstuff_pnpoly (pnpolyf2pywrap&
-     &, pnpoly, npol, xp, yp, x, y)
-      logical pnpoly
-      integer npol
-      real(kind=8) x
-      real(kind=8) y
-      real(kind=8) xp(npol)
-      real(kind=8) yp(npol)
-      logical pnpolyf2pywrap
-      end subroutine f2pywrap_boundaryconditionsstuff_pnpoly
+      end subroutine f2pywrap_boundaryconditionsstuff_checksupersonic
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(f2pywrap_boundaryconditionsstuff_wallreflect,f2&
      &pywrap_boundaryconditionsstuff_reflectionoperator,f2pywrap_boundar&
-     &yconditionsstuff_matrixinverse,f2pywrap_boundaryconditionsstuff_ve&
-     &ctorprojection,f2pywrap_boundaryconditionsstuff_findclosestpoint,f&
-     &2pywrap_boundaryconditionsstuff_computationaldisplacement,f2pywrap&
-     &_boundaryconditionsstuff_fortranxioffset,applyinflowconditions,app&
-     &lyoutflowconditions,f2pywrap_boundaryconditionsstuff_checksuperson&
-     &ic,f2pywrap_boundaryconditionsstuff_soundspeed,leadingedgepointsea&
-     &rch,f2pywrap_boundaryconditionsstuff_computecompucoordsdelta,f2pyw&
-     &rap_boundaryconditionsstuff_pnpoly)
+     &yconditionsstuff_findclosestpoint,f2pywrap_boundaryconditionsstuff&
+     &_computationaldisplacement,applyinflowconditions,applyoutflowcondi&
+     &tions,f2pywrap_boundaryconditionsstuff_checksupersonic)
       end subroutine f2pyinitboundaryconditionsstuff
 
 

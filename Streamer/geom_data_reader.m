@@ -72,12 +72,14 @@ while(~feof(fid))
             
         end
     end
-    skip = 10;
+    skip = 1;
 
         if size(x,2)==1
-    %         plot(y,rho)
+             plot(y,rho,'.')
         elseif mod(n,skip) == 0
      if size(x,2)>1
+            figure(95756)
+            plot(rho(2,:))
            figure(1)
            colormap(jet(128))
            mach=vmag./sqrt(1.4*p./rho);

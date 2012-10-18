@@ -149,6 +149,100 @@ contains
     end if
   end subroutine TwoDGradient
 
+  function MatrixInverse(in)
+    ! Compute the inverse of a 3x3 matrix
+    implicit none
+    real(8), dimension(3,3), intent(in) :: in
+    real(8), dimension(3,3) :: MatrixInverse
+    real(8) :: J
+    
+    J = ( &
+         in(1,1)*in(2,2)*in(3,3) + &
+         in(1,2)*in(2,3)*in(3,1) + &
+         in(1,3)*in(2,1)*in(3,2) - &
+         in(1,1)*in(2,3)*in(3,2) - &
+         in(1,2)*in(2,1)*in(3,3) - &
+         in(1,3)*in(2,2)*in(3,1) )
+
+    MatrixInverse = transpose(reshape( [ & 
+         in(3,3)*in(2,2)-in(3,2)*in(2,3) , &
+         in(3,2)*in(1,3)-in(3,3)*in(1,2) , &
+         in(2,3)*in(1,2)-in(2,2)*in(1,3) , &
+         in(3,1)*in(2,3)-in(3,3)*in(2,1) , &
+         in(3,3)*in(1,1)-in(3,1)*in(1,3) , &
+         in(2,1)*in(1,3)-in(2,3)*in(1,1) , &
+         in(3,2)*in(2,1)-in(3,1)*in(2,2) , &
+         in(3,1)*in(1,2)-in(3,2)*in(1,1) , &
+         in(2,2)*in(1,1)-in(2,1)*in(1,2) ] &
+         ,[3,3])/J)
+    if(.true. .and. maxval(matmul(in,MatrixInverse)&
+            -reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2>1.d-15)then
+          write(*,*) "MatrixInverse failed!!"
+          write(*,*) matmul(in,MatrixInverse)
+          stop
+    end if
+  end function MatrixInverse
+
+  function vectorProjection(in,normal)
+    implicit none
+    real(8), intent(in), dimension(3) :: in
+    real(8), intent(in), dimension(3) :: normal
+    real(8), dimension(3) :: vectorProjection
+    vectorProjection = normal*&
+         (dot_product(in,normal)/dot_product(normal,normal))
+  end function vectorProjection
+
+  real(8) function SoundSpeed(point)
+    implicit none
+    real(8), intent(in), dimension(21) :: point
+    SoundSpeed = sqrt(1.4d0*point(1)/point(2))
+  end function SoundSpeed
+
+!!$  logical function pnpoly(npol,xp,yp,x,y)
+!!$    ! Check to see if a point lies on the interior of a polygon.
+!!$    ! The polygon is given by  x,y points in xp & yp. The point
+!!$    ! to test is given by x, y.
+!!$    ! Returns true if within the polygon, false otherwise.
+!!$
+!!$    ! Uses the method of counting the number of times a ray from 
+!!$    ! the point crosses the polygon. Original C code given on
+!!$    ! http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+!!$    ! and written by Randolph Franklin.
+!!$
+!!$    ! int pnpoly(int npol, float *xp, float *yp, float x, float y)
+!!$    !     {
+!!$    !       int i, j, c = 0;
+!!$    !       for (i = 0, j = npol-1; i < npol; j = i++) {
+!!$    !         if ((((yp[i] <= y) && (y < yp[j])) ||
+!!$    !              ((yp[j] <= y) && (y < yp[i]))) &&
+!!$    !             (x < (xp[j] - xp[i]) * (y - yp[i]) / (yp[j] - yp[i]) + xp[i]))
+!!$    !           c = !c;
+!!$    !       }
+!!$    !       return c;
+!!$    !     }
+!!$    implicit none
+!!$    integer :: npol
+!!$    real(8) :: x, y
+!!$    real(8), dimension(npol) :: xp, yp
+!!$    integer :: i, j, n
+!!$
+!!$    pnpoly = .false.
+!!$    n = size(xp)
+!!$    do i = 1, size(xp)
+!!$       if(i==1)then
+!!$          j = n
+!!$       else
+!!$          j = i-1
+!!$       end if
+!!$       if((((yp(i)<=y).and.(y<yp(j))).or.&
+!!$            ((yp(j)<=y).and.(y<yp(i)))).and.&
+!!$            (x<(xp(j)-xp(i))*(y-yp(i))/(yp(j)-yp(i))+xp(i)))&
+!!$            pnpoly = .not. pnpoly
+!!$       write(*,*) "i = ",i,"j = ",j       
+!!$    end do
+!!$
+!!$  end function pnpoly 
+
 end module GeneralUtilities
 
 module GeneralUtilitiesTest
@@ -200,6 +294,8 @@ contains
     real(8) :: x, y
     
     out = 0
+    ! Try variable ranges on these random numbers to check to handle 
+    ! ill-conditioned matrices
     call random_number(metric)
     call random_number(p1)
     call random_number(p2)
@@ -327,7 +423,6 @@ module Riemann
   logical :: riemann_test_flag 
   logical :: test_flag = .false.
   real(8), dimension(4) :: test_sol
-
 contains
 
   function riemann_solve( left, right, geom_avg, max_wave_speed, t_out )
@@ -411,7 +506,7 @@ contains
             (2.d0*gamma_const)*(PsiR-1.d0)+1.d0)),max_wave_speed)
     end if
     if(verbose)write(*,*) Ustar , DstarL , DstarR
-    call sample(0.D0,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,riemann_solve)
+    call sample(0D0,left,right,geom_avg,Pstar,Ustar,DstarL,DstarR,riemann_solve)
     if(verbose)write(*,*)"RiemannSolve = ", riemann_solve
   end function riemann_solve
 
@@ -613,9 +708,9 @@ contains
     implicit none
     real(8), dimension(5) :: test_1_left
     real(8), dimension(5) :: test_1_right
-    real(8), dimension(5) :: test_2_left  
-    real(8), dimension(5) :: test_2_right 
-    real(8), dimension(5) :: test_3_left  
+    real(8), dimension(5) :: test_2_left
+    real(8), dimension(5) :: test_2_right
+    real(8), dimension(5) :: test_3_left
     real(8), dimension(5) :: test_3_right
     real(8), dimension(5) :: test_4_left
     real(8), dimension(5) :: test_4_right
@@ -682,6 +777,17 @@ module Godunov
   real(8), parameter :: deta_inv  = 1.d0/deta
   real(8), parameter :: dzeta_inv = 1.d0/dzeta
   real(8), parameter :: dV_inv = dxi_inv*deta_inv*dzeta_inv
+  integer, parameter :: update_type = 2 ! 1 = FV, 2 = HUI3D
+
+  interface primtocons
+     module procedure primtoconsarray
+     module procedure primtoconspoint
+  end interface primtocons
+
+  interface constoprim
+     module procedure constoprimarray
+     module procedure constoprimpoint
+  end interface constoprim
 
 contains
 !  integer elemental function gt0(x)
@@ -697,7 +803,7 @@ contains
     energy_func = 0.5d0*(in(3)**2+in(4)**2+in(5)**2) + in(1)/(in(2)*gamma2)
   end function energy_func
 
-  subroutine primtocons(main,nx,ny,nz)
+  subroutine primtoconsarray(main)
     ! Assumes the structure of prim(:) is :
     !   1   2   3  4  5  
     ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
@@ -708,8 +814,10 @@ contains
     !      e is energy, defined for the ideal gas law by :
     !      .5*rho*(u^2+v^2+w^2) + p/(gamma-1)
     real(8), dimension(:,:,:,:), intent(inout) :: main
-    integer :: nx, ny, nz
-    real(8), dimension(nx,ny,nz) :: energy
+    integer, dimension(4) :: en_shape
+    real(8), allocatable, dimension(:,:,:) :: energy
+    en_shape = shape(main)
+    allocate(energy(en_shape(2), en_shape(3), en_shape(4)))
     energy = main(21,:,:,:)*( main(1,:,:,:)*gamma1 + 0.5d0*main(2,:,:,:)&
          *( main(3,:,:,:)**2 + main(4,:,:,:)**2 + main(5,:,:,:)**2 ) )
     main(1,:,:,:) = main(2,:,:,:)*main(21,:,:,:)
@@ -717,9 +825,31 @@ contains
     main(3,:,:,:) = main(1,:,:,:)*main(4,:,:,:)
     main(4,:,:,:) = main(1,:,:,:)*main(5,:,:,:)
     main(5,:,:,:) = energy
-  end subroutine primtocons
+    deallocate(energy)
+  end subroutine primtoconsarray
+
+  subroutine primtoconspoint(main)
+    ! Assumes the structure of prim(:) is :
+    !   1   2   3  4  5  
+    ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
+    ! J is the Jacobian
+    ! Returns the structure of cons(:) :
+    !     1       2         3         4       5 
+    ! [ rho J, rho J u , rho J v , rho J w , J e ]
+    !      e is energy, defined for the ideal gas law by :
+    !      .5*rho*(u^2+v^2+w^2) + p/(gamma-1)
+    real(8), dimension(:), intent(inout) :: main
+    real(8) :: energy
+    energy = main(21)*( main(1)*gamma1 + 0.5d0*main(2)&
+         *( main(3)**2 + main(4)**2 + main(5)**2 ) )
+    main(1) = main(2)*main(21)
+    main(2) = main(1)*main(3)
+    main(3) = main(1)*main(4)
+    main(4) = main(1)*main(5)
+    main(5) = energy
+  end subroutine primtoconspoint
   
-  subroutine constoprim(main,nx,ny,nz)
+  subroutine constoprimarray(main)
     ! Returns the structure of prim(:) :
     !   1   2   3  4  5  
     ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
@@ -730,8 +860,11 @@ contains
     !      e is energy, defined for the ideal gas law by :
     !      .5*rho*(u^2+v^2+w^2) + p/(gamma-1)
     real(8), dimension(:,:,:,:), intent(inout) :: main
-    integer, intent(in) :: nx, ny, nz
-    real(8), dimension(nx,ny,nz) :: temp1, temp2, p
+    integer, dimension(4) :: p_shape
+    real(8), allocatable, dimension(:,:,:) :: temp1, temp2, p
+    allocate( temp1(p_shape(2), p_shape(3), p_shape(4)) )
+    allocate( temp2(p_shape(2), p_shape(3), p_shape(4)) )
+    allocate(     p(p_shape(2), p_shape(3), p_shape(4)) )
     temp1 = 1.d0/main(21,:,:,:)
     temp2 = 1.d0/main(1,:,:,:)
     p = gamma2*temp1*( main(5,:,:,:) - .5d0*temp2&
@@ -742,7 +875,32 @@ contains
     main(3,:,:,:) = main(2,:,:,:)*temp2
     main(2,:,:,:) = main(1,:,:,:)*temp1
     main(1,:,:,:) = p
-  end subroutine constoprim
+    deallocate( temp1, temp2, p )
+  end subroutine constoprimarray
+
+  subroutine constoprimpoint(main)
+    ! Returns the structure of prim(:) :
+    !   1   2   3  4  5  
+    ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
+    ! J is the Jacobian
+    ! Assume the structure of cons(:) is :
+    !     1       2         3         4       5 
+    ! [ rho J, rho J u , rho J v , rho J w , J e ]
+    !      e is energy, defined for the ideal gas law by :
+    !      .5*rho*(u^2+v^2+w^2) + p/(gamma-1)
+    real(8), dimension(:), intent(inout) :: main
+    real(8) :: temp1, temp2, p
+    temp1 = 1.d0/main(21)
+    temp2 = 1.d0/main(1)
+    p = gamma2*temp1*( main(5) - .5d0*temp2&
+         *( main(2)**2 + main(3)**2 + main(4)**2 )&
+         )
+    main(5) = main(4)*temp2
+    main(4) = main(3)*temp2
+    main(3) = main(2)*temp2
+    main(2) = main(1)*temp1
+    main(1) = p
+  end subroutine constoprimpoint
 
   function invnorm3(in)
     real(8), dimension(3), intent(in) :: in
@@ -769,8 +927,221 @@ contains
        tangential2 = temp1*temp3*temp4
     end if
   end subroutine grid_coords
-  
+
   subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
+    implicit none
+    real(8), dimension(:,:,:,:) :: main
+    !f2py intent(in,out) :: main
+    integer :: bcextent, nx, ny, nz
+    real(8) :: dt_in, CFL
+    select case(update_type)
+    case(1)
+       call prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz)
+    case(2)
+       call prim_update_HUI3D(main,bcextent,dt_in,CFL,nx,ny,nz)
+    case default
+       write(*,*) "Bad update_type value!!!"
+       stop
+    end select
+  end subroutine prim_update
+
+!!$  function compute_interfaces_HUI3D(left_in,right_in,row_ops_mat)
+!!$    implicit none
+!!$    real(8), dimension(21), intent(in) :: left, right
+!!$    integer, dimension(3,3), intent(in) :: row_ops_mat
+!!$    real(8), dimension(5) :: compute_interfaces_HUI3D, face
+!!$    real(8), dimension(9) :: metric, metric_inverse
+!!$    real(8), dimension(3) :: grid_vel
+!!$    real(8), dimension(3,3) :: vels_transform, vels_transform_inv
+!!$    real(8), dimension(21) :: geom_avg
+!!$    metric = .5d0*(left(6:14)+right(6:14))
+!!$    metric_inverse = MetricInverse(metric)
+!!$    grid_vel = .5d0*(left(15:17)+right(15:17))
+!!$    vels_transform = matmul(MetrictoMatrix(metric_inverse),row_ops_mat)
+!!$    left(3:5) = matmul(left(3:5),vels_transform)
+!!$    center(3:5) = matmul(center(3:5),vels_transform)
+!!$    grid_vel = matmul(grid_vel,vels_transform)
+!!$    geom_avg = 0d0
+!!$    geom_avg(6:14) = center(6:14)
+!!$    geom_avg(15:17) = grid_vel
+!!$    face = riemann_solve(left,right,geom_avg,max_wave_speed_temp,0.d0)
+!!$    vels_transform_inv = matmul(transpose(row_ops_mat),MetrictoMatrix(metric))
+!!$    face(3:5) = matmul(vels_transform_inv,face(3:5))
+!!$    compute_interfaces_HUI3D = face
+!!$
+!!$  end function compute_interfaces_HUI3D
+
+  subroutine prim_update_HUI3D(main,bcextent,dt_in,CFL,nx,ny,nz)
+    implicit none
+    real(8), dimension(21,-1*bcextent:nx+bcextent-1,-1*bcextent:ny+bcextent-1,&
+         -1*bcextent:nz+bcextent-1), intent(inout) :: main
+    real(8), dimension(21,0:nx-1,0:ny-1,0:nz-1) :: main_temp
+    real(8), intent(in), optional :: dt_in
+    real(8), intent(in), optional :: CFL
+    integer, intent(in) :: nx,ny,nz,bcextent
+    integer :: i, j, k, m, n, im, jm, km, ip, jp, kp, case_no
+    real(8) :: area, dv_inv, max_wave_speed_temp
+    real(8), dimension(5) :: cons, prim, left_interface, right_interface
+    real(8), dimension(5) :: left_flux, right_flux
+    real(8), dimension(3) :: grid_vel, grid_pos
+    real(8), dimension(3,3) :: row_ops_mat, vels_transform
+    real(8), dimension(9) :: metric, metric_inverse
+    real(8), dimension(21) :: temp, center, left, right, geom_avg
+    integer, parameter :: splitting_type = 1
+    real(8) :: dt, junk
+    dt = dt_in
+    dv_inv = 1.d0
+    do n = 1, 2
+       if( mod(n,2) .ne. 0 )then
+          case_no = 1
+          area = deta*dzeta
+!!$          time = dt
+          im =-1; ip = 1; jm = 0; jp = 0; km = 0; kp = 0
+       else
+          case_no = 2
+          area = dxi*dzeta
+!!$          time = dt
+          jm =-1; jp = 1; im = 0; ip = 0; km = 0; kp = 0
+       end if
+       do k = 0, nz-1
+          do j = 0, ny-1
+             do i = 0, nx-1
+                row_ops_mat = row_ops_mat_func(case_no)
+
+                center = main(:,i,j,k)
+                left = main(:,i+im,j+jm,k+km)
+                call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
+                     main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
+                     main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
+                metric = .5d0*(left(6:14)+center(6:14))
+                metric_inverse = MetricInverse(metric)
+                grid_vel = .5d0*(left(15:17)+center(15:17))
+                vels_transform = matmul(&
+                     MetrictoMatrix(metric_inverse),row_ops_mat)
+                do m = 1, 3
+                   vels_transform(n,:) = vels_transform(n,:)&
+                        /sqrt(sum(vels_transform(n,:)**2))
+                end do
+                left(3:5) = matmul(vels_transform,left(3:5))
+                center(3:5) = matmul(vels_transform,center(3:5))
+                grid_vel = matmul(vels_transform,grid_vel)
+                geom_avg = 0d0
+                geom_avg(6:14) = center(6:14)
+                geom_avg(15:17) = grid_vel
+                left_interface = riemann_solve(left, center, &
+                     .5d0*(left+center), max_wave_speed_temp, 0.d0)
+                vels_transform = matmul(transpose(row_ops_mat),&
+                     MetrictoMatrix(metric))
+                do m = 1, 3
+                   vels_transform(n,:) = vels_transform(n,:)&
+                        /sqrt(sum(vels_transform(n,:)**2))
+                end do
+                left_interface(3:5) = matmul(vels_transform,left_interface(3:5))
+                
+                center = main(:,i,j,k)
+                right = main(:,i+ip,j+jp,k+kp)
+                call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
+                     main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
+                     main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
+                metric = .5d0*(center(6:14)+right(6:14))
+                metric_inverse = MetricInverse(metric)
+                grid_vel = .5d0*(center(15:17)+right(15:17))
+                vels_transform = matmul(&
+                     MetrictoMatrix(metric_inverse),row_ops_mat)
+                do m = 1, 3
+                   vels_transform(n,:) = vels_transform(n,:)&
+                        /sqrt(sum(vels_transform(n,:)**2))
+                end do
+                right(3:5) = matmul(vels_transform,right(3:5))
+                center(3:5) = matmul(vels_transform,center(3:5))
+                grid_vel = matmul(vels_transform,grid_vel)
+                geom_avg = 0d0
+                geom_avg(6:14) = center(6:14)
+                geom_avg(15:17) = grid_vel
+                right_interface = riemann_solve(center, right, &
+                     .5d0*(right+center), max_wave_speed_temp, 0.d0)
+                vels_transform = matmul(transpose(row_ops_mat),&
+                     MetrictoMatrix(metric))
+                do m = 1, 3
+                   vels_transform(n,:) = vels_transform(n,:)&
+                        /sqrt(sum(vels_transform(n,:)**2))
+                end do
+                right_interface(3:5)=matmul(vels_transform,right_interface(3:5))
+
+                junk = sum(matmul(matmul(MetrictoMatrix(metric_inverse),&
+                     row_ops_mat),matmul(transpose(row_ops_mat),&
+                     MetrictoMatrix(metric)))&
+                     -reshape([1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0],[3,3]))&
+                     **2
+                if(junk > 1d-14)then
+                   write(*,*) "Inverse not working!!"
+                   write(*,*) junk
+                   stop
+                end if
+                     
+                center = main(:,i,j,k)
+                call primtocons(center)
+                if(n==1)then
+                   center(6:8) = center(6:8) + 0d0*dt*area*dv_inv*&
+                        (right_interface(3:5)-left_interface(3:5))
+                   left_flux = flux(left_interface,center,1)
+                   right_flux = flux(right_interface,center,1)
+                else if(n==2)then
+                   center(9:11) = center(9:11) + 0d0*dt*area*dv_inv*&
+                        (right_interface(3:5)-left_interface(3:5))
+                   left_flux = flux(left_interface,center,2)
+                   right_flux = flux(right_interface,center,2)
+                else if(n==3)then
+                   center(12:14) = center(12:14) + 0d0*dt*area*dv_inv*&
+                        (right_interface(3:5)-left_interface(3:5))
+                   left_flux = flux(left_interface,center,3)
+                   right_flux = flux(right_interface,center,3)
+                end if
+                center(1:5) = center(1:5) - dt*area*dv_inv*&
+                     (right_flux-left_flux)
+                call constoprim(center)
+                center(15:17) = center(3:5)*.0d0
+                center(18:20) = center(18:20) + 0d0*dt*area*dv_inv*center(15:17)
+                center(21) = Jacobian(center(6:14))
+
+                main_temp(:,i,j,k) = center
+                if(abs(main_temp(5,i,j,k)) > 1d-12)then
+                   write(*,*) "z-component of velocity detected!!!"
+                   read(*,*)
+                end if
+             end do
+          end do
+       end do
+!!$       write(*,*) "x = ", main(18,:,ny/2-4,1)
+!!$       read(*,*)
+       main(:,0:nx-1,0:ny-1,0:nz-1) = main_temp
+       main(15:17,0:nx-1,0:ny-1,0:nz-1) = main(3:5,0:nx-1,0:ny-1,0:nz-1)*.25d0
+       main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1)&
+            *dt*area*dv_inv*main(15:17,0:nx-1,0:ny-1,0:nz-1)
+!!$       write(*,*) "Offending pressure values are:"
+!!$       write(*,*) main( 1,0,51:52,0)
+!!$       write(*,*) main( 2,0,51:52,0)
+!!$       write(*,*) main( 3,0,51:52,0)
+!!$       write(*,*) main( 4,0,51:52,0)
+!!$       write(*,*) main( 5,0,51:52,0)
+!!$       write(*,*) main( 6,0,51:52,0)
+!!$       write(*,*) main( 7,0,51:52,0)
+!!$       write(*,*) main( 8,0,51:52,0)
+!!$       write(*,*) main( 9,0,51:52,0)
+!!$       write(*,*) main(10,0,51:52,0)
+!!$       write(*,*) main(11,0,51:52,0)
+!!$       write(*,*) main(12,0,51:52,0)
+!!$       write(*,*) main(13,0,51:52,0)
+!!$       write(*,*) main(14,0,51:52,0)
+!!$       write(*,*) main(15,0,51:52,0)
+!!$       write(*,*) main(16,0,51:52,0)
+!!$       write(*,*) main(17,0,51:52,0)
+!!$       write(*,*) 
+
+    end do
+  end subroutine prim_update_HUI3D
+
+  subroutine prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz)
 ! Advance the solution using the integral form of the equations
 ! This subroutine assumes that main is the full array of primitive variables. main 
 ! must also include the boundary cell values. That is, main contains a 0-index and 
@@ -801,7 +1172,7 @@ contains
     do k = 0, nz-1
        do j = 0, ny-1
           do i = 0, nx
-             call compute_fluxes(main(1:5,i-1,j,k), main(1:5,i,j,k),&
+             call compute_fluxes_FV(main(1:5,i-1,j,k), main(1:5,i,j,k),&
                   .5d0*(main(:,i-1,j,k)+main(:,i,j,k)),fluxx(:,i,j,k),&
                   1,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
           end do
@@ -810,7 +1181,7 @@ contains
     do k = 0, nz-1
        do j = 0, ny
           do i = 0, nx-1
-             call compute_fluxes(main(1:5,i,j-1,k), main(1:5,i,j,k),&
+             call compute_fluxes_FV(main(1:5,i,j-1,k), main(1:5,i,j,k),&
                   .5d0*(main(:,i,j-1,k)+main(:,i,j,k)),fluxy(:,i,j,k),&
                   2,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta],debug_flag=.true.)
           end do
@@ -819,7 +1190,7 @@ contains
     do k = 0, nz
        do j = 0, ny-1
           do i = 0, nx-1
-             call compute_fluxes(main(1:5,i,j,k-1), main(1:5,i,j,k),&
+             call compute_fluxes_FV(main(1:5,i,j,k-1), main(1:5,i,j,k),&
                   .5d0*(main(:,i,j,k-1)+main(:,i,j,k)),fluxz(:,i,j,k),&
                   3,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
           end do
@@ -837,17 +1208,17 @@ contains
        read(*,*)
        stop
     end if
-    call primtocons(main(:,0:nx-1,0:ny-1,0:nz-1),nx,ny,nz)
+    call primtocons(main(:,0:nx-1,0:ny-1,0:nz-1))
     main(1:14,0:nx-1,0:ny-1,0:nz-1) = main(1:14,0:nx-1,0:ny-1,0:nz-1) - (&
          (fluxx(:,1:nx,:,:)-fluxx(:,0:nx-1,:,:))*deta*dzeta + &
          (fluxy(:,:,1:ny,:)-fluxy(:,:,0:ny-1,:))*dxi*dzeta + &
          (fluxz(:,:,:,1:nz)-fluxz(:,:,:,0:nz-1))*dxi*deta &
          )*dt*dV_inv
 
-    call constoprim(main(:,0:nx-1,0:ny-1,0:nz-1),nx,ny,nz)
+    call constoprim(main(:,0:nx-1,0:ny-1,0:nz-1))
 ! Update grid velocity
 !!$    call grid_velocity_update(main)
-    main(15:17,:,:,:) = main(3:5,:,:,:)*.25d0
+!    main(15:17,:,:,:) = main(3:5,:,:,:)*.25d0
 ! Update grid position
     main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1) + &
          main(15:17,0:nx-1,0:ny-1,0:nz-1)*dt
@@ -859,9 +1230,9 @@ contains
         end do
      end do
   end do
-  end subroutine prim_update
+  end subroutine prim_update_FV
 
-  subroutine compute_fluxes(inL, inR, geom_avg, flux_vec, case_no,&
+  subroutine compute_fluxes_FV(inL, inR, geom_avg, flux_vec, case_no,&
        max_wave_speed,dt,dV_in,debug_flag)
     implicit none
     real(8), dimension(:), intent(in) :: inL, inR
@@ -905,43 +1276,33 @@ contains
          GradEta/sqrt(sum(GradEta**2)),GradZeta/sqrt(sum(GradZeta**2)))
     dX_dXi_u = GradstoMatrix(GradX/sqrt(sum(GradX**2)),&
          GradY/sqrt(sum(GradY**2)),GradZ/sqrt(sum(GradZ**2)))
+    dX_dXi_u = reshape([geom_avg(6),geom_avg(9),geom_avg(12),&
+         geom_avg(7),geom_avg(10),geom_avg(13),&
+         geom_avg(8),geom_avg(11),geom_avg(14)],[3,3])
+    dXi_dX_u = MetrictoMatrix(MetricInverse(geom_avg(6:14)))
+    row_ops_mat = row_ops_mat_func(case_no)
     select case(case_no)
     case(1)
-       row_ops_mat = reshape([&
-            1,0,0,&
-            0,1,0,&
-            0,0,1],&
-            [3,3])
        flux_vec(6:8) = -geom_avg(15:17)
        dA = dV_in(2)*dV_in(3)
     case(2)
-       row_ops_mat = reshape([&
-            0,1,0,&
-            0,0,1,&
-            1,0,0],&
-            [3,3])
        flux_vec(9:11) = -geom_avg(15:17)
        dA = dV_in(1)*dV_in(3)
     case(3)
-       row_ops_mat = reshape([&
-            0,0,1,&
-            1,0,0,&
-            0,1,0],&
-            [3,3])
        flux_vec(12:14) = -geom_avg(15:17)
        dA = dV_in(1)*dV_in(2)
     case default
        write(*,*) "Invalid case_no in compute_fluxes -- case_no = ",case_no
        stop
     end select
-    dXi_dX_u = matmul(dXi_dX_u,transpose(row_ops_mat))
-    dX_dXi_u = matmul(row_ops_mat,dX_dXi_u)
-    if(maxval(matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3]))>EPS)then
+    dXi_dX_u = matmul(dXi_dX_u,row_ops_mat)
+    dX_dXi_u = matmul(transpose(row_ops_mat),dX_dXi_u)
+    if(maxval(matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3]))>1d-13)then
        write(*,*) "Inverses not working!"
        write(*,*) 
        write(*,*) dXi_dX_u
        write(*,*) dX_dXi_u
-       write(*,*) matmul(dXi_dX_u,dX_dXi_u)
+       write(*,*) matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3])
        read(*,*)
     end if
     StateL(3:5) = matmul(dXi_dX_u,StateL(3:5))
@@ -956,7 +1317,25 @@ contains
 !!$    flux_vec(6:14) = 0.d0
     flux_vec(1:5) = flux(interface_vars,geom_avg,case_no)
     max_wave_speed = max(max_wave_speed,temp_wave_speed)
-  end subroutine compute_fluxes
+  end subroutine compute_fluxes_FV
+
+  function row_ops_mat_func(case_no)
+    implicit none
+    integer, dimension(3,3) :: row_ops_mat_func, row_ops_mat
+    integer, intent(in) :: case_no
+        select case(case_no)
+    case(1)
+       row_ops_mat = reshape([1,0,0,0,1,0,0,0,1],[3,3])
+    case(2)
+       row_ops_mat = reshape([0,1,0,1,0,0,0,0,1],[3,3])
+    case(3)
+       row_ops_mat = reshape([0,0,1,1,0,0,0,1,0],[3,3])
+    case default
+       write(*,*) "Invalid case_no in compute_fluxes -- case_no = ",case_no
+       stop
+    end select
+    row_ops_mat_func = row_ops_mat
+  end function row_ops_mat_func
 
   function flux(in,geom_avg,case_no)
     implicit none
@@ -987,6 +1366,32 @@ contains
 !!$    write(*,*) "Energy term = ", J*in(2)*D*energy_func(in(1:5))
 !!$    write(*,*) "Case No. = ", case_no
   end function flux
+
+  subroutine MUSCL_HUI(leftleft, left, right, rightright, outleft, outright)
+    implicit none
+    real(8), dimension(5), intent(in) :: leftleft, left, right, rightright
+    real(8), dimension(5), intent(out) :: outleft, outright
+    integer :: n
+    
+    do n = 1, 5
+       outleft(n)  =  left(n) + 5d-1*( left(n) - leftleft(n))*minmod(&
+            (right(n)-left(n))/( left(n) - leftleft(n)))
+       outright(n) = right(n) - 5d-1*(rightright(n)-right(n))*minmod(&
+            (right(n)-left(n))/(rightright(n)-right(n)))
+    end do
+    outleft  =  left + 5d-1*( left - leftleft)*&
+         minmod((right-left)/( left - leftleft))
+    outright = right - 5d-1*(rightright-right)*&
+         minmod((right-left)/(rightright-right))
+    
+  contains
+    elemental function minmod(in)
+      implicit none
+      real(8), intent(in) :: in
+      real(8) :: minmod
+      minmod = max(0d0,min(1d0,in))
+    end function minmod
+  end subroutine MUSCL_HUI
 
 end module Godunov
 
@@ -1022,9 +1427,10 @@ contains
   end function GodErrorReader
 
   integer function GodTester()
+    use TimeAdvancementStuff
     implicit none
     real(8), dimension(21,3,4,3) :: main
-    integer :: i, j
+    integer :: i, j, nx, ny
     real(8), dimension(5) :: riemann_test
     real(8), dimension(21) :: geom_test
     real(8), dimension(21,3,3,3) :: constoprimtest1, constoprimtest2
@@ -1042,6 +1448,9 @@ contains
          -0.184655,-0.167707,-0.548871]
     real(8), dimension(5), parameter :: flux_test_z = [0.0285833,-0.00172451,&
          0.142847,0.171804,0.402354]
+    real(8), dimension(21,62,102,3) :: riemann_test_array
+    real(8), dimension(21,102,3,3) :: riemann_test_array_1d
+    integer :: n
     
     GodTester = 0
 
@@ -1051,8 +1460,8 @@ contains
     ! positive numbers, I suppose.
     call random_number(constoprimtest1)
     constoprimtest2 = constoprimtest1
-    call constoprim(constoprimtest1,3,3,3)
-    call primtocons(constoprimtest1,3,3,3)
+    call constoprim(constoprimtest1)
+    call primtocons(constoprimtest1)
     if(sqrt(sum((constoprimtest1-constoprimtest2)**2)&
          /size(constoprimtest1))>EPS) GodTester = 1
 
@@ -1082,14 +1491,56 @@ contains
        GodTester = 3
     end if
 
-    ! I haven't yet found a good way to test prim_update. However, that's really
-    ! part of the algorithm test, anyway.
+    ! It is important to also test prim_update, though the only known way 
+    ! to do this is via specific convergence testing. For now, that testing
+    ! must be approved manually.
+    ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
 
+    call RieInit1D(riemann_test_array_1d)
+    nx = size(riemann_test_array_1d,2)
+    ny = size(riemann_test_array_1d,3)
+    call write_files_matlab(riemann_test_array_1d(:,:,:,2),1d-4*n,&
+         nx,ny,.true.)!(x,y,E,h,t,dt)
+    do n = 1, 5000
+       if(n*1d-3>25d-2) exit
+       write(*,*) "time step = ", n
+       call prim_update(riemann_test_array_1d,1,1d-3,.7d0,100,1,1)
+       riemann_test_array_1d(:,:,1,:) = riemann_test_array_1d(:,:,2,:)
+       riemann_test_array_1d(:,:,3,:) = riemann_test_array_1d(:,:,1,:)
+       riemann_test_array_1d(:,:,:,1) = riemann_test_array_1d(:,:,:,2)
+       riemann_test_array_1d(:,:,:,3) = riemann_test_array_1d(:,:,:,2)
+       call write_files_matlab(riemann_test_array_1d(:,:,:,2),1d-3*n,&
+            nx,ny,.false.)!(x,y,E,h,t,dt)
+
+       !write(*,*) riemann_test_array_1d(1,20:60,1,1) 
+    end do
+       
+         ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
+
+    write(*,*) "Got this far!!"
+    write(*,*) riemann_test_array_1d(1,:,2,2)
+    
   end function GodTester
 
-  subroutine GodInit(main)
+  subroutine RieInit1D(main)
     implicit none
-    real(8), dimension(21,3,4,3) :: main
+    real(8), dimension(21,-1:100,-1:1,-1:1) :: main
+    integer :: i
+    main = 0d0
+    main(1,-1:49,:,:) = 1d0 ; main(1,50:100,:,:) = 1d-1
+    main(2,-1:49,:,:) = 1d0 ; main(2,50:100,:,:) = 125d-3
+    main(3,-1:49,:,:) = 0d0 ; main(3,50:100,:,:) = 0d0
+    main(4,:,:,:) = 0d0 ; main(5,:,:,:) = 0d0
+    main(6,:,:,:) = 1d-2 ; main(10,:,:,:) = 1d-2 ; main(14,:,:,:) = 1d-2
+    do i = -1, 100
+       main(18,i,:,:) = (real(i,8)+.5d0)*1d-2
+    end do
+    main(21,:,:,:) = 1d-6
+  end subroutine RieInit1D
+
+  subroutine GodRieInit(main)
+    implicit none
+    real(8), dimension(21,62,102,3), intent(inout) :: main
     integer :: i, j
 
     main( 1,:,:,:) = 1.d0
@@ -1122,20 +1573,20 @@ contains
     main(3,:,size(main,3)/2+1:size(main,3),:) = 7.d0*&
          sqrt(1.4d0*.25d0/.5d0)
     main(15,:,:,:) = .25d0*main(3,:,:,:)
-  end subroutine GodInit
+  end subroutine GodRieInit
 end module Godunov_tester
 
-!!$program Godunov_tester_program
-!!$  use Godunov_tester
-!!$  use Riemann_tester
-!!$  integer :: result, junk
-!!$  result = GodTester()
-!!$  write(*,*) "Godunov_tester_program: "
-!!$  junk = GodErrorReader(result)
-!!$  result = RieTester()
-!!$  write(*,*) "Riemann_tester_program: "
-!!$  junk = RieErrorReader(result)
-!!$end program Godunov_tester_program
+program Godunov_tester_program
+  use Godunov_tester
+  use Riemann_tester
+  integer :: result, junk
+  result = GodTester()
+  write(*,*) "Godunov_tester_program: "
+  junk = GodErrorReader(result)
+  result = RieTester()
+  write(*,*) "Riemann_tester_program: "
+  junk = RieErrorReader(result)
+end program Godunov_tester_program
 
 !!$module grid_velocity
 !!$contains

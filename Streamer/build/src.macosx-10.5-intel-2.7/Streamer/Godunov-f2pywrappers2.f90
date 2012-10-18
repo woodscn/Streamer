@@ -32,6 +32,28 @@
       real(kind=8) gradstomatrixf2pywrap(3,3)
       gradstomatrixf2pywrap = gradstomatrix(grad1, grad2, grad3)
       end subroutine f2pywrap_generalutilities_gradstomatrix
+      subroutine f2pywrap_generalutilities_matrixinverse (matrixinversef&
+     &2pywrap, in)
+      use generalutilities, only : matrixinverse
+      real(kind=8) in(3,3)
+      real(kind=8) matrixinversef2pywrap(3,3)
+      matrixinversef2pywrap = matrixinverse(in)
+      end subroutine f2pywrap_generalutilities_matrixinverse
+      subroutine f2pywrap_generalutilities_vectorprojection (vectorproje&
+     &ctionf2pywrap, in, normal)
+      use generalutilities, only : vectorprojection
+      real(kind=8) in(3)
+      real(kind=8) normal(3)
+      real(kind=8) vectorprojectionf2pywrap(3)
+      vectorprojectionf2pywrap = vectorprojection(in, normal)
+      end subroutine f2pywrap_generalutilities_vectorprojection
+      subroutine f2pywrap_generalutilities_soundspeed (soundspeedf2pywra&
+     &p, point)
+      use generalutilities, only : soundspeed
+      real(kind=8) point(21)
+      real(kind=8) soundspeedf2pywrap
+      soundspeedf2pywrap = soundspeed(point)
+      end subroutine f2pywrap_generalutilities_soundspeed
       
       subroutine f2pyinitgeneralutilities(f2pysetupfunc)
       use generalutilities, only : gamma7
@@ -72,14 +94,35 @@
       real(kind=8) grad3(3)
       real(kind=8) gradstomatrix(3,3)
       real(kind=8) gradstomatrixf2pywrap(3,3)
-      end subroutine f2pywrap_generalutilities_gradstomatrix
+      end subroutine f2pywrap_generalutilities_gradstomatrix 
+      subroutine f2pywrap_generalutilities_matrixinverse (matrixinversef&
+     &2pywrap, matrixinverse, in)
+      real(kind=8) in(3,3)
+      real(kind=8) matrixinverse(3,3)
+      real(kind=8) matrixinversef2pywrap(3,3)
+      end subroutine f2pywrap_generalutilities_matrixinverse 
+      subroutine f2pywrap_generalutilities_vectorprojection (vectorproje&
+     &ctionf2pywrap, vectorprojection, in, normal)
+      real(kind=8) in(3)
+      real(kind=8) normal(3)
+      real(kind=8) vectorprojection(3)
+      real(kind=8) vectorprojectionf2pywrap(3)
+      end subroutine f2pywrap_generalutilities_vectorprojection 
+      subroutine f2pywrap_generalutilities_soundspeed (soundspeedf2pywra&
+     &p, soundspeed, point)
+      real(kind=8) soundspeed
+      real(kind=8) point(21)
+      real(kind=8) soundspeedf2pywrap
+      end subroutine f2pywrap_generalutilities_soundspeed
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(gamma7,gamma6,gamma5,gamma4,gamma3,gamma2,gamma&
      &1,eps,gamma_const,epss,f2pywrap_generalutilities_metricinverse,f2p&
      &ywrap_generalutilities_metrictomatrix,computationalgrads,f2pywrap_&
      &generalutilities_jacobian,f2pywrap_generalutilities_gradstomatrix,&
-     &twodgradient)
+     &twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_gene&
+     &ralutilities_vectorprojection,f2pywrap_generalutilities_soundspeed&
+     &)
       end subroutine f2pyinitgeneralutilities
 
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&
@@ -298,34 +341,40 @@
       real(kind=8) energy_funcf2pywrap
       energy_funcf2pywrap = energy_func(in)
       end subroutine f2pywrap_godunov_energy_func
-      subroutine f2pywrap_godunov_primtocons (main, nx, ny, nz, f2py_mai&
-     &n_d0, f2py_main_d1, f2py_main_d2, f2py_main_d3)
-      use godunov, only : primtocons
-      integer nx
-      integer ny
-      integer nz
+      subroutine f2pywrap_godunov_primtoconsarray (main, f2py_main_d0, f&
+     &2py_main_d1, f2py_main_d2, f2py_main_d3)
+      use godunov, only : primtoconsarray
       integer f2py_main_d0
       integer f2py_main_d1
       integer f2py_main_d2
       integer f2py_main_d3
       real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
      &_d3)
-      call primtocons(main, nx, ny, nz)
-      end subroutine f2pywrap_godunov_primtocons
-      subroutine f2pywrap_godunov_constoprim (main, nx, ny, nz, f2py_mai&
-     &n_d0, f2py_main_d1, f2py_main_d2, f2py_main_d3)
-      use godunov, only : constoprim
-      integer nx
-      integer ny
-      integer nz
+      call primtoconsarray(main)
+      end subroutine f2pywrap_godunov_primtoconsarray
+      subroutine f2pywrap_godunov_primtoconspoint (main, f2py_main_d0)
+      use godunov, only : primtoconspoint
+      integer f2py_main_d0
+      real(kind=8) main(f2py_main_d0)
+      call primtoconspoint(main)
+      end subroutine f2pywrap_godunov_primtoconspoint
+      subroutine f2pywrap_godunov_constoprimarray (main, f2py_main_d0, f&
+     &2py_main_d1, f2py_main_d2, f2py_main_d3)
+      use godunov, only : constoprimarray
       integer f2py_main_d0
       integer f2py_main_d1
       integer f2py_main_d2
       integer f2py_main_d3
       real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
      &_d3)
-      call constoprim(main, nx, ny, nz)
-      end subroutine f2pywrap_godunov_constoprim
+      call constoprimarray(main)
+      end subroutine f2pywrap_godunov_constoprimarray
+      subroutine f2pywrap_godunov_constoprimpoint (main, f2py_main_d0)
+      use godunov, only : constoprimpoint
+      integer f2py_main_d0
+      real(kind=8) main(f2py_main_d0)
+      call constoprimpoint(main)
+      end subroutine f2pywrap_godunov_constoprimpoint
       subroutine f2pywrap_godunov_invnorm3 (invnorm3f2pywrap, in)
       use godunov, only : invnorm3
       real(kind=8) in(3)
@@ -342,10 +391,28 @@
       real(kind=8) tangential2(3)
       call grid_coords(grad, normal, tangential1, tangential2)
       end subroutine f2pywrap_godunov_grid_coords
-      subroutine f2pywrap_godunov_compute_fluxes (inl, inr, geom_avg, fl&
-     &ux_vec, case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_inl_d&
-     &0, f2py_inr_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
-      use godunov, only : compute_fluxes
+      subroutine f2pywrap_godunov_prim_update (main, bcextent, dt_in, cf&
+     &l, nx, ny, nz, f2py_main_d0, f2py_main_d1, f2py_main_d2, f2py_main&
+     &_d3)
+      use godunov, only : prim_update
+      integer bcextent
+      real(kind=8) dt_in
+      real(kind=8) cfl
+      integer nx
+      integer ny
+      integer nz
+      integer f2py_main_d0
+      integer f2py_main_d1
+      integer f2py_main_d2
+      integer f2py_main_d3
+      real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
+     &_d3)
+      call prim_update(main, bcextent, dt_in, cfl, nx, ny, nz)
+      end subroutine f2pywrap_godunov_prim_update
+      subroutine f2pywrap_godunov_compute_fluxes_fv (inl, inr, geom_avg,&
+     & flux_vec, case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_in&
+     &l_d0, f2py_inr_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
+      use godunov, only : compute_fluxes_fv
       integer case_no
       real(kind=8) max_wave_speed
       real(kind=8) dt
@@ -359,9 +426,16 @@
       real(kind=8) geom_avg(f2py_geom_avg_d0)
       real(kind=8) flux_vec(f2py_flux_vec_d0)
       real(kind=8) dv_in(3)
-      call compute_fluxes(inl, inr, geom_avg, flux_vec, case_no, max_wav&
-     &e_speed, dt, dv_in, debug_flag)
-      end subroutine f2pywrap_godunov_compute_fluxes
+      call compute_fluxes_fv(inl, inr, geom_avg, flux_vec, case_no, max_&
+     &wave_speed, dt, dv_in, debug_flag)
+      end subroutine f2pywrap_godunov_compute_fluxes_fv
+      subroutine f2pywrap_godunov_row_ops_mat_func (row_ops_mat_funcf2py&
+     &wrap, case_no)
+      use godunov, only : row_ops_mat_func
+      integer case_no
+      integer row_ops_mat_funcf2pywrap(3,3)
+      row_ops_mat_funcf2pywrap = row_ops_mat_func(case_no)
+      end subroutine f2pywrap_godunov_row_ops_mat_func
       subroutine f2pywrap_godunov_flux (fluxf2pywrap, in, geom_avg, case&
      &_no, f2py_in_d0, f2py_geom_avg_d0)
       use godunov, only : flux
@@ -381,9 +455,12 @@
       use godunov, only : deta_inv
       use godunov, only : dxi_inv
       use godunov, only : dv_inv
+      use godunov, only : update_type
       use godunov, only : dxi
       use godunov, only : dzeta_inv
-      use godunov, only : prim_update
+      use godunov, only : prim_update_hui3d
+      use godunov, only : prim_update_fv
+      use godunov, only : muscl_hui
       interface 
       subroutine f2pywrap_godunov_energy_func (energy_funcf2pywrap, ener&
      &gy_func, in, f2py_in_d0)
@@ -392,30 +469,32 @@
       real(kind=8) in(f2py_in_d0)
       real(kind=8) energy_funcf2pywrap
       end subroutine f2pywrap_godunov_energy_func 
-      subroutine f2pywrap_godunov_primtocons (main, nx, ny, nz, f2py_mai&
-     &n_d0, f2py_main_d1, f2py_main_d2, f2py_main_d3)
-      integer nx
-      integer ny
-      integer nz
+      subroutine f2pywrap_godunov_primtoconsarray (main, f2py_main_d0, f&
+     &2py_main_d1, f2py_main_d2, f2py_main_d3)
       integer f2py_main_d0
       integer f2py_main_d1
       integer f2py_main_d2
       integer f2py_main_d3
       real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
      &_d3)
-      end subroutine f2pywrap_godunov_primtocons 
-      subroutine f2pywrap_godunov_constoprim (main, nx, ny, nz, f2py_mai&
-     &n_d0, f2py_main_d1, f2py_main_d2, f2py_main_d3)
-      integer nx
-      integer ny
-      integer nz
+      end subroutine f2pywrap_godunov_primtoconsarray 
+      subroutine f2pywrap_godunov_primtoconspoint (main, f2py_main_d0)
+      integer f2py_main_d0
+      real(kind=8) main(f2py_main_d0)
+      end subroutine f2pywrap_godunov_primtoconspoint 
+      subroutine f2pywrap_godunov_constoprimarray (main, f2py_main_d0, f&
+     &2py_main_d1, f2py_main_d2, f2py_main_d3)
       integer f2py_main_d0
       integer f2py_main_d1
       integer f2py_main_d2
       integer f2py_main_d3
       real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
      &_d3)
-      end subroutine f2pywrap_godunov_constoprim 
+      end subroutine f2pywrap_godunov_constoprimarray 
+      subroutine f2pywrap_godunov_constoprimpoint (main, f2py_main_d0)
+      integer f2py_main_d0
+      real(kind=8) main(f2py_main_d0)
+      end subroutine f2pywrap_godunov_constoprimpoint 
       subroutine f2pywrap_godunov_invnorm3 (invnorm3f2pywrap, invnorm3, &
      &in)
       real(kind=8) invnorm3
@@ -430,9 +509,25 @@
       real(kind=8) tangential1(3)
       real(kind=8) tangential2(3)
       end subroutine f2pywrap_godunov_grid_coords 
-      subroutine f2pywrap_godunov_compute_fluxes (inl, inr, geom_avg, fl&
-     &ux_vec, case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_inl_d&
-     &0, f2py_inr_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
+      subroutine f2pywrap_godunov_prim_update (main, bcextent, dt_in, cf&
+     &l, nx, ny, nz, f2py_main_d0, f2py_main_d1, f2py_main_d2, f2py_main&
+     &_d3)
+      integer bcextent
+      real(kind=8) dt_in
+      real(kind=8) cfl
+      integer nx
+      integer ny
+      integer nz
+      integer f2py_main_d0
+      integer f2py_main_d1
+      integer f2py_main_d2
+      integer f2py_main_d3
+      real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
+     &_d3)
+      end subroutine f2pywrap_godunov_prim_update 
+      subroutine f2pywrap_godunov_compute_fluxes_fv (inl, inr, geom_avg,&
+     & flux_vec, case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_in&
+     &l_d0, f2py_inr_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
       integer case_no
       real(kind=8) max_wave_speed
       real(kind=8) dt
@@ -446,7 +541,13 @@
       real(kind=8) geom_avg(f2py_geom_avg_d0)
       real(kind=8) flux_vec(f2py_flux_vec_d0)
       real(kind=8) dv_in(3)
-      end subroutine f2pywrap_godunov_compute_fluxes 
+      end subroutine f2pywrap_godunov_compute_fluxes_fv 
+      subroutine f2pywrap_godunov_row_ops_mat_func (row_ops_mat_funcf2py&
+     &wrap, row_ops_mat_func, case_no)
+      integer case_no
+      integer row_ops_mat_func(3,3)
+      integer row_ops_mat_funcf2pywrap(3,3)
+      end subroutine f2pywrap_godunov_row_ops_mat_func 
       subroutine f2pywrap_godunov_flux (fluxf2pywrap, flux, in, geom_avg&
      &, case_no, f2py_in_d0, f2py_geom_avg_d0)
       integer case_no
@@ -459,11 +560,14 @@
       end subroutine f2pywrap_godunov_flux
       end interface
       external f2pysetupfunc
-      call f2pysetupfunc(dzeta,deta,max_dt,deta_inv,dxi_inv,dv_inv,dxi,d&
-     &zeta_inv,f2pywrap_godunov_energy_func,f2pywrap_godunov_primtocons,&
-     &f2pywrap_godunov_constoprim,f2pywrap_godunov_invnorm3,f2pywrap_god&
-     &unov_grid_coords,prim_update,f2pywrap_godunov_compute_fluxes,f2pyw&
-     &rap_godunov_flux)
+      call f2pysetupfunc(dzeta,deta,max_dt,deta_inv,dxi_inv,dv_inv,updat&
+     &e_type,dxi,dzeta_inv,f2pywrap_godunov_energy_func,f2pywrap_godunov&
+     &_primtoconsarray,f2pywrap_godunov_primtoconspoint,f2pywrap_godunov&
+     &_constoprimarray,f2pywrap_godunov_constoprimpoint,f2pywrap_godunov&
+     &_invnorm3,f2pywrap_godunov_grid_coords,f2pywrap_godunov_prim_updat&
+     &e,prim_update_hui3d,prim_update_fv,f2pywrap_godunov_compute_fluxes&
+     &_fv,f2pywrap_godunov_row_ops_mat_func,f2pywrap_godunov_flux,muscl_&
+     &hui)
       end subroutine f2pyinitgodunov
 
       subroutine f2pywrap_godunov_tester_goderrorreader (goderrorreaderf&
@@ -480,7 +584,8 @@
       end subroutine f2pywrap_godunov_tester_godtester
       
       subroutine f2pyinitgodunov_tester(f2pysetupfunc)
-      use godunov_tester, only : godinit
+      use godunov_tester, only : rieinit1d
+      use godunov_tester, only : godrieinit
       interface 
       subroutine f2pywrap_godunov_tester_goderrorreader (goderrorreaderf&
      &2pywrap, goderrorreader, in)
@@ -496,7 +601,7 @@
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(f2pywrap_godunov_tester_goderrorreader,f2pywrap&
-     &_godunov_tester_godtester,godinit)
+     &_godunov_tester_godtester,rieinit1d,godrieinit)
       end subroutine f2pyinitgodunov_tester
 
 

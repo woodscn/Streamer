@@ -149,6 +149,100 @@ contains
     end if
   end subroutine TwoDGradient
 
+  function MatrixInverse(in)
+    ! Compute the inverse of a 3x3 matrix
+    implicit none
+    real(8), dimension(3,3), intent(in) :: in
+    real(8), dimension(3,3) :: MatrixInverse
+    real(8) :: J
+    
+    J = ( &
+         in(1,1)*in(2,2)*in(3,3) + &
+         in(1,2)*in(2,3)*in(3,1) + &
+         in(1,3)*in(2,1)*in(3,2) - &
+         in(1,1)*in(2,3)*in(3,2) - &
+         in(1,2)*in(2,1)*in(3,3) - &
+         in(1,3)*in(2,2)*in(3,1) )
+
+    MatrixInverse = transpose(reshape( [ & 
+         in(3,3)*in(2,2)-in(3,2)*in(2,3) , &
+         in(3,2)*in(1,3)-in(3,3)*in(1,2) , &
+         in(2,3)*in(1,2)-in(2,2)*in(1,3) , &
+         in(3,1)*in(2,3)-in(3,3)*in(2,1) , &
+         in(3,3)*in(1,1)-in(3,1)*in(1,3) , &
+         in(2,1)*in(1,3)-in(2,3)*in(1,1) , &
+         in(3,2)*in(2,1)-in(3,1)*in(2,2) , &
+         in(3,1)*in(1,2)-in(3,2)*in(1,1) , &
+         in(2,2)*in(1,1)-in(2,1)*in(1,2) ] &
+         ,[3,3])/J)
+    if(.true. .and. maxval(matmul(in,MatrixInverse)&
+            -reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2>1.d-15)then
+          write(*,*) "MatrixInverse failed!!"
+          write(*,*) matmul(in,MatrixInverse)
+          stop
+    end if
+  end function MatrixInverse
+
+  function vectorProjection(in,normal)
+    implicit none
+    real(8), intent(in), dimension(3) :: in
+    real(8), intent(in), dimension(3) :: normal
+    real(8), dimension(3) :: vectorProjection
+    vectorProjection = normal*&
+         (dot_product(in,normal)/dot_product(normal,normal))
+  end function vectorProjection
+
+  real(8) function SoundSpeed(point)
+    implicit none
+    real(8), intent(in), dimension(21) :: point
+    SoundSpeed = sqrt(1.4d0*point(1)/point(2))
+  end function SoundSpeed
+
+!!$  logical function pnpoly(npol,xp,yp,x,y)
+!!$    ! Check to see if a point lies on the interior of a polygon.
+!!$    ! The polygon is given by  x,y points in xp & yp. The point
+!!$    ! to test is given by x, y.
+!!$    ! Returns true if within the polygon, false otherwise.
+!!$
+!!$    ! Uses the method of counting the number of times a ray from 
+!!$    ! the point crosses the polygon. Original C code given on
+!!$    ! http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+!!$    ! and written by Randolph Franklin.
+!!$
+!!$    ! int pnpoly(int npol, float *xp, float *yp, float x, float y)
+!!$    !     {
+!!$    !       int i, j, c = 0;
+!!$    !       for (i = 0, j = npol-1; i < npol; j = i++) {
+!!$    !         if ((((yp[i] <= y) && (y < yp[j])) ||
+!!$    !              ((yp[j] <= y) && (y < yp[i]))) &&
+!!$    !             (x < (xp[j] - xp[i]) * (y - yp[i]) / (yp[j] - yp[i]) + xp[i]))
+!!$    !           c = !c;
+!!$    !       }
+!!$    !       return c;
+!!$    !     }
+!!$    implicit none
+!!$    integer :: npol
+!!$    real(8) :: x, y
+!!$    real(8), dimension(npol) :: xp, yp
+!!$    integer :: i, j, n
+!!$
+!!$    pnpoly = .false.
+!!$    n = size(xp)
+!!$    do i = 1, size(xp)
+!!$       if(i==1)then
+!!$          j = n
+!!$       else
+!!$          j = i-1
+!!$       end if
+!!$       if((((yp(i)<=y).and.(y<yp(j))).or.&
+!!$            ((yp(j)<=y).and.(y<yp(i)))).and.&
+!!$            (x<(xp(j)-xp(i))*(y-yp(i))/(yp(j)-yp(i))+xp(i)))&
+!!$            pnpoly = .not. pnpoly
+!!$       write(*,*) "i = ",i,"j = ",j       
+!!$    end do
+!!$
+!!$  end function pnpoly 
+
 end module GeneralUtilities
 
 module GeneralUtilitiesTest
@@ -200,6 +294,8 @@ contains
     real(8) :: x, y
     
     out = 0
+    ! Try variable ranges on these random numbers to check to handle 
+    ! ill-conditioned matrices
     call random_number(metric)
     call random_number(p1)
     call random_number(p2)
