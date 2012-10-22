@@ -22,8 +22,8 @@ contains
 !!$         (4d0*a0*EV)/(S*(gamma_const+1d0)))
 !!$  end function fan_Jacobian
 
-  pure subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
-       riemann_middle_states, riemann_wave_speeds)
+  subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
+       riemann_middle_states, riemann_wave_speeds,ierr_out)
     ! Riemann_solve accepts two physical flow states of the form:
     !     [ pressure, mass density, velocity_normal, velocity_tangential_1,
     !       velocity_tangential_2 ]
@@ -43,6 +43,7 @@ contains
     real(8), intent(out) :: max_wave_speed
     real(8), dimension(4), intent(out), optional :: riemann_middle_states
     real(8), dimension(5), intent(out), optional :: riemann_wave_speeds
+    integer, intent(out), optional :: ierr_out
 
     real(8) :: DL, PL, UL, VL, WL, AL
     real(8) :: DR, PR, UR, VR, WR, AR
@@ -54,8 +55,9 @@ contains
     real(8), dimension(5) :: riemann_wave_speeds_temp
     real(8), parameter :: tol = 1.d-10
     real(8) :: PsiL, PsiR, temp, fL, fR, dfL, dfR
-    integer :: n
+    integer :: n, ierror
 
+    ierror = 0
     temp = 1d0
     DL =  left(2); PL =  left(1); UL =  left(3); VL =  left(4); WL =  left(5)
     DR = right(2); PR = right(1); UR = right(3); VR = right(4); WR = right(5)
@@ -72,10 +74,10 @@ contains
     do while(abs(temp) .gt. tol)
 !!$       if(verbose)write(*,*) "Step ",n , "Pstar = " , Pstar; 
        n = n + 1
-!!$       if(n .gt. 10)then 
-!!$          write(*,*) "Failed Convergence" 
-!!$          stop 
-!!$       end if
+       if(n .gt. 10)then 
+          ierror = 1
+          exit
+       end if
        PsiL = Pstar/PL
        call u_fun( left,Pstar,fL,dfL)
        PsiR = Pstar/PR
@@ -100,6 +102,7 @@ contains
          riemann_middle_states = riemann_middle_states_temp
     if(present(riemann_wave_speeds))&
          riemann_wave_speeds = riemann_wave_speeds_temp
+    if(present(ierr_out)) ierr_out = ierror
 !!$    if(verbose)write(*,*)"RiemannSolve = ", out
   end subroutine riemann_solve
 
@@ -206,13 +209,13 @@ contains
     real(8), dimension(:), intent(in) :: riemann_wave_speeds
     real(8), intent(in) :: x, J, S, Uavg
     real(8), dimension(:) , intent(out) :: out
-    real(8) :: PsiL , Pstar, Ustar, DstarL, DstarR!, SL , SR , DeltaL, DeltaR
+    real(8) :: PsiL , Pstar, Ustar, DstarL, DstarR
     real(8) :: PsiR , aL , aR , betaL , betaR
     real(8) :: cL , cR , cLT , cLH , cRT , cRH , h
     logical :: test_flag
 !!$    test_flag = .false.
 !!$    if(verbose) test_flag = .true.
-    Pstar = riemann_middle_states(1); Ustar = riemann_middle_states(2)
+    Pstar  = riemann_middle_states(1); Ustar  = riemann_middle_states(2)
     DstarL = riemann_middle_states(3); DstarR = riemann_middle_states(4)
     PsiL = Pstar/left(1)
     PsiR = Pstar/right(1)
@@ -256,7 +259,7 @@ contains
              out(2) = DstarL
           else
 !!$             write(*,*) "The boundary lies within the left expansion wave"
-             out(1) = left(1)*( 2.d0*gamma6 + gamma5/aL*(left(3)-Uavg-x) )**gamma7
+             out(1) = left(1)*( 2.d0*gamma6 + gamma5/aL*(left(3)-Uavg-J/S*x) )**gamma7
              out(3) = left(3) - 2.d0*aL/(gamma_const-1.d0)*((out(1)/left(1))&
                   **((gamma_const-1.d0)/(2.d0*gamma_const))-1.d0)
              out(2) = left(2)*(out(1)/left(1))**(1.d0/gamma_const)
@@ -298,7 +301,7 @@ contains
              out(2) = DstarR
           else
 !!$             write(*,*) " The boundary lies within the right expansion wave"
-             out(1) = right(1)*( 2.d0*gamma6 - gamma5/aR*(right(3)-Uavg-x) )**gamma7
+             out(1) = right(1)*( 2.d0*gamma6 - gamma5/aR*(right(3)-Uavg-J/S*x) )**gamma7
              out(3) = right(3) + 2.d0*aR/(gamma_const-1.d0)*((out(1)/right(1))**&
                   ((gamma_const-1.d0)/(2.d0*gamma_const))-1.d0)
              out(2) = right(2)*(out(1)/right(1))**(1.d0/gamma_const)
@@ -699,9 +702,9 @@ contains
                 row_ops_mat = row_ops_mat_func(case_no)
                 center = main(:,i,j,k)
                 left = main(:,i+im,j+jm,k+km)
-!!$                call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
-!!$                     main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
-!!$                     main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
+                call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
+                     main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
+                     main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
 !!$                metric = .5d0*(left(6:14)+center(6:14))
 !!$                metric_inverse = MetricInverse(metric)
 !!$                grid_vel = .5d0*(left(15:17)+center(15:17))
@@ -731,9 +734,9 @@ contains
                 
                 center = main(:,i,j,k)
                 right = main(:,i+ip,j+jp,k+kp)
-!!$                call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
-!!$                     main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
-!!$                     main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
+                call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
+                     main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
+                     main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
 !!$                metric = .5d0*(center(6:14)+right(6:14))
 !!$                metric_inverse = MetricInverse(metric)
 !!$                grid_vel = .5d0*(center(15:17)+right(15:17))
@@ -1101,6 +1104,7 @@ module Godunov_tester
   !      max_wave_speed,dt,dV_in,debug_flag)
   ! function flux(in,geom_avg,case_no)
   use Godunov
+  use GeneralUtilitiesTest
 contains
   integer function GodErrorReader(in)
     integer, intent(in) :: in
@@ -1118,6 +1122,136 @@ contains
     end select
     GodErrorReader = 0
   end function GodErrorReader
+
+  integer function GodConvergenceTester1D(left,right,t_out)
+    implicit none
+    real(8), dimension(5), intent(in) :: left, right
+    real(8), intent(in) :: t_out
+    integer, parameter :: nx = 400
+    real(8), dimension(21,-1:nx/8,3,3) :: Rie_1D_1
+    real(8), dimension(21,-1:nx/4,3,3) :: Rie_1D_2
+    real(8), dimension(21,-1:nx/2,3,3) :: Rie_1D_3
+    real(8), dimension(21,-1:nx,3,3) :: Rie_1D_4
+    real(8), dimension(5,nx) :: Rie_1D_exact
+    integer :: l, m, n
+    real(8), dimension(nx) :: x
+    real(8), dimension(4) :: riemann_middle_states
+    real(8), dimension(5) :: riemann_wave_speeds
+    real(8) :: max_wave_speed, dt, dx
+    real(8), dimension(4) :: dxes, rmserrors
+    real(8), dimension(2) :: fitted_poly
+
+    GodConvergenceTester1D = 0
+    dx = 1d0
+    do n = 1, nx
+       x(n) = ((n-1)*dx-.5d0*nx)
+    end do
+!    call riemann_solve(test_1_left,test_1_right,1,1,[0d0],out,max_wave_speed,&
+!         riemann_middle_states,riemann_wave_speeds)
+    do n = 1, 3
+       do m = 1, 3
+          dx = 1d0/(nx/8-1)
+          do l = -1, nx/8/2-1
+             Rie_1D_1(1:5,l,m,n) = left
+             Rie_1D_1(18,l,m,n) = dx*l
+          end do
+          do l = nx/8/2, nx/8
+             Rie_1D_1(1:5,l,m,n) = right
+             Rie_1D_1(18,l,m,n) = dx*l
+          end do
+          Rie_1D_1( 6,:,:,:) = 8d0/nx
+          Rie_1D_1(10,:,:,:) = 8d0/nx
+          Rie_1D_1(14,:,:,:) = 8d0/nx
+          Rie_1D_1(21,:,:,:) = (8d0/nx)**3
+          dx = 1d0/(nx/4-1)
+          do l = -1, nx/4/2-1
+             Rie_1D_2(1:5,l,m,n) = left
+             Rie_1D_2(18,l,m,n) = dx*l
+          end do
+          do l = nx/4/2, nx/4
+             Rie_1D_2(1:5,l,m,n) = right
+             Rie_1D_2(18,l,m,n) = dx*l
+          end do
+          Rie_1D_2( 6,:,:,:) = 4d0/nx
+          Rie_1D_2(10,:,:,:) = 4d0/nx
+          Rie_1D_2(14,:,:,:) = 4d0/nx
+          Rie_1D_2(21,:,:,:) = (4d0/nx)**3
+          dx = 1d0/(nx/2-1)
+          do l = -1, nx/2/2-1
+             Rie_1D_3(1:5,l,m,n) = left
+             Rie_1D_3(18,l,m,n) = dx*l
+          end do
+          do l = nx/2/2, nx/2
+             Rie_1D_3(1:5,l,m,n) = right
+             Rie_1D_3(18,l,m,n) = dx*l
+          end do
+          Rie_1D_3( 6,:,:,:) = 2d0/nx
+          Rie_1D_3(10,:,:,:) = 2d0/nx
+          Rie_1D_3(14,:,:,:) = 2d0/nx
+          Rie_1D_3(21,:,:,:) = (2d0/nx)**3
+          dx = 1d0/(nx-1)
+          do l = -1, nx/2-1
+             Rie_1D_4(1:5,l,m,n) = left
+             Rie_1D_4(18,l,m,n) = dx*l
+          end do
+          do l = nx/2, nx
+             Rie_1D_4(1:5,l,m,n) = right
+             Rie_1D_4(18,l,m,n) = dx*l
+          end do
+          Rie_1D_4( 6,:,:,:) = 1d0/nx
+          Rie_1D_4(10,:,:,:) = 1d0/nx
+          Rie_1D_4(14,:,:,:) = 1d0/nx
+          Rie_1D_4(21,:,:,:) = (1d0/nx)**3
+       end do
+    end do
+    Rie_1D_exact = 0d0
+    call riemann_solve(Rie_1D_4(:,-1,2,2),Rie_1D_4(:,nx,2,2),1,nx,&
+         ((Rie_1D_4(18,0:nx-1,2,2)-.5d0)/Rie_1D_4(6,0:nx-1,2,2))/t_out,&
+         Rie_1D_exact,max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+    write(*,*) "Middle States ",riemann_middle_states
+!!$    Rie_1D_1 = right; Rie_1D_1(:,1:size(Rie_1D_1,2)/2,:,:) = left
+!!$    Rie_1D_2 = right; Rie_1D_2(:,1:size(Rie_1D_2,2)/2,:,:) = left
+!!$    Rie_1D_3 = right; Rie_1D_3(:,1:size(Rie_1D_3,2)/2,:,:) = left
+!!$    Rie_1D_4 = right; Rie_1D_4(:,1:size(Rie_1D_4,2)/2,:,:) = left
+    dt = 1d-4
+    do n = 1, 100000
+!!$       write(*,*) "t = ",n*dt
+       if(n*dt.ge.t_out) exit
+       call prim_update(Rie_1D_1,1,dt,.7d0,nx/8,1,1)
+       call prim_update(Rie_1D_2,1,dt,.7d0,nx/4,1,1)
+       call prim_update(Rie_1D_3,1,dt,.7d0,nx/2,1,1)
+       call prim_update(Rie_1D_4,1,dt,.7d0,nx  ,1,1)
+    end do
+    dxes = [8d0/(nx-1),4d0/(nx-1),2d0/(nx-1),1d0/(nx-1)]
+    rmserrors = [&
+         sqrt(sum((Rie_1D_1(2,0:nx/8-1,2,2)-Rie_1D_exact(2,1:nx:8))**2)/(nx/8)),&
+         sqrt(sum((Rie_1D_2(2,0:nx/4-1,2,2)-Rie_1D_exact(2,1:nx:4))**2)/(nx/4)),&
+         sqrt(sum((Rie_1D_3(2,0:nx/2-1,2,2)-Rie_1D_exact(2,1:nx:2))**2)/(nx/2)),&
+         sqrt(sum((Rie_1D_4(2,0:nx  -1,2,2)-Rie_1D_exact(2,:     ))**2)/(nx  ))]
+    
+    fitted_poly = polyfit(log(dxes),log(rmserrors),1)
+    write(*,*) "Polyfit results: ",fitted_poly
+    open(unit=92922,file="exact.dat")
+    open(unit=92923,file="Rie1.dat")
+    open(unit=92924,file="Rie2.dat")
+    open(unit=92925,file="Rie3.dat")
+    open(unit=92926,file="Rie4.dat")
+    write(92922,*) Rie_1D_4(18,0:nx-1,2,2)
+    write(92922,*) Rie_1D_exact(2,:)
+    write(92923,*) Rie_1D_1(18,0:nx/8-1,2,2)
+    write(92923,*) Rie_1D_1( 2,0:nx/8-1,2,2)
+    write(92924,*) Rie_1D_2(18,0:nx/4-1,2,2)
+    write(92924,*) Rie_1D_2( 2,0:nx/4-1,2,2)
+    write(92925,*) Rie_1D_3(18,0:nx/2-1,2,2)
+    write(92925,*) Rie_1D_3( 2,0:nx/2-1,2,2)
+    write(92926,*) Rie_1D_4(18,0:nx  -1,2,2)
+    write(92926,*) Rie_1D_4( 2,0:nx  -1,2,2)
+    close(92922); close(92923); close(92924); close(92925); close(92926)
+
+    if(fitted_poly(2) < 1d0) GodConvergenceTester1D = 2
+    !       call prim_update(riemann_test_array_1d,1,dt,.7d0,nx-2,ny-2,1)
+
+  end function GodConvergenceTester1D
 
   integer function GodTester()
     use TimeAdvancementStuff
@@ -1143,6 +1277,7 @@ contains
          0.142847,0.171804,0.402354]
     real(8), dimension(21,62,102,3) :: riemann_test_array
     real(8), dimension(21,102,3,3) :: riemann_test_array_1d
+    real(8), dimension(5) :: left, right
     integer :: n
     
     GodTester = 0
@@ -1188,6 +1323,31 @@ contains
     ! to do this is via specific convergence testing. For now, that testing
     ! must be approved manually.
     ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
+
+!!$    left = [0d0,0d0,0d0,0d0,0d0,&
+!!$         1d-2,0d0,0d0,&
+!!$         0d0,1d-2,0d0,&
+!!$         0d0,0d0,1d-2,&
+!!$         0d0,0d0,0d0,&
+!!$         0d0,0d0,0d0,1d-6]
+!!$    right = left
+    left(1:5)  = [1.d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    right(1:5) = [.1d0, .125d0, 0.d0, 0.d0, 0.d0]
+    GodTester = GodConvergenceTester1D(left,right,.25d0)
+    stop
+    left(1:5)  = [.4d0, 1.d0, -2.d0, 0.d0, 0.d0]
+    right(1:5) = [.4d0, 1.d0, 2.d0, 0.d0, 0.d0]
+    GodTester = GodConvergenceTester1D(left,right,.15d0)
+    left(1:5)  = [1.d3, 1.d0, 0.d0, 0.d0, 0.d0]
+    right(1:5) = [.01d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    GodTester = GodConvergenceTester1D(left,right,.012d0)
+    left(1:5)  = [.01d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    right(1:5) = [1.d2, 1.d0, 0.d0, 0.d0, 0.d0]
+    GodTester = GodConvergenceTester1D(left,right,.035d0)
+    left(1:5)  = [460.894d0, 5.99924d0, 19.5975d0, 0d0, 0d0]
+    right(1:5) = [46.095d0, 5.99242d0, -6.19633d0, 0d0, 0d0]
+    GodTester = GodConvergenceTester1D(left,right,.035d0)
+    stop
 
     call RieInit1D(riemann_test_array_1d)
     nx = size(riemann_test_array_1d,2)
