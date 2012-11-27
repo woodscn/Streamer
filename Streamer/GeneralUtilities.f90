@@ -1,4 +1,5 @@
 module GeneralUtilities
+  real(8), parameter :: PI = 3.141592653589793
   real(8), parameter :: EPS = 5.d-15
   real(8), parameter :: EPSs = 1d-4
   real(8), parameter :: gamma_const = 1.4d0
@@ -245,6 +246,7 @@ end module GeneralUtilities
 
 module GeneralUtilitiesTest
   use GeneralUtilities
+  real(8), dimension(:), allocatable :: lstsqx, lstsqy
 contains
   integer function GUErrorReader(in)
     implicit none
@@ -341,6 +343,112 @@ contains
     
   end function GUTest
 
+  integer function lstsq_init(x,y)
+    implicit none
+    real(8), dimension(:), intent(in) :: x,y
+    integer :: nx
+    nx = size(x,1)
+    allocate(lstsqx(nx), lstsqy(nx))
+    lstsqx = x ; lstsqy = y
+    lstsq_init = 0
+  end function lstsq_init
+  
+  integer function lstsq_close()
+    leastsq_close = 0
+    deallocate(lstsqx,lstsqy)
+  end function lstsq_close
+
+  subroutine minpack_function_fitting(xdat,ydat,fcn,x,fvec,fjac,info)
+    implicit none
+    real(8), dimension(:), intent(in) :: xdat,ydat
+    external fcn
+    real(8), dimension(:), intent(inout) :: x
+!    integer, intent(in) :: m, n, ldfjac
+    real(8), dimension(:), intent(out) :: fvec
+    real(8), dimension(:,:), intent(out) :: fjac
+    real(8), parameter :: tol = 1d-13
+    integer, intent(out) :: info
+    integer, dimension(:), allocatable :: wa, ipvt
+    integer :: out, m, n, ldfjac, lwa,iflag
+    
+iflag = 2
+    m = size(xdat,1)
+    n = size(x,1)
+    ldfjac = m
+    allocate(wa(2*(5*n+m)),ipvt(n))
+    lwa = size(wa)
+    out = lstsq_init(xdat,ydat)
+    call exponential_with_y_offset(m,n,x,fvec,fjac,ldfjac,iflag)
+    call lmder1(fcn,m,n,x,fvec,fjac,ldfjac,tol,info,ipvt,wa,lwa)
+    out = lstsq_close()
+    deallocate(wa,ipvt)
+  end subroutine minpack_function_fitting
+
+  subroutine exponential_with_y_offset(m,n,x,fvec,fjac,ldfjac,iflag)
+    integer, intent(in) :: m
+    integer, intent(in) :: n
+    integer, intent(in) :: ldfjac
+    real(8), dimension(n), intent(in) :: x
+    real(8), dimension(m), intent(out) :: fvec
+    real(8), dimension(ldfjac,n), intent(out) :: fjac
+    integer, intent(inout) :: iflag
+    integer i
+    ! If iflag = 1 calculate the functions at x and return
+    !     this vector in fvec. Do not alter fjac.
+    ! If iflag = 2 calculate the jacobian at x and return
+    !     this matrix in fjac. Do not alter fvec.
+    ! The value of iflag should not be changed unless the
+    !     user wants to terminate execution of the least-
+    !     squares fit. In this case, set iflag < 0.
+    if(.not.m==size(lstsqx,1))then
+       write(*,*) "Error in least-squares fit!!"
+       write(*,*) "  Incompatible dimensions passed to fcn!"
+       stop
+    end if
+    select case(iflag)
+    case(1)
+       forall (i = 1: m)
+          fvec(i) = x(1)*lstsqx(i)**x(2)+x(3)-lstsqy(i)
+       end forall
+    case(2)
+       forall (i = 1: m)
+          fjac(i,:) = [lstsqx(i)**x(2),x(1)*lstsqx(i)**x(2)*log(lstsqx(i)),1d0]
+       end forall
+    end select
+  end subroutine exponential_with_y_offset
+!!$interface ConvergenceFit
+!!$   subroutine 4DConvergenceFit(numerical,exact,nmax,out)
+!!$     implicit none
+!!$     type(4d_array_pointer), dimension(:), intent(in) :: numerical
+!!$     real(8), dimension(:,:,:,:), intent(in) :: exact
+!!$     real(8), dimension(:,:,:,:), intent(out) :: out
+!!$   end subroutine 4DConvergenceFit
+!!$   subroutine 2DConvergenceFit(numerical,exact,nmax,out)
+!!$     type(4d_array_pointer), dimension(:), intent(in) :: numerical
+!!$     real(8), dimension(:,:,:,:), intent(in) :: exact
+!!$     real(8), dimension(:,:), intent(out) :: out
+!!$   end subroutine 2DConvergenceFit
+!!$   subroutine 1DConvergenceFit(numerical,exact,nmax,out)
+!!$     type(4d_array_pointer), dimension(:), intent(in) :: numerical
+!!$     real(8), dimension(:,:,:,:), intent(in) :: exact
+!!$     real(8), dimension(:), intent(out) :: out
+!!$end interface ConvergenceFit
+!!$
+!!$subroutine 4DConvergenceFit(numerical,exact,nmax,out)
+!!$  implicit none
+!!$  type(4d_array_pointer), dimension(:), intent(in) :: numerical
+!!$  real(8), dimension(:,:,:,:), intent(in) :: numerical, exact
+!!$  integer, intent(in) :: nmax
+!!$  real(8), dimension(:,:,:,:), intent(out) :: out
+!!$  integer :: n
+!!$  real(8), dimension(nmax) :: dxes
+!!$
+!!$
+!!$  do n = 1, nmax
+!!$     
+!!$  
+!!$  
+!!$end subroutine 4DConvergenceFit
 
   ! From Rosetta Code: rosettacode.org/wiki/PolynomialRegression#Fortran
   ! Requires LAPACK library

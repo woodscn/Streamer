@@ -72,24 +72,24 @@ while(~feof(fid))
             
         end
     end
-    skip = 1;
+    skip = 10;
 
         if size(x,2)==1
              plot(y,rho,'.')
         elseif mod(n,skip) == 0
      if size(x,2)>1
-            figure(95756)
-            plot(rho(2,:))
+%             figure(95756)
+%             plot(rho(2,:))
            figure(1)
            colormap(jet(128))
            mach=vmag./sqrt(1.4*p./rho);
            e=0.5*rho.*vmag.^2+1.0/0.4*p;
            vec=.6:.2:1.8;
-           surf(x,y,p)
+           surf(x,y,rho)
    %         contourf(x,y,mach,vec);
    %         caxis([.6,1.8])
            axis equal;
-           xlim([0. 1.]);ylim([-.5 1.0]);%zlim([-0.1 25]);
+           xlim([0. 1.]);ylim([0.0 1.0]);%zlim([-0.1 25]);
            colorbar%('YLim',[.8,3.4],'YTick',[.8,3.4]);
            view([0,0,1]);
            xlabel('x');ylabel('y')

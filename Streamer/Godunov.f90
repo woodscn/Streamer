@@ -22,7 +22,7 @@ contains
 !!$         (4d0*a0*EV)/(S*(gamma_const+1d0)))
 !!$  end function fan_Jacobian
 
-  subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
+  pure subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
        riemann_middle_states, riemann_wave_speeds,ierr_out)
     ! Riemann_solve accepts two physical flow states of the form:
     !     [ pressure, mass density, velocity_normal, velocity_tangential_1,
@@ -618,50 +618,30 @@ contains
     end if
   end subroutine grid_coords
 
-  subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
+  subroutine prim_update(main,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     implicit none
     real(8), dimension(:,:,:,:) :: main
     !f2py intent(in,out) :: main
     integer :: bcextent, nx, ny, nz
+    integer, dimension(:), intent(in) :: options
     real(8) :: dt_in, CFL
+    external :: bc_func
+    !f2py intent (callback) bc_func
+    !f2py external bc_func
+    !f2py dimension(:,:,:,:) real(8) x
+    !f2py 
     select case(update_type)
     case(1)
-       call prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz)
+       call prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz,options)
     case(2)
-       call prim_update_HUI3D(main,bcextent,dt_in,CFL,nx,ny,nz)
+       call prim_update_HUI3D(main,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     case default
        write(*,*) "Bad update_type value!!!"
        stop
     end select
   end subroutine prim_update
 
-!!$  function compute_interfaces_HUI3D(left_in,right_in,row_ops_mat)
-!!$    implicit none
-!!$    real(8), dimension(21), intent(in) :: left, right
-!!$    integer, dimension(3,3), intent(in) :: row_ops_mat
-!!$    real(8), dimension(5) :: compute_interfaces_HUI3D, face
-!!$    real(8), dimension(9) :: metric, metric_inverse
-!!$    real(8), dimension(3) :: grid_vel
-!!$    real(8), dimension(3,3) :: vels_transform, vels_transform_inv
-!!$    real(8), dimension(21) :: geom_avg
-!!$    metric = .5d0*(left(6:14)+right(6:14))
-!!$    metric_inverse = MetricInverse(metric)
-!!$    grid_vel = .5d0*(left(15:17)+right(15:17))
-!!$    vels_transform = matmul(MetrictoMatrix(metric_inverse),row_ops_mat)
-!!$    left(3:5) = matmul(left(3:5),vels_transform)
-!!$    center(3:5) = matmul(center(3:5),vels_transform)
-!!$    grid_vel = matmul(grid_vel,vels_transform)
-!!$    geom_avg = 0d0
-!!$    geom_avg(6:14) = center(6:14)
-!!$    geom_avg(15:17) = grid_vel
-!!$    face = riemann_solve(left,right,geom_avg,max_wave_speed_temp,0.d0)
-!!$    vels_transform_inv = matmul(transpose(row_ops_mat),MetrictoMatrix(metric))
-!!$    face(3:5) = matmul(vels_transform_inv,face(3:5))
-!!$    compute_interfaces_HUI3D = face
-!!$
-!!$  end function compute_interfaces_HUI3D
-
-  subroutine prim_update_HUI3D(main,bcextent,dt_in,CFL,nx,ny,nz)
+  subroutine prim_update_HUI3D(main,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     implicit none
     real(8), dimension(21,-1*bcextent:nx+bcextent-1,-1*bcextent:ny+bcextent-1,&
          -1*bcextent:nz+bcextent-1), intent(inout) :: main
@@ -669,6 +649,10 @@ contains
     real(8), intent(in), optional :: dt_in
     real(8), intent(in), optional :: CFL
     integer, intent(in) :: nx,ny,nz,bcextent
+    external bc_func
+    ! Options values are used to activate specific routine options.
+    ! - Options(1) controls the spatial order of accuracy. 
+    integer, dimension(:), intent(in) :: options
     integer :: i, j, k, m, n, im, jm, km, ip, jp, kp, case_no
     real(8) :: area, dv_inv, max_wave_speed_temp
     real(8), dimension(5) :: cons, prim
@@ -682,126 +666,140 @@ contains
     real(8) :: dt, junk
     real(8), dimension(4) :: riemann_middle_states
     real(8), dimension(5) :: riemann_wave_speeds
+    integer :: spatial_order
+    integer :: grid_motion
+    spatial_order = options(1)
+    grid_motion = options(2)
     dt = dt_in
     dv_inv = 1.d0
-    do n = 1, 1
-       if( mod(n,2) .ne. 0 )then
+    do n = 1, 2
+       if( n .eq. 1 )then
           case_no = 1
           area = deta*dzeta
 !!$          time = dt
           im =-1; ip = 1; jm = 0; jp = 0; km = 0; kp = 0
-       else
+       elseif( n .eq. 2 )then
           case_no = 2
           area = dxi*dzeta
 !!$          time = dt
           jm =-1; jp = 1; im = 0; ip = 0; km = 0; kp = 0
+       else
+          write(*,*) "Error in prim_update, invalid value for n"
+          stop
        end if
+       call bc_func(main,size(main,2),size(main,3),size(main,4))
        do k = 0, nz-1
           do j = 0, ny-1
              do i = 0, nx-1
                 row_ops_mat = row_ops_mat_func(case_no)
                 center = main(:,i,j,k)
                 left = main(:,i+im,j+jm,k+km)
-                call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
+                if(spatial_order .eq. 2)&
+                     call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
                      main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
                      main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
-!!$                metric = .5d0*(left(6:14)+center(6:14))
-!!$                metric_inverse = MetricInverse(metric)
-!!$                grid_vel = .5d0*(left(15:17)+center(15:17))
-!!$                vels_transform = matmul(&
-!!$                     MetrictoMatrix(metric_inverse),row_ops_mat)
-!!$                do m = 1, 3
-!!$                   vels_transform(n,:) = vels_transform(n,:)&
-!!$                        /sqrt(sum(vels_transform(n,:)**2))
-!!$                end do
-!!$                left(3:5) = matmul(vels_transform,left(3:5))
-!!$                center(3:5) = matmul(vels_transform,center(3:5))
-!!$                grid_vel = matmul(vels_transform,grid_vel)
-!!$                geom_avg = 0d0
-!!$                geom_avg(6:14) = center(6:14)
-!!$                geom_avg(15:17) = grid_vel
+                metric = .5d0*(left(6:14)+center(6:14))
+                metric_inverse = MetricInverse(metric)
+                grid_vel = .5d0*(left(15:17)+center(15:17))
+
+                vels_transform = matmul(&
+                     MetrictoMatrix(metric_inverse),row_ops_mat)
+                do m = 1, 3
+                   vels_transform(m,:) = vels_transform(m,:)&
+                        /sqrt(sum(vels_transform(m,:)**2))
+                end do
+
+                left(3:5) = matmul(vels_transform,left(3:5))
+                center(3:5) = matmul(vels_transform,center(3:5))
+                grid_vel = matmul(vels_transform,grid_vel)
+                geom_avg = 0d0
+                geom_avg(6:14) = center(6:14)
+                geom_avg(15:17) = grid_vel
                 call riemann_solve(left,center,n,1,[0d0],left_interface,&
                      max_wave_speed_temp)
-!                left_interface = riemann_solve(left, center, &
-!                     .5d0*(left+center), max_wave_speed_temp, 0.d0)
-!!$                vels_transform = matmul(transpose(row_ops_mat),&
-!!$                     MetrictoMatrix(metric))
-!!$                do m = 1, 3
-!!$                   vels_transform(n,:) = vels_transform(n,:)&
-!!$                        /sqrt(sum(vels_transform(n,:)**2))
-!!$                end do
-!!$                left_interface(3:5) = matmul(vels_transform,left_interface(3:5))
+
+                vels_transform = matmul(transpose(row_ops_mat),&
+                     MetrictoMatrix(metric))
+                do m = 1, 3
+                   vels_transform(m,:) = vels_transform(m,:)&
+                        /sqrt(sum(vels_transform(m,:)**2))
+                end do
+
+                left_interface(3:5) = matmul(vels_transform,left_interface(3:5))
                 
                 center = main(:,i,j,k)
                 right = main(:,i+ip,j+jp,k+kp)
-                call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
+                if(spatial_order .eq. 2)&
+                     call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
                      main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
                      main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
-!!$                metric = .5d0*(center(6:14)+right(6:14))
-!!$                metric_inverse = MetricInverse(metric)
-!!$                grid_vel = .5d0*(center(15:17)+right(15:17))
-!!$                vels_transform = matmul(&
-!!$                     MetrictoMatrix(metric_inverse),row_ops_mat)
-!!$                do m = 1, 3
-!!$                   vels_transform(n,:) = vels_transform(n,:)&
-!!$                        /sqrt(sum(vels_transform(n,:)**2))
-!!$                end do
-!!$                right(3:5) = matmul(vels_transform,right(3:5))
-!!$                center(3:5) = matmul(vels_transform,center(3:5))
-!!$                grid_vel = matmul(vels_transform,grid_vel)
-!!$                geom_avg = 0d0
-!!$                geom_avg(6:14) = center(6:14)
-!!$                geom_avg(15:17) = grid_vel
+
+                metric = .5d0*(center(6:14)+right(6:14))
+                metric_inverse = MetricInverse(metric)
+                grid_vel = .5d0*(center(15:17)+right(15:17))
+
+                vels_transform = matmul(&
+                     MetrictoMatrix(metric_inverse),row_ops_mat)
+                do m = 1, 3
+                   vels_transform(m,:) = vels_transform(m,:)&
+                        /sqrt(sum(vels_transform(m,:)**2))
+                end do
+
+                right(3:5) = matmul(vels_transform,right(3:5))
+                center(3:5) = matmul(vels_transform,center(3:5))
+                grid_vel = matmul(vels_transform,grid_vel)
+                geom_avg = 0d0
+                geom_avg(6:14) = center(6:14)
+                geom_avg(15:17) = grid_vel
                 call riemann_solve(center,right,n,1,[0d0],right_interface,&
                      max_wave_speed_temp)
-!!$                right_interface = riemann_solve(center, right, &
-!!$                     .5d0*(right+center), max_wave_speed_temp, 0.d0)
-!!$                vels_transform = matmul(transpose(row_ops_mat),&
-!!$                     MetrictoMatrix(metric))
-!!$                do m = 1, 3
-!!$                   vels_transform(n,:) = vels_transform(n,:)&
-!!$                        /sqrt(sum(vels_transform(n,:)**2))
-!!$                end do
-!!$                right_interface(3:5)=matmul(vels_transform,right_interface(3:5))
+                
+                vels_transform = matmul(transpose(row_ops_mat),&
+                     MetrictoMatrix(metric))
+                do m = 1, 3
+                   vels_transform(m,:) = vels_transform(m,:)&
+                        /sqrt(sum(vels_transform(m,:)**2))
+                end do
 
-!!$                junk = sum(matmul(matmul(MetrictoMatrix(metric_inverse),&
-!!$                     row_ops_mat),matmul(transpose(row_ops_mat),&
-!!$                     MetrictoMatrix(metric)))&
-!!$                     -reshape([1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0],[3,3]))&
-!!$                     **2
-!!$                if(junk > 1d-14)then
-!!$                   write(*,*) "Inverse not working!!"
-!!$                   write(*,*) junk
-!!$                   stop
-!!$                end if
+                right_interface(3:5)=matmul(vels_transform,right_interface(3:5))
+
+                junk = sum(matmul(matmul(MetrictoMatrix(metric_inverse),&
+                     row_ops_mat),matmul(transpose(row_ops_mat),&
+                     MetrictoMatrix(metric)))&
+                     -reshape([1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0],[3,3])&
+                     **2)
+                if(junk > 1d-14)then
+                   write(*,*) "Inverse not working!!"
+                   write(*,*) junk
+                   stop
+                end if
                      
                 center = main(:,i,j,k)
-!!$                if(n==1)then
-!!$                   center(6:8) = center(6:8) + 0d0*dt*area*dv_inv*&
-!!$                        (right_interface(3:5)-left_interface(3:5))
-!!$                   left_flux = flux(left_interface,center,1)
-!!$                   right_flux = flux(right_interface,center,1)
-!!$                else if(n==2)then
-!!$                   center(9:11) = center(9:11) + 0d0*dt*area*dv_inv*&
-!!$                        (right_interface(3:5)-left_interface(3:5))
-!!$                   left_flux = flux(left_interface,center,2)
-!!$                   right_flux = flux(right_interface,center,2)
-!!$                else if(n==3)then
-!!$                   center(12:14) = center(12:14) + 0d0*dt*area*dv_inv*&
-!!$                        (right_interface(3:5)-left_interface(3:5))
-!!$                   left_flux = flux(left_interface,center,3)
-!!$                   right_flux = flux(right_interface,center,3)
-!!$                end if
+
+                if(n==1)then
+                   center(6:8) = center(6:8) + .25d0*dt*area*dv_inv*&
+                        (right_interface(3:5)-left_interface(3:5))
+                else if(n==2)then
+                   center(9:11) = center(9:11) + .25d0*dt*area*dv_inv*&
+                        (right_interface(3:5)-left_interface(3:5))
+                else if(n==3)then
+                   center(12:14) = center(12:14) + .25d0*dt*area*dv_inv*&
+                        (right_interface(3:5)-left_interface(3:5))
+                end if
                 left_flux  = flux( left_interface,center,n)
                 right_flux = flux(right_interface,center,n)
                 call primtocons(center)
                 center(1:5) = center(1:5) - dt*area*dv_inv*&
                      (right_flux-left_flux)
                 call constoprim(center)
-!!$                center(15:17) = center(3:5)*.0d0
-!!$                center(18:20) = center(18:20) + 0d0*dt*area*dv_inv*center(15:17)
-!!$                center(21) = Jacobian(center(6:14))
-!!$
+                if(grid_motion .eq. 0)then
+                   center(15:17) = 0d0
+                elseif(grid_motion .eq. 1)then
+                   center(15:17) = center(3:5)*.25d0
+                end if
+                center(18:20) = center(18:20) + dt*center(15:17)
+                center(21) = Jacobian(center(6:14))
+
 !!$                if(any(left_flux .ne. right_flux))then
 !!$                   write(*,*) "i, j, k, = ",i,j,k
 !!$                   write(*,*) "ip = ",i+ip,j+jp,k+kp
@@ -820,6 +818,7 @@ contains
 !!$                   read(*,*)
 !!$                   
 !!$                end if
+
                 main_temp(:,i,j,k) = center
                 if(abs(main_temp(5,i,j,k)) > 1d-12)then
                    write(*,*) "z-component of velocity detected!!!"
@@ -829,13 +828,14 @@ contains
           end do
        end do
        main(:,0:nx-1,0:ny-1,0:nz-1) = main_temp
+       
 !!$       main(15:17,0:nx-1,0:ny-1,0:nz-1) = main(3:5,0:nx-1,0:ny-1,0:nz-1)*.0d0
 !!$       main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1)&
 !!$            *dt*area*dv_inv*main(15:17,0:nx-1,0:ny-1,0:nz-1)
     end do
   end subroutine prim_update_HUI3D
 
-  subroutine prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz)
+  subroutine prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz,options)
 ! Advance the solution using the integral form of the equations
 ! This subroutine assumes that main is the full array of primitive variables. main 
 ! must also include the boundary cell values. That is, main contains a 0-index and 
@@ -847,6 +847,7 @@ contains
     real(8), intent(in), optional :: dt_in
     real(8), intent(in), optional :: CFL
     integer, intent(in) :: nx,ny,nz,bcextent
+    integer, dimension(:), intent(in) :: options
     integer :: i, j, k
 !    real(8), dimension(14,3,nx+1,ny+1,nz+1) :: fluxes
     real(8), dimension(14,0:nx,0:ny-1,0:nz-1) :: fluxx
@@ -1123,135 +1124,233 @@ contains
     GodErrorReader = 0
   end function GodErrorReader
 
-  integer function GodConvergenceTester1D(left,right,t_out)
+  integer function GodConvergenceTester1D(left,right,t_out,dt,nmax,base_filename)
     implicit none
     real(8), dimension(5), intent(in) :: left, right
-    real(8), intent(in) :: t_out
-    integer, parameter :: nx = 400
-    real(8), dimension(21,-1:nx/8,3,3) :: Rie_1D_1
-    real(8), dimension(21,-1:nx/4,3,3) :: Rie_1D_2
-    real(8), dimension(21,-1:nx/2,3,3) :: Rie_1D_3
-    real(8), dimension(21,-1:nx,3,3) :: Rie_1D_4
-    real(8), dimension(5,nx) :: Rie_1D_exact
-    integer :: l, m, n
-    real(8), dimension(nx) :: x
+    real(8), intent(in) :: t_out, dt
+    integer, intent(in) :: nmax
+    character(len=*), intent(in), optional :: base_filename
+    integer, parameter :: nx = 100
+    real(8), dimension(0:10) :: dxes, rmserrors, fvec
+    real(8), dimension(0:10,3) :: fjac
+    integer :: nxmax
+    real(8), dimension(:,:,:,:), allocatable :: Rie_1D
+    real(8), dimension(:,:), allocatable :: Rie_1D_exact
+    integer :: filenum
+    integer :: m, n
     real(8), dimension(4) :: riemann_middle_states
     real(8), dimension(5) :: riemann_wave_speeds
-    real(8) :: max_wave_speed, dt, dx
-    real(8), dimension(4) :: dxes, rmserrors
-    real(8), dimension(2) :: fitted_poly
+    real(8) :: max_wave_speed, t
+    real(8), dimension(3) :: fitted_poly
+    integer :: info
+    logical, parameter :: verbose = .true.
+    real(8) :: maxvalue
 
     GodConvergenceTester1D = 0
-    dx = 1d0
-    do n = 1, nx
-       x(n) = ((n-1)*dx-.5d0*nx)
-    end do
-!    call riemann_solve(test_1_left,test_1_right,1,1,[0d0],out,max_wave_speed,&
-!         riemann_middle_states,riemann_wave_speeds)
-    do n = 1, 3
-       do m = 1, 3
-          dx = 1d0/(nx/8-1)
-          do l = -1, nx/8/2-1
-             Rie_1D_1(1:5,l,m,n) = left
-             Rie_1D_1(18,l,m,n) = dx*l
-          end do
-          do l = nx/8/2, nx/8
-             Rie_1D_1(1:5,l,m,n) = right
-             Rie_1D_1(18,l,m,n) = dx*l
-          end do
-          Rie_1D_1( 6,:,:,:) = 8d0/nx
-          Rie_1D_1(10,:,:,:) = 8d0/nx
-          Rie_1D_1(14,:,:,:) = 8d0/nx
-          Rie_1D_1(21,:,:,:) = (8d0/nx)**3
-          dx = 1d0/(nx/4-1)
-          do l = -1, nx/4/2-1
-             Rie_1D_2(1:5,l,m,n) = left
-             Rie_1D_2(18,l,m,n) = dx*l
-          end do
-          do l = nx/4/2, nx/4
-             Rie_1D_2(1:5,l,m,n) = right
-             Rie_1D_2(18,l,m,n) = dx*l
-          end do
-          Rie_1D_2( 6,:,:,:) = 4d0/nx
-          Rie_1D_2(10,:,:,:) = 4d0/nx
-          Rie_1D_2(14,:,:,:) = 4d0/nx
-          Rie_1D_2(21,:,:,:) = (4d0/nx)**3
-          dx = 1d0/(nx/2-1)
-          do l = -1, nx/2/2-1
-             Rie_1D_3(1:5,l,m,n) = left
-             Rie_1D_3(18,l,m,n) = dx*l
-          end do
-          do l = nx/2/2, nx/2
-             Rie_1D_3(1:5,l,m,n) = right
-             Rie_1D_3(18,l,m,n) = dx*l
-          end do
-          Rie_1D_3( 6,:,:,:) = 2d0/nx
-          Rie_1D_3(10,:,:,:) = 2d0/nx
-          Rie_1D_3(14,:,:,:) = 2d0/nx
-          Rie_1D_3(21,:,:,:) = (2d0/nx)**3
-          dx = 1d0/(nx-1)
-          do l = -1, nx/2-1
-             Rie_1D_4(1:5,l,m,n) = left
-             Rie_1D_4(18,l,m,n) = dx*l
-          end do
-          do l = nx/2, nx
-             Rie_1D_4(1:5,l,m,n) = right
-             Rie_1D_4(18,l,m,n) = dx*l
-          end do
-          Rie_1D_4( 6,:,:,:) = 1d0/nx
-          Rie_1D_4(10,:,:,:) = 1d0/nx
-          Rie_1D_4(14,:,:,:) = 1d0/nx
-          Rie_1D_4(21,:,:,:) = (1d0/nx)**3
+    maxvalue = 0d0
+    if(nmax>10)then
+       write(*,*) "Error in GodConvergenceTester1D: Too many refinements!"
+       stop
+    end if
+    do n = 0, nmax
+       nxmax = nx*2**n
+       allocate(Rie_1D(21,-1:nxmax,-1:1,-1:1),Rie_1D_exact(5,0:nxmax-1))
+       call RieInit1D(left,right,nxmax,[0d0,1d0],Rie_1D)
+       t = 0d0
+       do 
+          call prim_update(Rie_1D,FreeExitConditions,1,dt,.7d0,nx*2**n,1,1,[2,1])
+          t = t + dt
+          if(t .ge. t_out) exit
        end do
+       Rie_1D_exact = 0d0
+       call riemann_solve(Rie_1D(:,-1,0,0),Rie_1D(:,nxmax,0,0),1,nxmax,&
+            (Rie_1D(18,0:nxmax-1,0,0)-.5d0)/(Rie_1D(6,0:nxmax-1,0,0)*t_out),&
+            Rie_1D_exact,max_wave_speed)
+       dxes(n) = Rie_1D(18,0,0,0)-Rie_1D(18,-1,0,0)
+       rmserrors(n) = sqrt(sum(((Rie_1D(2,0:nxmax-1,0,0)-Rie_1D_exact(2,:))/&
+            maxval(abs(Rie_1D_exact(2,:))))**2)/nxmax)
+       maxvalue = max(maxvalue,maxval(abs(Rie_1D(2,0:nxmax-1,0,0))))
+       if(present(base_filename))then
+          filenum = 92920 + n
+          open(unit=filenum,file=base_filename//achar(48+n)//".dat")
+          do m = 1, 20
+             write(filenum,*) Rie_1D(m,:,0,0)
+          end do
+          close(filenum)
+          if(n .eq. nmax)then
+             open(unit=92919,file=base_filename//"_exact.dat")
+             do m = 1, 5
+                write(92919,*) Rie_1D_exact(m,:)
+             end do
+             close(92919)
+          end if
+       end if
+       deallocate(Rie_1D,Rie_1D_exact)
     end do
-    Rie_1D_exact = 0d0
-    call riemann_solve(Rie_1D_4(:,-1,2,2),Rie_1D_4(:,nx,2,2),1,nx,&
-         ((Rie_1D_4(18,0:nx-1,2,2)-.5d0)/Rie_1D_4(6,0:nx-1,2,2))/t_out,&
-         Rie_1D_exact,max_wave_speed,riemann_middle_states,riemann_wave_speeds)
-    write(*,*) "Middle States ",riemann_middle_states
-!!$    Rie_1D_1 = right; Rie_1D_1(:,1:size(Rie_1D_1,2)/2,:,:) = left
-!!$    Rie_1D_2 = right; Rie_1D_2(:,1:size(Rie_1D_2,2)/2,:,:) = left
-!!$    Rie_1D_3 = right; Rie_1D_3(:,1:size(Rie_1D_3,2)/2,:,:) = left
-!!$    Rie_1D_4 = right; Rie_1D_4(:,1:size(Rie_1D_4,2)/2,:,:) = left
-    dt = 1d-4
-    do n = 1, 100000
-!!$       write(*,*) "t = ",n*dt
-       if(n*dt.ge.t_out) exit
-       call prim_update(Rie_1D_1,1,dt,.7d0,nx/8,1,1)
-       call prim_update(Rie_1D_2,1,dt,.7d0,nx/4,1,1)
-       call prim_update(Rie_1D_3,1,dt,.7d0,nx/2,1,1)
-       call prim_update(Rie_1D_4,1,dt,.7d0,nx  ,1,1)
-    end do
-    dxes = [8d0/(nx-1),4d0/(nx-1),2d0/(nx-1),1d0/(nx-1)]
-    rmserrors = [&
-         sqrt(sum((Rie_1D_1(2,0:nx/8-1,2,2)-Rie_1D_exact(2,1:nx:8))**2)/(nx/8)),&
-         sqrt(sum((Rie_1D_2(2,0:nx/4-1,2,2)-Rie_1D_exact(2,1:nx:4))**2)/(nx/4)),&
-         sqrt(sum((Rie_1D_3(2,0:nx/2-1,2,2)-Rie_1D_exact(2,1:nx:2))**2)/(nx/2)),&
-         sqrt(sum((Rie_1D_4(2,0:nx  -1,2,2)-Rie_1D_exact(2,:     ))**2)/(nx  ))]
-    
-    fitted_poly = polyfit(log(dxes),log(rmserrors),1)
-    write(*,*) "Polyfit results: ",fitted_poly
-    open(unit=92922,file="exact.dat")
-    open(unit=92923,file="Rie1.dat")
-    open(unit=92924,file="Rie2.dat")
-    open(unit=92925,file="Rie3.dat")
-    open(unit=92926,file="Rie4.dat")
-    write(92922,*) Rie_1D_4(18,0:nx-1,2,2)
-    write(92922,*) Rie_1D_exact(2,:)
-    write(92923,*) Rie_1D_1(18,0:nx/8-1,2,2)
-    write(92923,*) Rie_1D_1( 2,0:nx/8-1,2,2)
-    write(92924,*) Rie_1D_2(18,0:nx/4-1,2,2)
-    write(92924,*) Rie_1D_2( 2,0:nx/4-1,2,2)
-    write(92925,*) Rie_1D_3(18,0:nx/2-1,2,2)
-    write(92925,*) Rie_1D_3( 2,0:nx/2-1,2,2)
-    write(92926,*) Rie_1D_4(18,0:nx  -1,2,2)
-    write(92926,*) Rie_1D_4( 2,0:nx  -1,2,2)
-    close(92922); close(92923); close(92924); close(92925); close(92926)
-
-    if(fitted_poly(2) < 1d0) GodConvergenceTester1D = 2
-    !       call prim_update(riemann_test_array_1d,1,dt,.7d0,nx-2,ny-2,1)
-
+    write(*,*) "dxes = ",dxes(0:nmax)
+    write(*,*) "rmserrors = ",rmserrors(0:nmax)
+    fitted_poly(1:2) = polyfit(log(dxes(0:nmax)),log(rmserrors(0:nmax)),1)
+    fitted_poly(3) = 0d0
+    call minpack_function_fitting(dxes(0:nmax),rmserrors(0:nmax),&
+         exponential_with_y_offset,fitted_poly,fvec(0:nmax),fjac(0:nmax,:),info)
+    if(info .eq. 1)then
+       if(verbose)then
+          write(*,*) "Simulation converges with order = ",fitted_poly(2)
+          write(*,*) "Simulation converges to within ",&
+               fitted_poly(3)/maxvalue*100,&
+               "% of exact solution."
+          write(*,*) "CLAWPACK converges with order = 0.608111"
+          write(*,*) "CLAWPACK converges to within 0.49% of exact solution"
+       end if
+    else
+       write(*,*) "Function fitting returned unexpected value"
+       write(*,*) "info = ", info
+       write(*,*) "The meanings of various info values are found in lmder1.f"
+       stop
+    end if
+    if(fitted_poly(2) < .5d0 .or. &
+         fitted_poly(3)/maxvalue > .5d0)&
+         GodConvergenceTester1D = 2
+    write(*,*) "Got this far"
   end function GodConvergenceTester1D
+
+  function RotateCoords(in,phi,theta)
+    implicit none
+    real(8), dimension(3), intent(in) :: in
+    real(8), intent(in) :: phi, theta
+    optional theta
+    real(8), dimension(3) :: RotateCoords
+    
+    RotateCoords = matmul(reshape(&
+         [cos(phi),sin(phi),0d0,&
+         -sin(phi),cos(phi),0d0,&
+         0d0,0d0,1d0],[3,3]),in)
+    if(present(theta))then
+       write(*,*) "Error in RotateCoords, 3-D rotations not yet supported!!!"
+       stop
+    end if
+  end function RotateCoords
+  
+  integer function GodConvergenceTester2D(left,right,t_out,dt,nmax,base_filename)
+    use GeneralUtilities, only : PI
+    use TimeAdvancementStuff
+    implicit none
+    real(8), dimension(5), intent(in) :: left, right
+    real(8), intent(in) :: t_out, dt
+    integer, intent(in) :: nmax
+    character(len=*), intent(in), optional :: base_filename
+    integer, parameter :: nx = 50
+    real(8), dimension(0:10) :: dxes, rmserrors, fvec
+    real(8), dimension(0:10,3) :: fjac
+    integer :: nxmax
+    real(8), dimension(:,:,:,:), allocatable :: Rie_2D
+    real(8), dimension(:,:,:), allocatable :: Rie_2D_exact
+    real(8), parameter :: phi = PI*.5d0!25d0/180d0
+    real(8), dimension(2) :: xy
+    integer :: filenum
+    integer :: m, n, i, j, k
+    real(8), dimension(4) :: riemann_middle_states
+    real(8), dimension(5) :: riemann_wave_speeds
+    real(8) :: max_wave_speed, t
+    real(8), dimension(3) :: fitted_poly
+    integer :: info
+
+    GodConvergenceTester2D = 0
+    if(nmax>10)then
+       write(*,*) "Error in GodConvergenceTester2D: Too many refinements!"
+       stop
+    end if
+    do n = 0, nmax
+       nxmax = nx*2**n
+       allocate(Rie_2D(21,-1:nxmax,-1:nxmax,-1:1),&
+            Rie_2D_exact(5,0:nxmax-1,0:nxmax-1))
+       call RieInit2D(left,right,phi,nxmax,[0d0,1d0],Rie_2D)
+       t = 0d0
+       call write_files_matlab(Rie_2D(:,0:nx-1,0:nx-1,0),t,nx,nx,.true.)
+!!$       do 
+!!$          call prim_update(Rie_2D,FreeExitConditions,1,dt,.7d0,nx*2**n,nx*2**n,1,[2,1])
+!!$          t = t + dt
+!!$          write(*,*) "t = ",t
+!!$          call write_files_matlab(Rie_2D(:,0:nx-1,0:nx-1,0),t,nx,nx,.false.)
+!!$          if(t .ge. t_out) exit
+!!$       end do
+       Rie_2D_exact = 0d0
+       do i = 0, nx-1
+          do j = 0, nx-1
+             call riemann_solve(Rie_2D(:,-1,-1,-1),Rie_2D(:,nx,-1,-1),1,1,&
+                  [RotateCoords([&
+                  (Rie_2D(18,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D( 6,i,j,0),&
+                  (Rie_2D(19,i,j,0)-maxval(Rie_2D(19,:,:,:)))/Rie_2D(10,i,j,0),&
+                  (Rie_2D(20,i,j,0)-maxval(Rie_2D(20,:,:,:)))/Rie_2D(14,i,j,0)]&
+                  ,phi)],Rie_2D_exact(:,i,j),max_wave_speed)
+             write(*,*) "Rotated Coords = ", RotateCoords([&
+                  (Rie_2D(18,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D( 6,i,j,0),&
+                  (Rie_2D(19,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D(10,i,j,0),&
+                  (Rie_2D(20,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D(14,i,j,0)]&
+                  ,phi)
+             read(*,*)
+          end do
+       end do
+       dxes(n) = Rie_2D(18,1,0,0)-Rie_2D(18,0,0,0)
+       rmserrors(n) = sqrt(sum(((Rie_2D(2,0:nxmax-1,0:nxmax-1,0)&
+            -Rie_2D_exact(2,:,:))/&
+            maxval(abs(Rie_2D_exact(2,:,:))))**2)/nxmax**2)
+       if(present(base_filename))then
+          filenum = 93020 + n
+          open(unit=filenum,file=base_filename//achar(48+n)//".dat")
+          do m = 1, 20
+             write(filenum,*) Rie_2D(m,:,:,0)
+          end do
+          close(filenum)
+          if(n .eq. nmax)then
+             open(unit=93019,file=base_filename//"_exact.dat")
+             do m = 1, 5
+                write(93019,*) Rie_2D_exact(m,:,:)
+             end do
+             close(93019)
+          end if
+       end if
+       deallocate(Rie_2D,Rie_2D_exact)
+    end do
+    write(*,*) "dxes = ",dxes(0:nmax)
+    write(*,*) "rmserrors = ",rmserrors(0:nmax)
+    fitted_poly(1:2) = polyfit(log(dxes(0:nmax)),log(rmserrors(0:nmax)),1)
+    fitted_poly(3) = 0d0
+    call minpack_function_fitting(dxes(0:nmax),rmserrors(0:nmax),&
+         exponential_with_y_offset,fitted_poly,fvec(0:nmax),fjac(0:nmax,:),info)
+    write(*,*) "2-D data"
+    if(info .eq. 1)then
+       write(*,*) "Simulation converges with order = ",fitted_poly(2)
+       write(*,*) "Simulation converges to within ",fitted_poly(3)*100,&
+            "% of exact solution."
+       write(*,*) "CLAWPACK converges with order = 0.608111"
+       write(*,*) "CLAWPACK converges to within 0.49% of exact solution"
+       stop
+    else
+       write(*,*) "Function fitting returned unexpected value"
+       write(*,*) "info = ", info
+       write(*,*) "The meanings of various info values are found in lmder1.f"
+       stop
+    end if
+    if(fitted_poly(2) < 1d0) GodConvergenceTester2D = 3
+    
+  end function GodConvergenceTester2D
+
+  subroutine FreeExitConditions(main,nx,ny,nz)
+    implicit none
+    real(8), dimension(21,nx,ny,nz) :: main
+    integer, intent(in) :: nx, ny, nz
+
+!!$    nx = size(main,2)
+!!$    ny = size(main,3)
+!!$    nz = size(main,4)
+    main(:, 1,:,:) = main(:,   2,:,:)
+    main(:,nx,:,:) = main(:,nx-1,:,:)
+    main(:,:, 1,:) = main(:,:,   2,:)
+    main(:,:,ny,:) = main(:,:,ny-1,:)
+    main(:,:,:, 1) = main(:,:,:,   2)
+    main(:,:,:,nz) = main(:,:,:,nz-1)
+  end subroutine FreeExitConditions
 
   integer function GodTester()
     use TimeAdvancementStuff
@@ -1261,6 +1360,7 @@ contains
     real(8), dimension(5) :: riemann_test
     real(8), dimension(21) :: geom_test
     real(8), dimension(21,3,3,3) :: constoprimtest1, constoprimtest2
+    real(8), dimension(21) :: constoprimtest3
     real(8), dimension(5) :: left_test, right_test
     real(8) :: max_wave_speed
     real(8), dimension(3) :: grad, norm, tan1, tan2
@@ -1292,7 +1392,26 @@ contains
     call primtocons(constoprimtest1)
     if(sqrt(sum((constoprimtest1-constoprimtest2)**2)&
          /size(constoprimtest1))>EPS) GodTester = 1
-
+    ! Also check against a Matlab solution.
+    constoprimtest3 = [&
+         0.081125768865785,0.929385970968730,0.775712678608402,&
+         0.486791632403172,0.435858588580919,0.446783749429806,&
+         0.306349472016557,0.508508655381127,0.510771564172110,&
+         0.817627708322262,0.794831416883453,0.644318130193692,&
+         0.378609382660268,0.811580458282477,0.532825588799455,&
+         0.350727103576883,0.939001561999887,0.875942811492984,&
+         0.550156342898422,0.622475086001227,0.022367194643555]
+    call primtocons(constoprimtest3)
+    constoprimtest3=[&
+         0.020787756911647,0.016125326596194,0.010119306121021,&
+         0.009060522387274,0.015228249823238,0.446783749429806,&
+         0.306349472016557,0.508508655381127,0.510771564172110,&
+         0.817627708322262,0.794831416883453,0.644318130193692,&
+         0.378609382660268,0.811580458282477,0.532825588799455,&
+         0.350727103576883,0.939001561999887,0.875942811492984,&
+         0.550156342898422,0.622475086001227,0.022367194643555]&
+         -constoprimtest3
+    if(any(constoprimtest3**2>1d-15)) GodTester = 1
     ! Ensure that the coordinate system returned from grid_coords
     ! is orthonormal, and that norm is parallel to grad.
     
@@ -1324,73 +1443,145 @@ contains
     ! must be approved manually.
     ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
 
-!!$    left = [0d0,0d0,0d0,0d0,0d0,&
-!!$         1d-2,0d0,0d0,&
-!!$         0d0,1d-2,0d0,&
-!!$         0d0,0d0,1d-2,&
-!!$         0d0,0d0,0d0,&
-!!$         0d0,0d0,0d0,1d-6]
-!!$    right = left
     left(1:5)  = [1.d0, 1.d0, 0.d0, 0.d0, 0.d0]
     right(1:5) = [.1d0, .125d0, 0.d0, 0.d0, 0.d0]
-    GodTester = GodConvergenceTester1D(left,right,.25d0)
-    stop
-    left(1:5)  = [.4d0, 1.d0, -2.d0, 0.d0, 0.d0]
-    right(1:5) = [.4d0, 1.d0, 2.d0, 0.d0, 0.d0]
-    GodTester = GodConvergenceTester1D(left,right,.15d0)
-    left(1:5)  = [1.d3, 1.d0, 0.d0, 0.d0, 0.d0]
-    right(1:5) = [.01d0, 1.d0, 0.d0, 0.d0, 0.d0]
-    GodTester = GodConvergenceTester1D(left,right,.012d0)
-    left(1:5)  = [.01d0, 1.d0, 0.d0, 0.d0, 0.d0]
-    right(1:5) = [1.d2, 1.d0, 0.d0, 0.d0, 0.d0]
-    GodTester = GodConvergenceTester1D(left,right,.035d0)
-    left(1:5)  = [460.894d0, 5.99924d0, 19.5975d0, 0d0, 0d0]
-    right(1:5) = [46.095d0, 5.99242d0, -6.19633d0, 0d0, 0d0]
-    GodTester = GodConvergenceTester1D(left,right,.035d0)
-    stop
-
-    call RieInit1D(riemann_test_array_1d)
-    nx = size(riemann_test_array_1d,2)
-    ny = size(riemann_test_array_1d,3)
-    call write_files_matlab(riemann_test_array_1d(:,:,:,2),1d-4*n,&
-         nx,ny,.true.)!(x,y,E,h,t,dt)
-    dt = 1d-3
-    do n = 1, 50000
-       if(n*dt>.25d0) exit
-       write(*,*) "time step = ", n
-       riemann_test_array_1d(:,:,1,:) = riemann_test_array_1d(:,:,2,:)
-       riemann_test_array_1d(:,:,3,:) = riemann_test_array_1d(:,:,2,:)
-       riemann_test_array_1d(:,:,:,1) = riemann_test_array_1d(:,:,:,2)
-       riemann_test_array_1d(:,:,:,3) = riemann_test_array_1d(:,:,:,2)
-       call prim_update(riemann_test_array_1d,1,dt,.7d0,nx-2,ny-2,1)
-       call write_files_matlab(riemann_test_array_1d(:,:,:,2),dt*n,&
-            nx,ny,.false.)!(x,y,E,h,t,dt)
-!!$       write(*,*) riemann_test_array_1d(1,20:60,1,1) 
-!!$       read(*,*)
-    end do
-       
-         ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
-
-    write(*,*) "Got this far!!"
-    write(*,*) riemann_test_array_1d(1,:,2,2)
+!!$    GodTester = GodConvergenceTester1D(left,right,.18d0,1d-4,4,"1D_Rie_Test_1")
+    GodTester = GodConvergenceTester2D(left,right,.18d0,1d-4,0,"2D_Rie_Test_1")
   end function GodTester
 
-  subroutine RieInit1D(main)
+  subroutine NormShockInit(nx,main)
     implicit none
-    real(8), dimension(21,-1:100,-1:1,-1:1) :: main
-    integer :: i
+    integer, intent(in) :: nx
+    real(8), dimension(21,-1:nx,-1:1,-1:1), intent(out) :: main
+    real(8), dimension(3) :: upstream, downstream
+    real(8), dimension(2) :: xrange
+    integer :: half_nx, i,j,k
+
+    xrange = [main(18,0,0,0),main(18,nx-1,0,0)]
+    upstream = [1d0,1d0,2d0*sqrt(1.4d0)]
+    call NormalShockRelations(upstream,1.4d0,downstream)
+    
+    if(mod(nx,2).eq.0)then
+       half_nx = nx/2
+    else
+       write(*,*) "Warning: NormShockInit called with an odd value for nx."
+       write(*,*) "         Press any key to continue, but the normal shock"
+       write(*,*) "         will be slightly offset from center."
+       read(*,*)
+       half_nx = nx/2
+       write(*,*) "         The true halfway point is ",.5*(xrange(2)-xrange(1))
+       write(*,*) "         The initial shock location is ",&
+            .5*(xrange(2)-xrange(1))-.5*(xrange(2)-xrange(1))/(nx-1)
+    end if
     main = 0d0
-    main(1,-1:49,:,:) = 1d0 ; main(1,50:100,:,:) = 1d-1
-    main(2,-1:49,:,:) = 1d0 ; main(2,50:100,:,:) = 125d-3
-    main(3,-1:49,:,:) = 0d0 ; main(3,50:100,:,:) = 0d0
-    main(6,:,:,:) = 1d-2 ; main(10,:,:,:) = 1d-2 ; main(14,:,:,:) = 1d-2
-!    main(6,:,:,:) = 1d0; main(10,:,:,:) = 1d0; main(14,:,:,:) = 1d0
-    do i = -1, 100
-       main(18,i,:,:) = (real(i,8)+.5d0)*1d-2
-    end do
-    main(21,:,:,:) = 1d-6
-!    main(21,:,:,:) = 1d0
+    forall (i=-1:half_nx-1, j=-1:1, k=-1:1)
+       main(1:3,i,j,k) = upstream
+    end forall
+    forall (i=half_nx:nx, j=-1:1, k=-1:1)
+       main(1:3,i,j,k) = downstream
+    end forall
+    main(6,:,:,:) = 1d0
+    main(10,:,:,:) = main(6,:,:,:)
+    main(14,:,:,:) = main(6,:,:,:)
+    forall (i=-1:nx,j=-1:1,k=-1:1)
+       main(18,i,j,k) = real(i,8)
+       main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+    end forall
+    main(18,:,:,:) = main(18,:,:,:) - .5d0*maxval(main(18,:,:,:))
+  end subroutine NormShockInit
+
+  subroutine NormalShockRelations(in,gamma,out)
+    implicit none
+    real(8), dimension(3), intent(in) :: in
+    real(8), intent(in) :: gamma
+    real(8), dimension(3), intent(out) :: out
+    real(8) :: a1, M1, p, d, u, a2, M2
+    
+    p = in(1); d = in(2); u = in(3)
+    a1 = sqrt(gamma*p/d); M1 = u/a1
+    M2 = sqrt((1+((gamma-1d0)*.5d0)*M1**2)/(gamma*M1**2-.5d0*(gamma-1d0)))
+    out(1) = p*(1d0 + 2d0*gamma/(gamma-1d0)*(M1**2-1d0))
+    out(2) = d*((gamma+1d0)*M1**2)/(2d0 + (gamma-1d0)*M1**2)
+    a2 = sqrt(gamma*out(1)/out(2))
+    out(3) = M2*a2
+  end subroutine NormalShockRelations
+
+  subroutine RieInit1D(left,right,nx,xrange,main)
+    implicit none
+    real(8), dimension(5), intent(in) :: left, right
+    integer, intent(in) :: nx
+    real(8), dimension(2), intent(in) :: xrange
+    real(8), dimension(21,-1:nx,-1:1,-1:1), intent(out) :: main
+    integer :: i,j,k,half_nx
+    real(8) :: dx
+    if(mod(nx,2).eq.0)then
+       half_nx = nx/2
+    else
+       write(*,*) "Warning: RieInit1D called with an odd value for nx."
+       write(*,*) "         Press any key to continue, but the Riemann"
+       write(*,*) "         problem will be slightly offset from center."
+       read(*,*)
+       half_nx = nx/2
+       write(*,*) "         The true halfway point is ",.5*(xrange(2)-xrange(1))
+       write(*,*) "         The Riemann problem is centered at ",&
+            .5*(xrange(2)-xrange(1))-.5*(xrange(2)-xrange(1))/(nx-1)
+    end if
+    main = 0d0
+    forall (i=-1:half_nx-1, j=-1:1, k=-1:1)
+       main(1:5,i,j,k) = left
+    end forall
+    forall (i=half_nx:nx, j=-1:1, k=-1:1)
+       main(1:5,i,j,k) = right
+    end forall
+    dx = (xrange(2)-xrange(1))/(nx-1)
+    main(6,:,:,:) = dx
+    main(10,:,:,:) = main(6,:,:,:)
+    main(14,:,:,:) = main(6,:,:,:)
+    forall (i=-1:nx, j=-1:1, k=-1:1)
+       main(18,i,j,k) = dx*i + xrange(1)
+       main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+    end forall
   end subroutine RieInit1D
+
+  subroutine RieInit2D(left,right,phi,nx,xrange,main)
+    use GeneralUtilities, only : PI
+    implicit none
+    real(8), dimension(5) :: left, right
+    real(8), intent(in) :: phi
+    integer, intent(in) :: nx
+    real(8), dimension(2), intent(in) :: xrange
+    real(8), dimension(21,-1:nx,-1:nx,-1:1), intent(out) :: main
+    integer :: i,j,k,half_nx
+    real(8) :: dx
+    real(8), dimension(3,3) :: vels_transform
+
+    vels_transform = reshape(&
+         [cos(phi),-sin(phi),0d0,sin(phi),cos(phi),0d0,0d0,0d0,1d0],[3,3])
+    main = 0d0
+    dx = (xrange(2)-xrange(1))/(nx-1)
+    main(6,:,:,:) = dx
+    main(10,:,:,:) = dx
+    main(14,:,:,:) = main(6,:,:,:)
+    left(3:5) = matmul(vels_transform,left(3:5))
+    right(3:5) = matmul(vels_transform,right(3:5))
+    do i = -1, nx
+       do j = -1, nx
+          do k = -1, 1
+             main(18,i,j,k) = dx*i + xrange(1)
+             main(19,i,j,k) = dx*j + xrange(1)
+             main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+             if( (main(19,i,j,k)-.5d0*(xrange(2)-xrange(1)))&
+                  - tan(phi-PI*.5d0)*( main(18,i,j,k)-.5d0&
+                  *(xrange(2)-xrange(1))) < 0d0)then
+                main(1:5,i,j,k) = left
+             else
+                main(1:5,i,j,k) = right
+             end if
+          end do
+       end do
+    end do
+        
+  end subroutine RieInit2D
 
   subroutine GodRieInit(main)
     implicit none
