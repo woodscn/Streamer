@@ -22,7 +22,7 @@ contains
 !!$         (4d0*a0*EV)/(S*(gamma_const+1d0)))
 !!$  end function fan_Jacobian
 
-  pure subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
+  subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
        riemann_middle_states, riemann_wave_speeds,ierr_out)
     ! Riemann_solve accepts two physical flow states of the form:
     !     [ pressure, mass density, velocity_normal, velocity_tangential_1,
@@ -59,13 +59,30 @@ contains
 
     ierror = 0
     temp = 1d0
-    DL =  left(2); PL =  left(1); UL =  left(3); VL =  left(4); WL =  left(5)
-    DR = right(2); PR = right(1); UR = right(3); VR = right(4); WR = right(5)
+    DL =  left(2); PL =  left(1);
+    DR = right(2); PR = right(1);
+!!$    select case(dir)
+!!$    case(1)
+       UL =  left(3); VL =  left(4); WL =  left(5)
+       UR = right(3); VR = right(4); WR = right(5)
+       Uavg = .5d0*(left(15)+right(15))
+!!$    case(2)
+!!$       UL =  left(4); VL =  left(5); WL =  left(3)
+!!$       UR = right(4); VR = right(5); WR = right(3)
+!!$       Uavg = .5d0*(left(16)+right(16))
+!!$    case(3)
+!!$       UL =  left(5); VL =  left(3); WL =  left(4)
+!!$       UR = right(5); VR = right(3); WR = right(4)
+!!$       Uavg = .5d0*(left(17)+right(17))
+!!$    end select
     AL = sqrt(gamma_const*PL/DL); AR = sqrt(gamma_const*PR/DR)
-    Uavg = .5d0*(left(15)+right(15))
 
     met_inv = MetricInverse(.5d0*(left(6:14)+right(6:14)));
     J = Jacobian(.5d0*(left(6:14)+right(6:14)))
+!!$    if(abs(J-1d-6)>1d-7)then
+!!$       write(*,*) "J = ",J,"  Metric = ",.5d0*(left(6:14)+right(6:14))
+!!$       read(*,*)
+!!$    end if
     S = sqrt(sum((J*met_inv(dir:9:3))**2))
     
     Pstar = guessp(left,right)
@@ -106,7 +123,7 @@ contains
 !!$    if(verbose)write(*,*)"RiemannSolve = ", out
   end subroutine riemann_solve
 
-  pure function wave_speeds(left,right,dir,riemann_middle_states,Uavg,J,S)
+  function wave_speeds(left,right,dir,riemann_middle_states,Uavg,J,S)
     implicit none
     real(8), dimension(21), intent(in) :: left, right
     integer, intent(in) :: dir
@@ -137,6 +154,9 @@ contains
     else
        wave_speeds(4) = S/J*(Ustar-Uavg+sqrt(Pstar*gamma_const/DstarR))
        wave_speeds(5) = S/J*(right(3)-Uavg+sqrt(right(1)*gamma_const/right(2)))
+!!$       if(abs(S/J-99d0)>1d0)then
+!!$          write(*,*) "S = ", S,"    J = ", J
+!!$       end if
     end if
     
   end function wave_speeds
@@ -365,7 +385,7 @@ contains
     integer, parameter :: nxfull = 101
     real(8), dimension(nxfull) :: xfull
     real(8), dimension(5,nxfull) :: outfull
-    integer :: n    
+    integer :: n, dir
     RieTester = 0
     
     test_base = [0d0,0d0,0d0,0d0,0d0,&
@@ -403,43 +423,45 @@ contains
     ! compared (eyeballed) with Toro's plots. This leaves the solutions within
     ! the expansion fan untested.
     test_flag = .true.
+    ! I need to test this with more complex geometric variables
     test_geom = [0d0,0d0,0d0,0d0,0d0,&
          1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0,&
          0d0,0d0,0d0,0d0,0d0,0d0,1d0]
 !    test_sol = test_1_sol
 !      subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
 !       riemann_middle_states, riemann_wave_speeds)
-    call riemann_solve(test_1_left,test_1_right,1,1,[0d0],out,max_wave_speed,&
-         riemann_middle_states,riemann_wave_speeds)
-    if(maxval(abs(riemann_middle_states-test_1_sol))>5d-6)&
-         RieTester = 1
-    if(maxval(abs((riemann_wave_speeds-test_1_speeds)/test_1_speeds))>5d-5)&
-         RieTester = 1
-    call riemann_solve(test_2_left,test_2_right,1,1,[0d0],out,max_wave_speed,&
-         riemann_middle_states,riemann_wave_speeds)
-    if(maxval(abs(riemann_middle_states-test_2_sol)/test_2_sol)>5d-3)&
-         RieTester = 1
-    if(maxval(abs(riemann_wave_speeds-test_2_speeds))>5d-4)&
-         RieTester = 1
-    call riemann_solve(test_3_left,test_3_right,1,1,[0d0],out,max_wave_speed,&
-         riemann_middle_states,riemann_wave_speeds)
-    if(maxval(abs(riemann_middle_states-test_3_sol)/test_3_sol)>5d-6)&
-         RieTester = 1
-    if(maxval(abs(riemann_wave_speeds-test_3_speeds))>7d-5)&
-         RieTester = 1
-    call riemann_solve(test_4_left,test_4_right,1,1,[0d0],out,max_wave_speed,&
-         riemann_middle_states,riemann_wave_speeds)
-    if(maxval(abs(riemann_middle_states-test_4_sol)/test_4_sol)>5d-6)&
-         RieTester = 1
-    if(maxval(abs(riemann_wave_speeds-test_4_speeds))>5d-5)&
-         RieTester = 1
-    call riemann_solve(test_5_left,test_5_right,1,1,[0d0],out,max_wave_speed,&
-         riemann_middle_states,riemann_wave_speeds)
-    if(maxval(abs(riemann_middle_states-test_5_sol)/test_5_sol)>5d-6)&
-         RieTester = 1
-    if(maxval(abs(riemann_wave_speeds-test_5_speeds))>8d-5)&
-         RieTester = 1
-
+    do dir = 1, 3
+       call riemann_solve(test_1_left,test_1_right,dir,1,[0d0],out,max_wave_speed,&
+            riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(abs(riemann_middle_states-test_1_sol))<5d-6))&
+            RieTester = 1
+       if(.not.(maxval(abs((riemann_wave_speeds-test_1_speeds)/test_1_speeds))<5d-5))&
+            RieTester = 1
+       call riemann_solve(test_2_left,test_2_right,dir,1,[0d0],out,max_wave_speed,&
+            riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(abs(riemann_middle_states-test_2_sol)/test_2_sol)<5d-3))&
+            RieTester = 1
+       if(.not.(maxval(abs(riemann_wave_speeds-test_2_speeds))<5d-4))&
+            RieTester = 1
+       call riemann_solve(test_3_left,test_3_right,dir,1,[0d0],out,max_wave_speed,&
+            riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(abs(riemann_middle_states-test_3_sol)/test_3_sol)<5d-6))&
+            RieTester = 1
+       if(.not.(maxval(abs(riemann_wave_speeds-test_3_speeds))<7d-5))&
+            RieTester = 1
+       call riemann_solve(test_4_left,test_4_right,dir,1,[0d0],out,max_wave_speed,&
+            riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(abs(riemann_middle_states-test_4_sol)/test_4_sol)<5d-6))&
+            RieTester = 1
+       if(.not.(maxval(abs(riemann_wave_speeds-test_4_speeds))<5d-5))&
+            RieTester = 1
+       call riemann_solve(test_5_left,test_5_right,dir,1,[0d0],out,max_wave_speed,&
+            riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(abs(riemann_middle_states-test_5_sol)/test_5_sol)<5d-6))&
+            RieTester = 1
+       if(.not.(maxval(abs(riemann_wave_speeds-test_5_speeds))<8d-5))&
+            RieTester = 1
+    end do
     ! Visual tests are possible to check that the solution within the fan is correct.
     ! This writes the density to a file that can then be plotted.
     do n = 1, nxfull
@@ -467,7 +489,7 @@ module Godunov
   real(8), parameter :: deta_inv  = 1.d0/deta
   real(8), parameter :: dzeta_inv = 1.d0/dzeta
   real(8), parameter :: dV_inv = dxi_inv*deta_inv*dzeta_inv
-  integer, parameter :: update_type = 2 ! 1 = FV, 2 = HUI3D
+  integer, parameter :: update_type = 1 ! 1 = FV, 2 = HUI3D
 
   interface primtocons
      module procedure primtoconsarray
@@ -618,13 +640,13 @@ contains
     end if
   end subroutine grid_coords
 
-  subroutine prim_update(main,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
+  subroutine prim_update(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     implicit none
     real(8), dimension(:,:,:,:) :: main
     !f2py intent(in,out) :: main
     integer :: bcextent, nx, ny, nz
     integer, dimension(:), intent(in) :: options
-    real(8) :: dt_in, CFL
+    real(8) :: dt_in, CFL, dt_out
     external :: bc_func
     !f2py intent (callback) bc_func
     !f2py external bc_func
@@ -632,26 +654,28 @@ contains
     !f2py 
     select case(update_type)
     case(1)
-       call prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz,options)
+       call prim_update_FV(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     case(2)
-       call prim_update_HUI3D(main,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
+       call prim_update_HUI3D(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     case default
        write(*,*) "Bad update_type value!!!"
        stop
     end select
   end subroutine prim_update
 
-  subroutine prim_update_HUI3D(main,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
+  subroutine prim_update_HUI3D(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
     implicit none
     real(8), dimension(21,-1*bcextent:nx+bcextent-1,-1*bcextent:ny+bcextent-1,&
          -1*bcextent:nz+bcextent-1), intent(inout) :: main
     real(8), dimension(21,0:nx-1,0:ny-1,0:nz-1) :: main_temp
+    real(8), intent(out) :: dt_out
     real(8), intent(in), optional :: dt_in
     real(8), intent(in), optional :: CFL
     integer, intent(in) :: nx,ny,nz,bcextent
     external bc_func
     ! Options values are used to activate specific routine options.
     ! - Options(1) controls the spatial order of accuracy. 
+    ! - Options(2) controls grid motion.
     integer, dimension(:), intent(in) :: options
     integer :: i, j, k, m, n, im, jm, km, ip, jp, kp, case_no
     real(8) :: area, dv_inv, max_wave_speed_temp
@@ -671,8 +695,9 @@ contains
     spatial_order = options(1)
     grid_motion = options(2)
     dt = dt_in
+    dt_out = dt_in
     dv_inv = 1.d0
-    do n = 1, 2
+    do n = 1, 3
        if( n .eq. 1 )then
           case_no = 1
           area = deta*dzeta
@@ -683,10 +708,15 @@ contains
           area = dxi*dzeta
 !!$          time = dt
           jm =-1; jp = 1; im = 0; ip = 0; km = 0; kp = 0
+       elseif( n .eq. 3 )then
+          case_no = 3
+          area = dxi*deta
+          km =-1; kp = 1; im = 0; ip = 0; jm = 0; jp = 0
        else
           write(*,*) "Error in prim_update, invalid value for n"
           stop
        end if
+
        call bc_func(main,size(main,2),size(main,3),size(main,4))
        do k = 0, nz-1
           do j = 0, ny-1
@@ -694,10 +724,15 @@ contains
                 row_ops_mat = row_ops_mat_func(case_no)
                 center = main(:,i,j,k)
                 left = main(:,i+im,j+jm,k+km)
-                if(spatial_order .eq. 2)&
+
+                if(spatial_order .eq. 2.and.(&
+                     (n==1.and.i>0.and.i<nx-1).or.&
+                     (n==2.and.j>0.and.j<ny-1).or.&
+                     (n==3.and.k>0.and.k<nz-1)))&
                      call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
                      main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
                      main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
+
                 metric = .5d0*(left(6:14)+center(6:14))
                 metric_inverse = MetricInverse(metric)
                 grid_vel = .5d0*(left(15:17)+center(15:17))
@@ -726,10 +761,13 @@ contains
                 end do
 
                 left_interface(3:5) = matmul(vels_transform,left_interface(3:5))
-                
+
                 center = main(:,i,j,k)
                 right = main(:,i+ip,j+jp,k+kp)
-                if(spatial_order .eq. 2)&
+                if(spatial_order .eq. 2.and.(&
+                     (n==1.and.i>0.and.i<nx-1).or.&
+                     (n==2.and.j>0.and.j<ny-1).or.&
+                     (n==3.and.k>0.and.k<nz-1)))&
                      call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
                      main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
                      main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
@@ -775,16 +813,18 @@ contains
                 end if
                      
                 center = main(:,i,j,k)
-
-                if(n==1)then
-                   center(6:8) = center(6:8) + .25d0*dt*area*dv_inv*&
-                        (right_interface(3:5)-left_interface(3:5))
-                else if(n==2)then
-                   center(9:11) = center(9:11) + .25d0*dt*area*dv_inv*&
-                        (right_interface(3:5)-left_interface(3:5))
-                else if(n==3)then
-                   center(12:14) = center(12:14) + .25d0*dt*area*dv_inv*&
-                        (right_interface(3:5)-left_interface(3:5))
+                
+                if(grid_motion .eq. 1)then
+                   if(n==1)then
+                      center(6:8) = center(6:8) + .25d0*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   else if(n==2)then
+                      center(9:11) = center(9:11) + .25d0*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   else if(n==3)then
+                      center(12:14) = center(12:14) + .25d0*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   end if
                 end if
                 left_flux  = flux( left_interface,center,n)
                 right_flux = flux(right_interface,center,n)
@@ -800,30 +840,11 @@ contains
                 center(18:20) = center(18:20) + dt*center(15:17)
                 center(21) = Jacobian(center(6:14))
 
-!!$                if(any(left_flux .ne. right_flux))then
-!!$                   write(*,*) "i, j, k, = ",i,j,k
-!!$                   write(*,*) "ip = ",i+ip,j+jp,k+kp
-!!$                   write(*,*) "im = ",i+im,j+jm,k+km
-!!$                   write(*,*) "n = ", n
-!!$                   write(*,*) "  left = ", main(1:5,i+im,j+jm,k+km)
-!!$                   write(*,*) "center = ", main(1:5,i,j,k) 
-!!$                   write(*,*) " right = ", main(1:5,i+ip,j+jp,k+kp)
-!!$                   write(*,*) " left_interface = ", left_interface
-!!$                   write(*,*) "right_interface = ", right_interface
-!!$                   call riemann_solve(main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
-!!$                        n,1,[0d0],right_interface,max_wave_speed_temp,&
-!!$                        riemann_middle_states,riemann_wave_speeds)
-!!$                   write(*,*) riemann_middle_states
-!!$                   write(*,*) riemann_wave_speeds
-!!$                   read(*,*)
-!!$                   
-!!$                end if
-
                 main_temp(:,i,j,k) = center
-                if(abs(main_temp(5,i,j,k)) > 1d-12)then
-                   write(*,*) "z-component of velocity detected!!!"
-                   read(*,*)
-                end if
+!!$                if(abs(main_temp(5,i,j,k)) > 1d-12)then
+!!$                   write(*,*) "z-component of velocity detected!!!"
+!!$                   read(*,*)
+!!$                end if
              end do
           end do
        end do
@@ -835,7 +856,7 @@ contains
     end do
   end subroutine prim_update_HUI3D
 
-  subroutine prim_update_FV(main,bcextent,dt_in,CFL,nx,ny,nz,options)
+  subroutine prim_update_FV(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
 ! Advance the solution using the integral form of the equations
 ! This subroutine assumes that main is the full array of primitive variables. main 
 ! must also include the boundary cell values. That is, main contains a 0-index and 
@@ -844,10 +865,17 @@ contains
     real(8), dimension(21,-1*bcextent:nx+bcextent-1,-1*bcextent:ny+bcextent-1,&
          -1*bcextent:nz+bcextent-1), intent(inout) :: main
 !f2py intent(in,out) :: main
+    real(8), intent(out) :: dt_out
     real(8), intent(in), optional :: dt_in
     real(8), intent(in), optional :: CFL
     integer, intent(in) :: nx,ny,nz,bcextent
+    external :: bc_func ! Should not be used in FV solver
+    ! Options values are used to activate specific routine options.
+    ! - Options(1) controls the spatial order of accuracy
+    ! - Options(2) controls grid motion.
     integer, dimension(:), intent(in) :: options
+    integer :: spatial_order
+    integer :: grid_motion
     integer :: i, j, k
 !    real(8), dimension(14,3,nx+1,ny+1,nz+1) :: fluxes
     real(8), dimension(14,0:nx,0:ny-1,0:nz-1) :: fluxx
@@ -862,23 +890,26 @@ contains
     real(8), dimension(5) :: interface_vars
     real(8), dimension(21) :: StateL, StateR
     real(8), dimension(14) :: junk
+    spatial_order = options(1)
+    grid_motion = options(2)
   ! Riemann_solve expects the left and right states to express velocities in
   ! grid-oriented components: normal, tangential, tangential.
+    fluxx = 0d0; fluxy = 0d0; fluxz = 0d0
+!    call bc_func(main,size(main,2),size(main,3),size(main,4))
+    if(grid_motion .eq. 1) main(15:17,:,:,:) = .25d0*main(3:5,:,:,:)
     do k = 0, nz-1
        do j = 0, ny-1
           do i = 0, nx
-             call compute_fluxes_FV(main(1:5,i-1,j,k), main(1:5,i,j,k),&
-                  .5d0*(main(:,i-1,j,k)+main(:,i,j,k)),fluxx(:,i,j,k),&
-                  1,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
+             call compute_fluxes_FV(main(:,i-1,j,k), main(:,i,j,k),&
+                  fluxx(:,i,j,k),1,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
           end do
        end do
     end do
     do k = 0, nz-1
        do j = 0, ny
           do i = 0, nx-1
-             call compute_fluxes_FV(main(1:5,i,j-1,k), main(1:5,i,j,k),&
-                  .5d0*(main(:,i,j-1,k)+main(:,i,j,k)),fluxy(:,i,j,k),&
-                  2,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta],debug_flag=.true.)
+             call compute_fluxes_FV(main(:,i,j-1,k), main(:,i,j,k),&
+                  fluxy(:,i,j,k),2,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
           end do
        end do
     end do
@@ -886,8 +917,7 @@ contains
        do j = 0, ny-1
           do i = 0, nx-1
              call compute_fluxes_FV(main(:,i,j,k-1), main(:,i,j,k),&
-                  .5d0*(main(:,i,j,k-1)+main(:,i,j,k)),fluxz(:,i,j,k),&
-                  3,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
+                  fluxz(:,i,j,k),3,max_wave_speed,dt=dt,dV_in=[dxi,deta,dzeta])
           end do
        end do
     end do
@@ -895,14 +925,15 @@ contains
     if(dt_in > 0.d0)then
        dt = dt_in
     elseif(CFL>0.d0)then
-       dt = min(CFL/max_wave_speed,max_dt)
-       dt = min(maxval((main(6,0,0:ny-1,0:nz-1)-main(18,0,0:ny-1,0:nz-1))&
-            /main(15,0,0:ny-1,0:nz-1)),dt)
+       dt = min(CFL/max_wave_speed,.2d0)
+!!$       dt = min(maxval((main(6,0,0:ny-1,0:nz-1)-main(18,0,0:ny-1,0:nz-1))&
+!!$            /main(15,0,0:ny-1,0:nz-1)),dt)
     else
        write(*,*) "Error in Godunov prim_update, no time step information given"
        read(*,*)
        stop
     end if
+    dt_out = dt
     call primtocons(main(:,0:nx-1,0:ny-1,0:nz-1))
     main(1:14,0:nx-1,0:ny-1,0:nz-1) = main(1:14,0:nx-1,0:ny-1,0:nz-1) - (&
          (fluxx(:,1:nx,:,:)-fluxx(:,0:nx-1,:,:))*deta*dzeta + &
@@ -927,55 +958,64 @@ contains
   end do
   end subroutine prim_update_FV
 
-  subroutine compute_fluxes_FV(inL, inR, geom_avg, flux_vec, case_no,&
+  subroutine compute_fluxes_FV(inL, inR, flux_vec, case_no,&
        max_wave_speed,dt,dV_in,debug_flag)
     implicit none
-    real(8), dimension(:), intent(in) :: inL, inR
-    real(8), dimension(21) :: StateL, StateR
-    real(8), dimension(:) :: geom_avg
-    real(8), dimension(3),intent(in) :: dV_in
-    real(8) :: dA, dV_inv
-    real(8),intent(in) :: dt
-    integer, intent(in) :: case_no
-    logical, intent(in), optional :: debug_flag
+    real(8), dimension(21), intent(in) :: inL, inR
     real(8), dimension(:), intent(out) :: flux_vec
+    integer, intent(in) :: case_no
     real(8), intent(inout) :: max_wave_speed
+    real(8),intent(in) :: dt
+    real(8), dimension(3),intent(in) :: dV_in
+    logical, intent(in), optional :: debug_flag
+
+    real(8), dimension(21) :: StateL, StateR
+    real(8), dimension(21) :: geom_avg
+    real(8) :: dA, dV_inv
     real(8), dimension(5) :: interface_vars
     real(8), dimension(3) :: GradXi, GradEta, GradZeta
     real(8), dimension(3) :: GradX, GradY, GradZ
     real(8), dimension(3,3) :: dX_dXi_u, dXi_dX_u
     real(8) :: temp_wave_speed
     integer, dimension(3,3) :: row_ops_mat
+    real(8), dimension(9) :: metric, metric_inverse
+    real(8), dimension(3,3) :: vels_transform
+    real(8), dimension(3) :: grid_vel
+    integer :: m
     StateL = inL
     StateR = inR
+    geom_avg = .5d0*(inL+inR)
     flux_vec = 0.d0
     dV_inv = 1.d0/(product(dV_in))
-    call ComputationalGrads(geom_avg(6:14),Jacobian(geom_avg(6:14)),&
-         GradXi,GradEta,gradZeta)
-    GradX = geom_avg(6:12:3)
-    GradY = geom_avg(7:13:3)
-    GradZ = geom_avg(8:14:3)
-    ! Create normalized transformation matrices
-    ! These matrices are given as:
-    ! dXi_dX = | GradXi(1)  GradEta(1)  GradZeta(1) |
-    !          | GradXi(2)  GradEta(2)  GradZeta(2) |
-    !          | GradXi(3)  GradEta(3)  GradZeta(3) |
-    ! However, when computing fluxes for the eta and zeta directions,
-    ! these must be reordered to fit with the riemann solver, which 
-    ! requires that vector components be given as | normal, tangential, tangential |.
-    ! dX_dXi begins as the matrix inverse of dXi_dX, but this re-ordering,
-    ! corresponding to elementary column operations, affects this inverse
-    ! property. In order to mirror this effect, dX_dXi must also be 
-    ! re-ordered, though with row operations instead. 
-    dXi_dX_u = GradstoMatrix(GradXi/sqrt(sum(GradXi**2)),&
-         GradEta/sqrt(sum(GradEta**2)),GradZeta/sqrt(sum(GradZeta**2)))
-    dX_dXi_u = GradstoMatrix(GradX/sqrt(sum(GradX**2)),&
-         GradY/sqrt(sum(GradY**2)),GradZ/sqrt(sum(GradZ**2)))
-    dX_dXi_u = reshape([geom_avg(6),geom_avg(9),geom_avg(12),&
-         geom_avg(7),geom_avg(10),geom_avg(13),&
-         geom_avg(8),geom_avg(11),geom_avg(14)],[3,3])
-    dXi_dX_u = MetrictoMatrix(MetricInverse(geom_avg(6:14)))
     row_ops_mat = row_ops_mat_func(case_no)
+    metric = geom_avg(6:14)
+    metric_inverse = MetricInverse(metric)
+    grid_vel = geom_avg(15:17)
+
+    vels_transform = matmul(&
+         MetrictoMatrix(metric_inverse),row_ops_mat)
+    do m = 1, 3
+       vels_transform(m,:) = vels_transform(m,:)&
+            /sqrt(sum(vels_transform(m,:)**2))
+    end do
+    
+    StateL(3:5) = matmul(vels_transform,StateL(3:5))
+    StateR(3:5) = matmul(vels_transform,StateR(3:5))
+    StateL(15:17) = matmul(vels_transform,StateL(15:17))
+    StateR(15:17) = matmul(vels_transform,StateR(15:17))
+    grid_vel = matmul(vels_transform,grid_vel)
+    
+    call riemann_solve(StateL,StateR,case_no,1,[0d0],interface_vars,&
+         temp_wave_speed)
+
+    vels_transform = matmul(transpose(row_ops_mat),MetrictoMatrix(metric))
+    do m = 1, 3
+       vels_transform(m,:) = vels_transform(m,:)&
+            /sqrt(sum(vels_transform(m,:)**2))
+    end do
+    interface_vars(3:5) = matmul(vels_transform, interface_vars(3:5))
+!!$    geom_avg(15:17) = matmul(vels_transform,geom_avg(15:17))
+    flux_vec(1:5) = flux(interface_vars,geom_avg,case_no)
     select case(case_no)
     case(1)
        flux_vec(6:8) = -geom_avg(15:17)
@@ -990,29 +1030,6 @@ contains
        write(*,*) "Invalid case_no in compute_fluxes -- case_no = ",case_no
        stop
     end select
-    dXi_dX_u = matmul(dXi_dX_u,row_ops_mat)
-    dX_dXi_u = matmul(transpose(row_ops_mat),dX_dXi_u)
-    if(maxval(matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3]))>1d-13)then
-       write(*,*) "Inverses not working!"
-       write(*,*) 
-       write(*,*) dXi_dX_u
-       write(*,*) dX_dXi_u
-       write(*,*) matmul(dXi_dX_u,dX_dXi_u)-reshape([1,0,0,0,1,0,0,0,1],[3,3])
-       read(*,*)
-    end if
-    StateL(3:5) = matmul(dXi_dX_u,StateL(3:5))
-    StateR(3:5) = matmul(dXi_dX_u,StateR(3:5))
-    geom_avg(15:17) = matmul(dXi_dX_u,geom_avg(15:17))
-!!$    interface_vars = riemann_solve(StateL,StateR,geom_avg,temp_wave_speed)
-    call riemann_solve(StateL,StateR,case_no,1,[0d0],interface_vars,&
-         temp_wave_speed)
-    interface_vars(3:5) = matmul(dX_dXi_u,interface_vars(3:5))
-!!$    write(*,*) "Interface = "
-!!$    write(*,*) interface_vars
-    geom_avg(15:17) = matmul(dX_dXi_u,geom_avg(15:17))
-!!$    geom_avg(6:14) = geom_avg(6:14)-flux_vec(6:14)*dt*dV_inv
-!!$    flux_vec(6:14) = 0.d0
-    flux_vec(1:5) = flux(interface_vars,geom_avg,case_no)
     max_wave_speed = max(max_wave_speed,temp_wave_speed)
   end subroutine compute_fluxes_FV
 
@@ -1026,7 +1043,7 @@ contains
     case(2)
        row_ops_mat = reshape([0,1,0,1,0,0,0,0,1],[3,3])
     case(3)
-       row_ops_mat = reshape([0,0,1,1,0,0,0,1,0],[3,3])
+       row_ops_mat = reshape([0,0,1,0,1,0,1,0,0],[3,3])
     case default
        write(*,*) "Invalid case_no in compute_fluxes -- case_no = ",case_no
        stop
@@ -1124,20 +1141,23 @@ contains
     GodErrorReader = 0
   end function GodErrorReader
 
-  integer function GodConvergenceTester1D(left,right,t_out,dt,nmax,base_filename)
+  integer function GodConvergenceTester1D(left,right,t_out,dt,nmax,prim_update_options,base_filename)
     implicit none
     real(8), dimension(5), intent(in) :: left, right
+    real(8), dimension(5) :: left_init, right_init
     real(8), intent(in) :: t_out, dt
     integer, intent(in) :: nmax
+    integer, dimension(:), intent(in) :: prim_update_options
     character(len=*), intent(in), optional :: base_filename
     integer, parameter :: nx = 100
     real(8), dimension(0:10) :: dxes, rmserrors, fvec
     real(8), dimension(0:10,3) :: fjac
     integer :: nxmax
-    real(8), dimension(:,:,:,:), allocatable :: Rie_1D
+    real(8), dimension(:,:,:,:), allocatable :: Rie_1D_dir
+    real(8), dimension(:,:), allocatable :: Rie_1D
     real(8), dimension(:,:), allocatable :: Rie_1D_exact
     integer :: filenum
-    integer :: m, n
+    integer :: dir, m, n, i, j, k
     real(8), dimension(4) :: riemann_middle_states
     real(8), dimension(5) :: riemann_wave_speeds
     real(8) :: max_wave_speed, t
@@ -1145,55 +1165,98 @@ contains
     integer :: info
     logical, parameter :: verbose = .true.
     real(8) :: maxvalue
+    real(8), dimension(:), allocatable :: exact_x
+    real(8), dimension(21) :: left_full, right_full
+    integer, dimension(3) :: nxes
+    real(8), dimension(3,3) :: row_ops_mat
+    real(8) :: dt_out
 
     GodConvergenceTester1D = 0
-    maxvalue = 0d0
     if(nmax>10)then
        write(*,*) "Error in GodConvergenceTester1D: Too many refinements!"
        stop
     end if
-    do n = 0, nmax
-       nxmax = nx*2**n
-       allocate(Rie_1D(21,-1:nxmax,-1:1,-1:1),Rie_1D_exact(5,0:nxmax-1))
-       call RieInit1D(left,right,nxmax,[0d0,1d0],Rie_1D)
-       t = 0d0
-       do 
-          call prim_update(Rie_1D,FreeExitConditions,1,dt,.7d0,nx*2**n,1,1,[2,1])
-          t = t + dt
-          if(t .ge. t_out) exit
-       end do
-       Rie_1D_exact = 0d0
-       call riemann_solve(Rie_1D(:,-1,0,0),Rie_1D(:,nxmax,0,0),1,nxmax,&
-            (Rie_1D(18,0:nxmax-1,0,0)-.5d0)/(Rie_1D(6,0:nxmax-1,0,0)*t_out),&
-            Rie_1D_exact,max_wave_speed)
-       dxes(n) = Rie_1D(18,0,0,0)-Rie_1D(18,-1,0,0)
-       rmserrors(n) = sqrt(sum(((Rie_1D(2,0:nxmax-1,0,0)-Rie_1D_exact(2,:))/&
-            maxval(abs(Rie_1D_exact(2,:))))**2)/nxmax)
-       maxvalue = max(maxvalue,maxval(abs(Rie_1D(2,0:nxmax-1,0,0))))
-       if(present(base_filename))then
-          filenum = 92920 + n
-          open(unit=filenum,file=base_filename//achar(48+n)//".dat")
-          do m = 1, 20
-             write(filenum,*) Rie_1D(m,:,0,0)
+    maxvalue = 0d0
+    do dir = 1, 3
+       row_ops_mat = row_ops_mat_func(dir)
+       left_init = left; left_init(3:5) = matmul(row_ops_mat,left(3:5))
+       right_init = right; right_init(3:5) = matmul(row_ops_mat,right(3:5))
+       do n = 0, nmax
+          nxmax = nx*2**n
+          allocate(Rie_1D_exact(5,0:nxmax-1),exact_x(0:nxmax-1),&
+               Rie_1D(21,-1:nxmax))
+          select case(dir)
+          case(1)
+             allocate(Rie_1D_dir(21,-1:nxmax,-1:1,-1:1))
+             nxes = [nx*2**n,1,1]
+          case(2)
+             allocate(Rie_1D_dir(21,-1:1,-1:nxmax,-1:1))
+             nxes = [1,nx*2**n,1]
+          case(3)
+             allocate(Rie_1D_dir(21,-1:1,-1:1,-1:nxmax))
+             nxes = [1,1,nx*2**n]
+          end select
+          call RieInit1D(left_init,right_init,nxmax,dir,[0d0,1d0],Rie_1D_dir)
+          t = 0d0
+          do 
+             call FreeExitConditions(Rie_1D_dir,size(Rie_1D_dir,2),&
+                  size(Rie_1D_dir,3),size(Rie_1D_dir,4))
+             call prim_update(Rie_1D_dir,dt_out,FreeExitConditions,1,0d0,&!1d-4,&
+                  .7d0,nxes(1),nxes(2),nxes(3),prim_update_options)
+             t = t + dt_out
+             if(t .ge. t_out) exit
           end do
-          close(filenum)
-          if(n .eq. nmax)then
-             open(unit=92919,file=base_filename//"_exact.dat")
+          select case(dir)
+          case(1)
+             Rie_1D = Rie_1D_dir(:,:,0,0)
+             dxes(n) = Rie_1D(18,2) - Rie_1D(18,1)
+             exact_x = (Rie_1D(18,0:nxmax-1)-.3d0)/Rie_1D( 6,0:nxmax-1)/t_out
+          case(2)             
+             Rie_1D(:,:) = Rie_1D_dir(:,0,:,0)
+             Rie_1D(3,:) = Rie_1D(4,:); Rie_1D(4,:) = 0d0;
+             dxes(n) = Rie_1D(19,2) - Rie_1D(19,1)
+             exact_x = (Rie_1D(19,0:nxmax-1)-.3d0)/Rie_1D(10,0:nxmax-1)/t_out
+          case(3)
+             Rie_1D(:,:) = Rie_1D_dir(:,0,0,:)
+             Rie_1D(3,:) = Rie_1D(5,:); Rie_1D(5,:) = 0d0;
+             dxes(n) = Rie_1D(20,2) - Rie_1D(20,1)
+             exact_x = (Rie_1D(20,0:nxmax-1)-.3d0)/Rie_1D(14,0:nxmax-1)/t_out
+          end select
+          left_full = Rie_1D(:,-1)
+          right_full = Rie_1D(:,nxmax)
+          Rie_1D_exact = 0d0
+!!$          write(*,*) " Left_full = ",left_full
+!!$          write(*,*) "Right_full = ",right_full
+          call riemann_solve(left_full,right_full,dir,nxmax,exact_x,&
+               Rie_1D_exact,max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+!!$          write(*,*) riemann_middle_states
+!!$          write(*,*) riemann_wave_speeds
+          rmserrors(n) = sqrt(sum(((Rie_1D(2,0:nxmax-1)-Rie_1D_exact(2,:))/&
+               maxval(abs(Rie_1D_exact(2,:))))**2)/nxmax)
+          maxvalue = max(maxvalue,maxval(abs(Rie_1D(2,:))))
+          if(present(base_filename))then
+             filenum = 92920 + n
+             open(unit=filenum,file=base_filename//achar(48+n)//"_"//achar(87+dir)//".dat")
+             do m = 1, 20
+                write(filenum,*) Rie_1D(m,0:nxmax-1)
+             end do
+             close(filenum)
+             open(unit=92919,file=base_filename//achar(48+n)//"_"//achar(87+dir)//"_exact.dat")
              do m = 1, 5
                 write(92919,*) Rie_1D_exact(m,:)
              end do
              close(92919)
           end if
-       end if
-       deallocate(Rie_1D,Rie_1D_exact)
-    end do
+          deallocate(Rie_1D,Rie_1D_exact,exact_x,Rie_1D_dir)
+       end do
     write(*,*) "dxes = ",dxes(0:nmax)
     write(*,*) "rmserrors = ",rmserrors(0:nmax)
     fitted_poly(1:2) = polyfit(log(dxes(0:nmax)),log(rmserrors(0:nmax)),1)
     fitted_poly(3) = 0d0
-    call minpack_function_fitting(dxes(0:nmax),rmserrors(0:nmax),&
-         exponential_with_y_offset,fitted_poly,fvec(0:nmax),fjac(0:nmax,:),info)
-    if(info .eq. 1)then
+!!$    call minpack_function_fitting(dxes(0:nmax),rmserrors(0:nmax),&
+!!$         exponential_with_y_offset,fitted_poly,fvec(0:nmax),fjac(0:nmax,:),1d-3,info)
+    info = 1
+    if(info .eq. 1 .or. info .eq. 2 .or. info .eq. 3)then
        if(verbose)then
           write(*,*) "Simulation converges with order = ",fitted_poly(2)
           write(*,*) "Simulation converges to within ",&
@@ -1211,7 +1274,7 @@ contains
     if(fitted_poly(2) < .5d0 .or. &
          fitted_poly(3)/maxvalue > .5d0)&
          GodConvergenceTester1D = 2
-    write(*,*) "Got this far"
+    end do
   end function GodConvergenceTester1D
 
   function RotateCoords(in,phi,theta)
@@ -1245,7 +1308,7 @@ contains
     integer :: nxmax
     real(8), dimension(:,:,:,:), allocatable :: Rie_2D
     real(8), dimension(:,:,:), allocatable :: Rie_2D_exact
-    real(8), parameter :: phi = PI*.5d0!25d0/180d0
+    real(8), parameter :: phi = 0d0!PI*.5d0!25d0/180d0
     real(8), dimension(2) :: xy
     integer :: filenum
     integer :: m, n, i, j, k
@@ -1254,6 +1317,8 @@ contains
     real(8) :: max_wave_speed, t
     real(8), dimension(3) :: fitted_poly
     integer :: info
+    real(8), dimension(3) :: rotated_coords, coords_shift
+    real(8) :: dt_out
 
     GodConvergenceTester2D = 0
     if(nmax>10)then
@@ -1266,29 +1331,22 @@ contains
             Rie_2D_exact(5,0:nxmax-1,0:nxmax-1))
        call RieInit2D(left,right,phi,nxmax,[0d0,1d0],Rie_2D)
        t = 0d0
-       call write_files_matlab(Rie_2D(:,0:nx-1,0:nx-1,0),t,nx,nx,.true.)
-!!$       do 
-!!$          call prim_update(Rie_2D,FreeExitConditions,1,dt,.7d0,nx*2**n,nx*2**n,1,[2,1])
-!!$          t = t + dt
-!!$          write(*,*) "t = ",t
-!!$          call write_files_matlab(Rie_2D(:,0:nx-1,0:nx-1,0),t,nx,nx,.false.)
-!!$          if(t .ge. t_out) exit
-!!$       end do
+!!$       call write_files_matlab(Rie_2D(:,0:nx-1,0:nx-1,0),t,nx,nx,.true.)
+       do 
+          call prim_update(Rie_2D,dt_out,FreeExitConditions,1,dt,.7d0,nxmax,nxmax,1,[2,0])
+          t = t + dt
+          write(*,*) "t = ",t
+          if(t .ge. t_out) exit
+       end do
        Rie_2D_exact = 0d0
-       do i = 0, nx-1
-          do j = 0, nx-1
-             call riemann_solve(Rie_2D(:,-1,-1,-1),Rie_2D(:,nx,-1,-1),1,1,&
-                  [RotateCoords([&
-                  (Rie_2D(18,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D( 6,i,j,0),&
-                  (Rie_2D(19,i,j,0)-maxval(Rie_2D(19,:,:,:)))/Rie_2D(10,i,j,0),&
-                  (Rie_2D(20,i,j,0)-maxval(Rie_2D(20,:,:,:)))/Rie_2D(14,i,j,0)]&
-                  ,phi)],Rie_2D_exact(:,i,j),max_wave_speed)
-             write(*,*) "Rotated Coords = ", RotateCoords([&
-                  (Rie_2D(18,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D( 6,i,j,0),&
-                  (Rie_2D(19,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D(10,i,j,0),&
-                  (Rie_2D(20,i,j,0)-maxval(Rie_2D(18,:,:,:)))/Rie_2D(14,i,j,0)]&
-                  ,phi)
-             read(*,*)
+       do i = 0, nxmax-1
+          do j = 0, nxmax-1
+             coords_shift = .5d0*(maxval(maxval(Rie_2D(18:20,:,:,0),3),2)-&
+                  minval(minval(Rie_2D(18:20,:,:,0),3),2))
+             rotated_coords = RotateCoords((Rie_2D(18:20,i,j,0)-coords_shift)&
+                  /Rie_2D(6:14:4,i,j,0),phi)/t_out
+             call riemann_solve(Rie_2D(:,-1,-1,-1),Rie_2D(:,nxmax,nxmax,-1),1,1,&
+                  rotated_coords,Rie_2D_exact(:,i,j),max_wave_speed)
           end do
        end do
        dxes(n) = Rie_2D(18,1,0,0)-Rie_2D(18,0,0,0)
@@ -1303,7 +1361,7 @@ contains
           end do
           close(filenum)
           if(n .eq. nmax)then
-             open(unit=93019,file=base_filename//"_exact.dat")
+             open(unit=93019,file=base_filename//achar(48+n)//"_exact.dat")
              do m = 1, 5
                 write(93019,*) Rie_2D_exact(m,:,:)
              end do
@@ -1317,7 +1375,7 @@ contains
     fitted_poly(1:2) = polyfit(log(dxes(0:nmax)),log(rmserrors(0:nmax)),1)
     fitted_poly(3) = 0d0
     call minpack_function_fitting(dxes(0:nmax),rmserrors(0:nmax),&
-         exponential_with_y_offset,fitted_poly,fvec(0:nmax),fjac(0:nmax,:),info)
+         exponential_with_y_offset,fitted_poly,fvec(0:nmax),fjac(0:nmax,:),1d-3,info)
     write(*,*) "2-D data"
     if(info .eq. 1)then
        write(*,*) "Simulation converges with order = ",fitted_poly(2)
@@ -1443,10 +1501,13 @@ contains
     ! must be approved manually.
     ! subroutine prim_update(main,bcextent,dt_in,CFL,nx,ny,nz)
 
-    left(1:5)  = [1.d0, 1.d0, 0.d0, 0.d0, 0.d0]
+    left(1:5)  = [1.d0, 1.d0, 0.75d0, 0.d0, 0.d0]
     right(1:5) = [.1d0, .125d0, 0.d0, 0.d0, 0.d0]
-!!$    GodTester = GodConvergenceTester1D(left,right,.18d0,1d-4,4,"1D_Rie_Test_1")
-    GodTester = GodConvergenceTester2D(left,right,.18d0,1d-4,0,"2D_Rie_Test_1")
+!!$    left(1:5)  = [.4d0, 1.d0, -2d0, 0d0, 0d0]
+!!$    right(1:5) = [.4d0, 1.d0,  2d0, 0d0, 0d0]
+    GodTester = GodConvergenceTester1D(left,right,.2d0,1d-4,3,&
+         prim_update_options=[1,0],base_filename="1D_Rie_Test_1")
+!    GodTester = GodConvergenceTester2D(left,right,.18d0,1d-4,2,"2D_Rie_Test_1")
   end function GodTester
 
   subroutine NormShockInit(nx,main)
@@ -1506,41 +1567,63 @@ contains
     out(3) = M2*a2
   end subroutine NormalShockRelations
 
-  subroutine RieInit1D(left,right,nx,xrange,main)
+  subroutine RieInit1D(left,right,nx,dir,xrange,main)
     implicit none
     real(8), dimension(5), intent(in) :: left, right
-    integer, intent(in) :: nx
+    integer, intent(in) :: nx, dir
     real(8), dimension(2), intent(in) :: xrange
-    real(8), dimension(21,-1:nx,-1:1,-1:1), intent(out) :: main
-    integer :: i,j,k,half_nx
+    real(8), dimension(:,:,:,:), intent(out) :: main
+    real(8), dimension(21,-1:nx,-1:1,-1:1) :: main_temp
+    integer :: i,j,k,half_nx 
     real(8) :: dx
-    if(mod(nx,2).eq.0)then
-       half_nx = nx/2
+    if(mod(nx*3,10).eq.0)then
+       half_nx = nx*3/10
     else
        write(*,*) "Warning: RieInit1D called with an odd value for nx."
        write(*,*) "         Press any key to continue, but the Riemann"
-       write(*,*) "         problem will be slightly offset from center."
+       write(*,*) "         problem will be slightly offset."
        read(*,*)
-       half_nx = nx/2
-       write(*,*) "         The true halfway point is ",.5*(xrange(2)-xrange(1))
-       write(*,*) "         The Riemann problem is centered at ",&
-            .5*(xrange(2)-xrange(1))-.5*(xrange(2)-xrange(1))/(nx-1)
+       half_nx = nx*3/10
+!!$       write(*,*) "         The true halfway point is ",.5*(xrange(2)-xrange(1))
+!!$       write(*,*) "         The Riemann problem is centered at ",&
+!!$            .5*(xrange(2)-xrange(1))-.5*(xrange(2)-xrange(1))/(nx-1)
     end if
     main = 0d0
+    main_temp = 0d0
     forall (i=-1:half_nx-1, j=-1:1, k=-1:1)
-       main(1:5,i,j,k) = left
+       main_temp(1:5,i,j,k) = left
     end forall
     forall (i=half_nx:nx, j=-1:1, k=-1:1)
-       main(1:5,i,j,k) = right
+       main_temp(1:5,i,j,k) = right
     end forall
-    dx = (xrange(2)-xrange(1))/(nx-1)
-    main(6,:,:,:) = dx
-    main(10,:,:,:) = main(6,:,:,:)
-    main(14,:,:,:) = main(6,:,:,:)
+    dx = (xrange(2)-xrange(1))/(nx)
+    main_temp(6,:,:,:) = dx
+    main_temp(10,:,:,:) = dx
+    main_temp(14,:,:,:) = dx
+!!$    main_temp(6:14:4,:,:,:) = 1d0
     forall (i=-1:nx, j=-1:1, k=-1:1)
-       main(18,i,j,k) = dx*i + xrange(1)
-       main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+       main_temp(18,i,j,k) = dx*(i+.5) + xrange(1)
+       main_temp(21,i,j,k) = Jacobian(main_temp(6:14,i,j,k))
     end forall
+    select case(dir)
+    case(1)
+       main = main_temp
+    case(2)
+       forall (i=-1:nx,j=-1:1,k=-1:1)
+          main(:,k+2,i+2,j+2) = main_temp(:,i,j,k)
+       end forall
+       main(19,:,:,:) = main(18,:,:,:)
+       main(18,:,:,:) = 0d0
+    case(3)
+       forall (i=-1:nx,j=-1:1,k=-1:1)
+          main(:,j+2,k+2,i+2) = main_temp(:,i,j,k)
+       end forall
+       main(20,:,:,:) = main(18,:,:,:)
+       main(18,:,:,:) = 0d0
+    case default
+       write(*,*) "Error in RieInit1D, invalid dir value!!!"
+       stop
+    end select
   end subroutine RieInit1D
 
   subroutine RieInit2D(left,right,phi,nx,xrange,main)

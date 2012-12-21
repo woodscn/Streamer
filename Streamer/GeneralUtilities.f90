@@ -358,7 +358,7 @@ contains
     deallocate(lstsqx,lstsqy)
   end function lstsq_close
 
-  subroutine minpack_function_fitting(xdat,ydat,fcn,x,fvec,fjac,info)
+  subroutine minpack_function_fitting(xdat,ydat,fcn,x,fvec,fjac,tol,info)
     implicit none
     real(8), dimension(:), intent(in) :: xdat,ydat
     external fcn
@@ -366,7 +366,7 @@ contains
 !    integer, intent(in) :: m, n, ldfjac
     real(8), dimension(:), intent(out) :: fvec
     real(8), dimension(:,:), intent(out) :: fjac
-    real(8), parameter :: tol = 1d-13
+    real(8), intent(in) :: tol
     integer, intent(out) :: info
     integer, dimension(:), allocatable :: wa, ipvt
     integer :: out, m, n, ldfjac, lwa,iflag
