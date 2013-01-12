@@ -65,6 +65,7 @@
       use generalutilities, only : gamma1
       use generalutilities, only : eps
       use generalutilities, only : gamma_const
+      use generalutilities, only : pi
       use generalutilities, only : epss
       use generalutilities, only : computationalgrads
       use generalutilities, only : twodgradient
@@ -117,14 +118,76 @@
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(gamma7,gamma6,gamma5,gamma4,gamma3,gamma2,gamma&
-     &1,eps,gamma_const,epss,f2pywrap_generalutilities_metricinverse,f2p&
-     &ywrap_generalutilities_metrictomatrix,computationalgrads,f2pywrap_&
-     &generalutilities_jacobian,f2pywrap_generalutilities_gradstomatrix,&
-     &twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_gene&
-     &ralutilities_vectorprojection,f2pywrap_generalutilities_soundspeed&
-     &)
+     &1,eps,gamma_const,pi,epss,f2pywrap_generalutilities_metricinverse,&
+     &f2pywrap_generalutilities_metrictomatrix,computationalgrads,f2pywr&
+     &ap_generalutilities_jacobian,f2pywrap_generalutilities_gradstomatr&
+     &ix,twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_g&
+     &eneralutilities_vectorprojection,f2pywrap_generalutilities_soundsp&
+     &eed)
       end subroutine f2pyinitgeneralutilities
 
+      subroutine f2py_generalutilitiestest_getdims_lstsqy(r,s,f2pysetdat&
+     &a,flag)
+      use generalutilitiestest, only: d => lstsqy
+
+      integer flag
+      external f2pysetdata
+      logical ns
+      integer r,i,j
+      integer(8) s(*)
+      ns = .FALSE.
+      if (allocated(d)) then
+         do i=1,r
+            if ((size(d,i).ne.s(i)).and.(s(i).ge.0)) then
+               ns = .TRUE.
+            end if
+         end do
+         if (ns) then
+            deallocate(d)
+         end if
+      end if
+      if ((.not.allocated(d)).and.(s(1).ge.1)) then
+       allocate(d(s(1)))
+      end if
+      if (allocated(d)) then
+         do i=1,r
+            s(i) = size(d,i)
+         end do
+      end if
+      flag = 1
+      call f2pysetdata(d,allocated(d))
+      end subroutine f2py_generalutilitiestest_getdims_lstsqy
+      subroutine f2py_generalutilitiestest_getdims_lstsqx(r,s,f2pysetdat&
+     &a,flag)
+      use generalutilitiestest, only: d => lstsqx
+
+      integer flag
+      external f2pysetdata
+      logical ns
+      integer r,i,j
+      integer(8) s(*)
+      ns = .FALSE.
+      if (allocated(d)) then
+         do i=1,r
+            if ((size(d,i).ne.s(i)).and.(s(i).ge.0)) then
+               ns = .TRUE.
+            end if
+         end do
+         if (ns) then
+            deallocate(d)
+         end if
+      end if
+      if ((.not.allocated(d)).and.(s(1).ge.1)) then
+       allocate(d(s(1)))
+      end if
+      if (allocated(d)) then
+         do i=1,r
+            s(i) = size(d,i)
+         end do
+      end if
+      flag = 1
+      call f2pysetdata(d,allocated(d))
+      end subroutine f2py_generalutilitiestest_getdims_lstsqx
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&
      &derf2pywrap, in)
       use generalutilitiestest, only : guerrorreader
@@ -137,6 +200,44 @@
       integer gutestf2pywrap
       gutestf2pywrap = gutest()
       end subroutine f2pywrap_generalutilitiestest_gutest
+      subroutine f2pywrap_generalutilitiestest_lstsq_init (lstsq_initf2p&
+     &ywrap, x, y, f2py_x_d0, f2py_y_d0)
+      use generalutilitiestest, only : lstsq_init
+      integer f2py_x_d0
+      integer f2py_y_d0
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) y(f2py_y_d0)
+      integer lstsq_initf2pywrap
+      lstsq_initf2pywrap = lstsq_init(x, y)
+      end subroutine f2pywrap_generalutilitiestest_lstsq_init
+      subroutine f2pywrap_generalutilitiestest_lstsq_close (lstsq_closef&
+     &2pywrap)
+      use generalutilitiestest, only : lstsq_close
+      integer lstsq_closef2pywrap
+      lstsq_closef2pywrap = lstsq_close()
+      end subroutine f2pywrap_generalutilitiestest_lstsq_close
+      subroutine f2pywrap_generalutilitiestest_minpack_function_fitting &
+     &(xdat, ydat, fcn, x, fvec, fjac, tol, info, f2py_xdat_d0, f2py_yda&
+     &t_d0, f2py_x_d0, f2py_fvec_d0, f2py_fjac_d0, f2py_fjac_d1)
+      use generalutilitiestest, only : minpack_function_fitting
+      external fcn
+      real(kind=8) tol
+      integer info
+      integer f2py_xdat_d0
+      integer f2py_ydat_d0
+      integer f2py_x_d0
+      integer f2py_fvec_d0
+      integer f2py_fjac_d0
+      integer f2py_fjac_d1
+      real(kind=8) xdat(f2py_xdat_d0)
+      real(kind=8) ydat(f2py_ydat_d0)
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) fvec(f2py_fvec_d0)
+      real(kind=8) fjac(f2py_fjac_d0,f2py_fjac_d1)
+      call minpack_function_fitting(xdat, ydat, fcn, x, fvec, fjac, tol,&
+     & info)
+      end subroutine f2pywrap_generalutilitiestest_minpack_function_fitt&
+     &ing
       subroutine f2pywrap_generalutilitiestest_polyfit (polyfitf2pywrap,&
      & vx, vy, d, f2py_vx_d0, f2py_vy_d0)
       use generalutilitiestest, only : polyfit
@@ -150,6 +251,9 @@
       end subroutine f2pywrap_generalutilitiestest_polyfit
       
       subroutine f2pyinitgeneralutilitiestest(f2pysetupfunc)
+      use generalutilitiestest, only : lstsqy
+      use generalutilitiestest, only : lstsqx
+      use generalutilitiestest, only : exponential_with_y_offset
       interface 
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&
      &derf2pywrap, guerrorreader, in)
@@ -162,6 +266,39 @@
       integer gutest
       integer gutestf2pywrap
       end subroutine f2pywrap_generalutilitiestest_gutest 
+      subroutine f2pywrap_generalutilitiestest_lstsq_init (lstsq_initf2p&
+     &ywrap, lstsq_init, x, y, f2py_x_d0, f2py_y_d0)
+      integer lstsq_init
+      integer f2py_x_d0
+      integer f2py_y_d0
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) y(f2py_y_d0)
+      integer lstsq_initf2pywrap
+      end subroutine f2pywrap_generalutilitiestest_lstsq_init 
+      subroutine f2pywrap_generalutilitiestest_lstsq_close (lstsq_closef&
+     &2pywrap, lstsq_close)
+      integer lstsq_close
+      integer lstsq_closef2pywrap
+      end subroutine f2pywrap_generalutilitiestest_lstsq_close 
+      subroutine f2pywrap_generalutilitiestest_minpack_function_fitting &
+     &(xdat, ydat, fcn, x, fvec, fjac, tol, info, f2py_xdat_d0, f2py_yda&
+     &t_d0, f2py_x_d0, f2py_fvec_d0, f2py_fjac_d0, f2py_fjac_d1)
+      external fcn
+      real(kind=8) tol
+      integer info
+      integer f2py_xdat_d0
+      integer f2py_ydat_d0
+      integer f2py_x_d0
+      integer f2py_fvec_d0
+      integer f2py_fjac_d0
+      integer f2py_fjac_d1
+      real(kind=8) xdat(f2py_xdat_d0)
+      real(kind=8) ydat(f2py_ydat_d0)
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) fvec(f2py_fvec_d0)
+      real(kind=8) fjac(f2py_fjac_d0,f2py_fjac_d1)
+      end subroutine f2pywrap_generalutilitiestest_minpack_function_fitt&
+     &ing 
       subroutine f2pywrap_generalutilitiestest_polyfit (polyfitf2pywrap,&
      & polyfit, vx, vy, d, f2py_vx_d0, f2py_vy_d0)
       integer d
@@ -174,23 +311,60 @@
       end subroutine f2pywrap_generalutilitiestest_polyfit
       end interface
       external f2pysetupfunc
-      call f2pysetupfunc(f2pywrap_generalutilitiestest_guerrorreader,f2p&
-     &ywrap_generalutilitiestest_gutest,f2pywrap_generalutilitiestest_po&
-     &lyfit)
+      external f2py_generalutilitiestest_getdims_lstsqy
+      external f2py_generalutilitiestest_getdims_lstsqx
+      call f2pysetupfunc(f2py_generalutilitiestest_getdims_lstsqy,f2py_g&
+     &eneralutilitiestest_getdims_lstsqx,f2pywrap_generalutilitiestest_g&
+     &uerrorreader,f2pywrap_generalutilitiestest_gutest,f2pywrap_general&
+     &utilitiestest_lstsq_init,f2pywrap_generalutilitiestest_lstsq_close&
+     &,f2pywrap_generalutilitiestest_minpack_function_fitting,exponentia&
+     &l_with_y_offset,f2pywrap_generalutilitiestest_polyfit)
       end subroutine f2pyinitgeneralutilitiestest
 
-      subroutine f2pywrap_riemann_riemann_solve (riemann_solvef2pywrap, &
-     &left, right, geom_avg, max_wave_speed, t_out)
-      use riemann, only : riemann_solve
-      real(kind=8) max_wave_speed
-      real(kind=8) t_out
-      real(kind=8) left(5)
-      real(kind=8) right(5)
-      real(kind=8) geom_avg(21)
-      real(kind=8) riemann_solvef2pywrap(5)
-      riemann_solvef2pywrap = riemann_solve(left, right, geom_avg, max_w&
-     &ave_speed, t_out)
-      end subroutine f2pywrap_riemann_riemann_solve
+      subroutine f2py_riemann_getdims_exact_sol(r,s,f2pysetdata,flag)
+      use riemann, only: d => exact_sol
+
+      integer flag
+      external f2pysetdata
+      logical ns
+      integer r,i,j
+      integer(8) s(*)
+      ns = .FALSE.
+      if (allocated(d)) then
+         do i=1,r
+            if ((size(d,i).ne.s(i)).and.(s(i).ge.0)) then
+               ns = .TRUE.
+            end if
+         end do
+         if (ns) then
+            deallocate(d)
+         end if
+      end if
+      if ((.not.allocated(d)).and.(s(1).ge.1)) then
+       allocate(d(s(1),s(2)))
+      end if
+      if (allocated(d)) then
+         do i=1,r
+            s(i) = size(d,i)
+         end do
+      end if
+      flag = 1
+      call f2pysetdata(d,allocated(d))
+      end subroutine f2py_riemann_getdims_exact_sol
+      subroutine f2pywrap_riemann_wave_speeds (wave_speedsf2pywrap, left&
+     &, right, dir, riemann_middle_states, uavg, j, s)
+      use riemann, only : wave_speeds
+      integer dir
+      real(kind=8) uavg
+      real(kind=8) j
+      real(kind=8) s
+      real(kind=8) left(21)
+      real(kind=8) right(21)
+      real(kind=8) riemann_middle_states(4)
+      real(kind=8) wave_speedsf2pywrap(5)
+      wave_speedsf2pywrap = wave_speeds(left, right, dir, riemann_middle&
+     &_states, uavg, j, s)
+      end subroutine f2pywrap_riemann_wave_speeds
       subroutine f2pywrap_riemann_guessp (guesspf2pywrap, left, right, f&
      &2py_left_d0, f2py_right_d0)
       use riemann, only : guessp
@@ -216,43 +390,49 @@
       real(kind=8) betaf2pywrap
       betaf2pywrap = beta(psi)
       end subroutine f2pywrap_riemann_beta
-      subroutine f2pywrap_riemann_sample (x, left, right, geom_avg, psta&
-     &r, ustar, dstarl, dstarr, out, f2py_left_d0, f2py_right_d0, f2py_g&
-     &eom_avg_d0, f2py_out_d0)
+      subroutine f2pywrap_riemann_sample (x, left, right, riemann_middle&
+     &_states, riemann_wave_speeds, uavg, j, s, out, f2py_left_d0, f2py_&
+     &right_d0, f2py_riemann_middle_states_d0, f2py_riemann_wave_speeds_&
+     &d0, f2py_out_d0)
       use riemann, only : sample
       real(kind=8) x
-      real(kind=8) pstar
-      real(kind=8) ustar
-      real(kind=8) dstarl
-      real(kind=8) dstarr
+      real(kind=8) uavg
+      real(kind=8) j
+      real(kind=8) s
       integer f2py_left_d0
       integer f2py_right_d0
-      integer f2py_geom_avg_d0
+      integer f2py_riemann_middle_states_d0
+      integer f2py_riemann_wave_speeds_d0
       integer f2py_out_d0
       real(kind=8) left(f2py_left_d0)
       real(kind=8) right(f2py_right_d0)
-      real(kind=8) geom_avg(f2py_geom_avg_d0)
+      real(kind=8) riemann_middle_states(f2py_riemann_middle_states_d0)
+      real(kind=8) riemann_wave_speeds(f2py_riemann_wave_speeds_d0)
       real(kind=8) out(f2py_out_d0)
-      call sample(x, left, right, geom_avg, pstar, ustar, dstarl, dstarr&
-     &, out)
+      call sample(x, left, right, riemann_middle_states, riemann_wave_sp&
+     &eeds, uavg, j, s, out)
       end subroutine f2pywrap_riemann_sample
       
       subroutine f2pyinitriemann(f2pysetupfunc)
       use riemann, only : test_flag
+      use riemann, only : exact_sol
       use riemann, only : riemann_test_flag
       use riemann, only : verbose
       use riemann, only : test_sol
+      use riemann, only : riemann_solve
       interface 
-      subroutine f2pywrap_riemann_riemann_solve (riemann_solvef2pywrap, &
-     &riemann_solve, left, right, geom_avg, max_wave_speed, t_out)
-      real(kind=8) max_wave_speed
-      real(kind=8) t_out
-      real(kind=8) left(5)
-      real(kind=8) right(5)
-      real(kind=8) geom_avg(21)
-      real(kind=8) riemann_solve(5)
-      real(kind=8) riemann_solvef2pywrap(5)
-      end subroutine f2pywrap_riemann_riemann_solve 
+      subroutine f2pywrap_riemann_wave_speeds (wave_speedsf2pywrap, wave&
+     &_speeds, left, right, dir, riemann_middle_states, uavg, j, s)
+      integer dir
+      real(kind=8) uavg
+      real(kind=8) j
+      real(kind=8) s
+      real(kind=8) left(21)
+      real(kind=8) right(21)
+      real(kind=8) riemann_middle_states(4)
+      real(kind=8) wave_speeds(5)
+      real(kind=8) wave_speedsf2pywrap(5)
+      end subroutine f2pywrap_riemann_wave_speeds 
       subroutine f2pywrap_riemann_guessp (guesspf2pywrap, guessp, left, &
      &right, f2py_left_d0, f2py_right_d0)
       real(kind=8) guessp
@@ -274,28 +454,32 @@
       real(kind=8) psi
       real(kind=8) betaf2pywrap
       end subroutine f2pywrap_riemann_beta 
-      subroutine f2pywrap_riemann_sample (x, left, right, geom_avg, psta&
-     &r, ustar, dstarl, dstarr, out, f2py_left_d0, f2py_right_d0, f2py_g&
-     &eom_avg_d0, f2py_out_d0)
+      subroutine f2pywrap_riemann_sample (x, left, right, riemann_middle&
+     &_states, riemann_wave_speeds, uavg, j, s, out, f2py_left_d0, f2py_&
+     &right_d0, f2py_riemann_middle_states_d0, f2py_riemann_wave_speeds_&
+     &d0, f2py_out_d0)
       real(kind=8) x
-      real(kind=8) pstar
-      real(kind=8) ustar
-      real(kind=8) dstarl
-      real(kind=8) dstarr
+      real(kind=8) uavg
+      real(kind=8) j
+      real(kind=8) s
       integer f2py_left_d0
       integer f2py_right_d0
-      integer f2py_geom_avg_d0
+      integer f2py_riemann_middle_states_d0
+      integer f2py_riemann_wave_speeds_d0
       integer f2py_out_d0
       real(kind=8) left(f2py_left_d0)
       real(kind=8) right(f2py_right_d0)
-      real(kind=8) geom_avg(f2py_geom_avg_d0)
+      real(kind=8) riemann_middle_states(f2py_riemann_middle_states_d0)
+      real(kind=8) riemann_wave_speeds(f2py_riemann_wave_speeds_d0)
       real(kind=8) out(f2py_out_d0)
       end subroutine f2pywrap_riemann_sample
       end interface
       external f2pysetupfunc
-      call f2pysetupfunc(test_flag,riemann_test_flag,verbose,test_sol,f2&
-     &pywrap_riemann_riemann_solve,f2pywrap_riemann_guessp,f2pywrap_riem&
-     &ann_u_fun,f2pywrap_riemann_beta,f2pywrap_riemann_sample)
+      external f2py_riemann_getdims_exact_sol
+      call f2pysetupfunc(test_flag,f2py_riemann_getdims_exact_sol,rieman&
+     &n_test_flag,verbose,test_sol,riemann_solve,f2pywrap_riemann_wave_s&
+     &peeds,f2pywrap_riemann_guessp,f2pywrap_riemann_u_fun,f2pywrap_riem&
+     &ann_beta,f2pywrap_riemann_sample)
       end subroutine f2pyinitriemann
 
       subroutine f2pywrap_riemann_tester_rieerrorreader (rieerrorreaderf&
@@ -391,10 +575,12 @@
       real(kind=8) tangential2(3)
       call grid_coords(grad, normal, tangential1, tangential2)
       end subroutine f2pywrap_godunov_grid_coords
-      subroutine f2pywrap_godunov_prim_update (main, bcextent, dt_in, cf&
-     &l, nx, ny, nz, f2py_main_d0, f2py_main_d1, f2py_main_d2, f2py_main&
-     &_d3)
+      subroutine f2pywrap_godunov_prim_update (main, dt_out, bc_func, bc&
+     &extent, dt_in, cfl, nx, ny, nz, options, f2py_main_d0, f2py_main_d&
+     &1, f2py_main_d2, f2py_main_d3, f2py_options_d0)
       use godunov, only : prim_update
+      external bc_func
+      real(kind=8) dt_out
       integer bcextent
       real(kind=8) dt_in
       real(kind=8) cfl
@@ -405,29 +591,63 @@
       integer f2py_main_d1
       integer f2py_main_d2
       integer f2py_main_d3
+      integer f2py_options_d0
       real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
      &_d3)
-      call prim_update(main, bcextent, dt_in, cfl, nx, ny, nz)
+      integer options(f2py_options_d0)
+      call prim_update(main, dt_out, bc_func, bcextent, dt_in, cfl, nx, &
+     &ny, nz, options)
       end subroutine f2pywrap_godunov_prim_update
-      subroutine f2pywrap_godunov_compute_fluxes_fv (inl, inr, geom_avg,&
-     & flux_vec, case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_in&
-     &l_d0, f2py_inr_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
+      subroutine f2pywrap_godunov_prim_update_hui3d (main, dt_out, bc_fu&
+     &nc, bcextent, dt_in, cfl, nx, ny, nz, options, f2py_options_d0)
+      use godunov, only : prim_update_hui3d
+      external bc_func
+      real(kind=8) dt_out
+      integer bcextent
+      real(kind=8) dt_in
+      real(kind=8) cfl
+      integer nx
+      integer ny
+      integer nz
+      integer f2py_options_d0
+      real(kind=8) main(21,nx+bcextent-1-(-1*bcextent)+1,ny+bcextent-1-(&
+     &-1*bcextent)+1,nz+bcextent-1-(-1*bcextent)+1)
+      integer options(f2py_options_d0)
+      call prim_update_hui3d(main, dt_out, bc_func, bcextent, dt_in, cfl&
+     &, nx, ny, nz, options)
+      end subroutine f2pywrap_godunov_prim_update_hui3d
+      subroutine f2pywrap_godunov_prim_update_fv (main, dt_out, bc_func,&
+     & bcextent, dt_in, cfl, nx, ny, nz, options, f2py_options_d0)
+      use godunov, only : prim_update_fv
+      external bc_func
+      real(kind=8) dt_out
+      integer bcextent
+      real(kind=8) dt_in
+      real(kind=8) cfl
+      integer nx
+      integer ny
+      integer nz
+      integer f2py_options_d0
+      real(kind=8) main(21,nx+bcextent-1-(-1*bcextent)+1,ny+bcextent-1-(&
+     &-1*bcextent)+1,nz+bcextent-1-(-1*bcextent)+1)
+      integer options(f2py_options_d0)
+      call prim_update_fv(main, dt_out, bc_func, bcextent, dt_in, cfl, n&
+     &x, ny, nz, options)
+      end subroutine f2pywrap_godunov_prim_update_fv
+      subroutine f2pywrap_godunov_compute_fluxes_fv (inl, inr, flux_vec,&
+     & case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_flux_vec_d0)
       use godunov, only : compute_fluxes_fv
       integer case_no
       real(kind=8) max_wave_speed
       real(kind=8) dt
       logical debug_flag
-      integer f2py_inl_d0
-      integer f2py_inr_d0
-      integer f2py_geom_avg_d0
       integer f2py_flux_vec_d0
-      real(kind=8) inl(f2py_inl_d0)
-      real(kind=8) inr(f2py_inr_d0)
-      real(kind=8) geom_avg(f2py_geom_avg_d0)
+      real(kind=8) inl(21)
+      real(kind=8) inr(21)
       real(kind=8) flux_vec(f2py_flux_vec_d0)
       real(kind=8) dv_in(3)
-      call compute_fluxes_fv(inl, inr, geom_avg, flux_vec, case_no, max_&
-     &wave_speed, dt, dv_in, debug_flag)
+      call compute_fluxes_fv(inl, inr, flux_vec, case_no, max_wave_speed&
+     &, dt, dv_in, debug_flag)
       end subroutine f2pywrap_godunov_compute_fluxes_fv
       subroutine f2pywrap_godunov_row_ops_mat_func (row_ops_mat_funcf2py&
      &wrap, case_no)
@@ -458,8 +678,6 @@
       use godunov, only : update_type
       use godunov, only : dxi
       use godunov, only : dzeta_inv
-      use godunov, only : prim_update_hui3d
-      use godunov, only : prim_update_fv
       use godunov, only : muscl_hui
       interface 
       subroutine f2pywrap_godunov_energy_func (energy_funcf2pywrap, ener&
@@ -509,9 +727,11 @@
       real(kind=8) tangential1(3)
       real(kind=8) tangential2(3)
       end subroutine f2pywrap_godunov_grid_coords 
-      subroutine f2pywrap_godunov_prim_update (main, bcextent, dt_in, cf&
-     &l, nx, ny, nz, f2py_main_d0, f2py_main_d1, f2py_main_d2, f2py_main&
-     &_d3)
+      subroutine f2pywrap_godunov_prim_update (main, dt_out, bc_func, bc&
+     &extent, dt_in, cfl, nx, ny, nz, options, f2py_main_d0, f2py_main_d&
+     &1, f2py_main_d2, f2py_main_d3, f2py_options_d0)
+      external bc_func
+      real(kind=8) dt_out
       integer bcextent
       real(kind=8) dt_in
       real(kind=8) cfl
@@ -522,23 +742,50 @@
       integer f2py_main_d1
       integer f2py_main_d2
       integer f2py_main_d3
+      integer f2py_options_d0
       real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
      &_d3)
+      integer options(f2py_options_d0)
       end subroutine f2pywrap_godunov_prim_update 
-      subroutine f2pywrap_godunov_compute_fluxes_fv (inl, inr, geom_avg,&
-     & flux_vec, case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_in&
-     &l_d0, f2py_inr_d0, f2py_geom_avg_d0, f2py_flux_vec_d0)
+      subroutine f2pywrap_godunov_prim_update_hui3d (main, dt_out, bc_fu&
+     &nc, bcextent, dt_in, cfl, nx, ny, nz, options, f2py_options_d0)
+      external bc_func
+      real(kind=8) dt_out
+      integer bcextent
+      real(kind=8) dt_in
+      real(kind=8) cfl
+      integer nx
+      integer ny
+      integer nz
+      integer f2py_options_d0
+      real(kind=8) main(21,nx+bcextent-1-(-1*bcextent)+1,ny+bcextent-1-(&
+     &-1*bcextent)+1,nz+bcextent-1-(-1*bcextent)+1)
+      integer options(f2py_options_d0)
+      end subroutine f2pywrap_godunov_prim_update_hui3d 
+      subroutine f2pywrap_godunov_prim_update_fv (main, dt_out, bc_func,&
+     & bcextent, dt_in, cfl, nx, ny, nz, options, f2py_options_d0)
+      external bc_func
+      real(kind=8) dt_out
+      integer bcextent
+      real(kind=8) dt_in
+      real(kind=8) cfl
+      integer nx
+      integer ny
+      integer nz
+      integer f2py_options_d0
+      real(kind=8) main(21,nx+bcextent-1-(-1*bcextent)+1,ny+bcextent-1-(&
+     &-1*bcextent)+1,nz+bcextent-1-(-1*bcextent)+1)
+      integer options(f2py_options_d0)
+      end subroutine f2pywrap_godunov_prim_update_fv 
+      subroutine f2pywrap_godunov_compute_fluxes_fv (inl, inr, flux_vec,&
+     & case_no, max_wave_speed, dt, dv_in, debug_flag, f2py_flux_vec_d0)
       integer case_no
       real(kind=8) max_wave_speed
       real(kind=8) dt
       logical debug_flag
-      integer f2py_inl_d0
-      integer f2py_inr_d0
-      integer f2py_geom_avg_d0
       integer f2py_flux_vec_d0
-      real(kind=8) inl(f2py_inl_d0)
-      real(kind=8) inr(f2py_inr_d0)
-      real(kind=8) geom_avg(f2py_geom_avg_d0)
+      real(kind=8) inl(21)
+      real(kind=8) inr(21)
       real(kind=8) flux_vec(f2py_flux_vec_d0)
       real(kind=8) dv_in(3)
       end subroutine f2pywrap_godunov_compute_fluxes_fv 
@@ -565,9 +812,9 @@
      &_primtoconsarray,f2pywrap_godunov_primtoconspoint,f2pywrap_godunov&
      &_constoprimarray,f2pywrap_godunov_constoprimpoint,f2pywrap_godunov&
      &_invnorm3,f2pywrap_godunov_grid_coords,f2pywrap_godunov_prim_updat&
-     &e,prim_update_hui3d,prim_update_fv,f2pywrap_godunov_compute_fluxes&
-     &_fv,f2pywrap_godunov_row_ops_mat_func,f2pywrap_godunov_flux,muscl_&
-     &hui)
+     &e,f2pywrap_godunov_prim_update_hui3d,f2pywrap_godunov_prim_update_&
+     &fv,f2pywrap_godunov_compute_fluxes_fv,f2pywrap_godunov_row_ops_mat&
+     &_func,f2pywrap_godunov_flux,muscl_hui)
       end subroutine f2pyinitgodunov
 
       subroutine f2pywrap_godunov_tester_goderrorreader (goderrorreaderf&
@@ -577,14 +824,73 @@
       integer goderrorreaderf2pywrap
       goderrorreaderf2pywrap = goderrorreader(in)
       end subroutine f2pywrap_godunov_tester_goderrorreader
+      subroutine f2pywrap_godunov_tester_godconvergencetester1d (godconv&
+     &ergencetester1df2pywrap, left, right, t_out, dt, nmax, prim_update&
+     &_options, base_filename, f2py_prim_update_options_d0)
+      use godunov_tester, only : godconvergencetester1d
+      real(kind=8) t_out
+      real(kind=8) dt
+      integer nmax
+      integer f2py_prim_update_options_d0
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      integer prim_update_options(f2py_prim_update_options_d0)
+      character(len=*) base_filename
+      integer godconvergencetester1df2pywrap
+      godconvergencetester1df2pywrap = godconvergencetester1d(left, righ&
+     &t, t_out, dt, nmax, prim_update_options, base_filename)
+      end subroutine f2pywrap_godunov_tester_godconvergencetester1d
+      subroutine f2pywrap_godunov_tester_rotatecoords (rotatecoordsf2pyw&
+     &rap, in, phi, theta)
+      use godunov_tester, only : rotatecoords
+      real(kind=8) phi
+      real(kind=8) theta
+      real(kind=8) in(3)
+      real(kind=8) rotatecoordsf2pywrap(3)
+      rotatecoordsf2pywrap = rotatecoords(in, phi, theta)
+      end subroutine f2pywrap_godunov_tester_rotatecoords
+      subroutine f2pywrap_godunov_tester_godconvergencetester2d (godconv&
+     &ergencetester2df2pywrap, left, right, t_out, dt, nmax, base_filena&
+     &me)
+      use godunov_tester, only : godconvergencetester2d
+      real(kind=8) t_out
+      real(kind=8) dt
+      integer nmax
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      character(len=*) base_filename
+      integer godconvergencetester2df2pywrap
+      godconvergencetester2df2pywrap = godconvergencetester2d(left, righ&
+     &t, t_out, dt, nmax, base_filename)
+      end subroutine f2pywrap_godunov_tester_godconvergencetester2d
       subroutine f2pywrap_godunov_tester_godtester (godtesterf2pywrap)
       use godunov_tester, only : godtester
       integer godtesterf2pywrap
       godtesterf2pywrap = godtester()
       end subroutine f2pywrap_godunov_tester_godtester
+      subroutine f2pywrap_godunov_tester_rieinit1d (left, right, nx, dir&
+     &, xrange, main, f2py_main_d0, f2py_main_d1, f2py_main_d2, f2py_mai&
+     &n_d3)
+      use godunov_tester, only : rieinit1d
+      integer nx
+      integer dir
+      integer f2py_main_d0
+      integer f2py_main_d1
+      integer f2py_main_d2
+      integer f2py_main_d3
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      real(kind=8) xrange(2)
+      real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
+     &_d3)
+      call rieinit1d(left, right, nx, dir, xrange, main)
+      end subroutine f2pywrap_godunov_tester_rieinit1d
       
       subroutine f2pyinitgodunov_tester(f2pysetupfunc)
-      use godunov_tester, only : rieinit1d
+      use godunov_tester, only : freeexitconditions
+      use godunov_tester, only : normshockinit
+      use godunov_tester, only : normalshockrelations
+      use godunov_tester, only : rieinit2d
       use godunov_tester, only : godrieinit
       interface 
       subroutine f2pywrap_godunov_tester_goderrorreader (goderrorreaderf&
@@ -593,15 +899,69 @@
       integer in
       integer goderrorreaderf2pywrap
       end subroutine f2pywrap_godunov_tester_goderrorreader 
+      subroutine f2pywrap_godunov_tester_godconvergencetester1d (godconv&
+     &ergencetester1df2pywrap, godconvergencetester1d, left, right, t_ou&
+     &t, dt, nmax, prim_update_options, base_filename, f2py_prim_update_&
+     &options_d0)
+      integer godconvergencetester1d
+      real(kind=8) t_out
+      real(kind=8) dt
+      integer nmax
+      integer f2py_prim_update_options_d0
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      integer prim_update_options(f2py_prim_update_options_d0)
+      character(len=*) base_filename
+      integer godconvergencetester1df2pywrap
+      end subroutine f2pywrap_godunov_tester_godconvergencetester1d 
+      subroutine f2pywrap_godunov_tester_rotatecoords (rotatecoordsf2pyw&
+     &rap, rotatecoords, in, phi, theta)
+      real(kind=8) phi
+      real(kind=8) theta
+      real(kind=8) in(3)
+      real(kind=8) rotatecoords(3)
+      real(kind=8) rotatecoordsf2pywrap(3)
+      end subroutine f2pywrap_godunov_tester_rotatecoords 
+      subroutine f2pywrap_godunov_tester_godconvergencetester2d (godconv&
+     &ergencetester2df2pywrap, godconvergencetester2d, left, right, t_ou&
+     &t, dt, nmax, base_filename)
+      integer godconvergencetester2d
+      real(kind=8) t_out
+      real(kind=8) dt
+      integer nmax
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      character(len=*) base_filename
+      integer godconvergencetester2df2pywrap
+      end subroutine f2pywrap_godunov_tester_godconvergencetester2d 
       subroutine f2pywrap_godunov_tester_godtester (godtesterf2pywrap, g&
      &odtester)
       integer godtester
       integer godtesterf2pywrap
-      end subroutine f2pywrap_godunov_tester_godtester
+      end subroutine f2pywrap_godunov_tester_godtester 
+      subroutine f2pywrap_godunov_tester_rieinit1d (left, right, nx, dir&
+     &, xrange, main, f2py_main_d0, f2py_main_d1, f2py_main_d2, f2py_mai&
+     &n_d3)
+      integer nx
+      integer dir
+      integer f2py_main_d0
+      integer f2py_main_d1
+      integer f2py_main_d2
+      integer f2py_main_d3
+      real(kind=8) left(5)
+      real(kind=8) right(5)
+      real(kind=8) xrange(2)
+      real(kind=8) main(f2py_main_d0,f2py_main_d1,f2py_main_d2,f2py_main&
+     &_d3)
+      end subroutine f2pywrap_godunov_tester_rieinit1d
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(f2pywrap_godunov_tester_goderrorreader,f2pywrap&
-     &_godunov_tester_godtester,rieinit1d,godrieinit)
+     &_godunov_tester_godconvergencetester1d,f2pywrap_godunov_tester_rot&
+     &atecoords,f2pywrap_godunov_tester_godconvergencetester2d,freeexitc&
+     &onditions,f2pywrap_godunov_tester_godtester,normshockinit,normalsh&
+     &ockrelations,f2pywrap_godunov_tester_rieinit1d,rieinit2d,godrieini&
+     &t)
       end subroutine f2pyinitgodunov_tester
 
 

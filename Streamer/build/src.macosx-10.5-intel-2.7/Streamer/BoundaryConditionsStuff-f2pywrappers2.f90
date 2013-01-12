@@ -65,6 +65,7 @@
       use generalutilities, only : gamma1
       use generalutilities, only : eps
       use generalutilities, only : gamma_const
+      use generalutilities, only : pi
       use generalutilities, only : epss
       use generalutilities, only : computationalgrads
       use generalutilities, only : twodgradient
@@ -117,14 +118,76 @@
       end interface
       external f2pysetupfunc
       call f2pysetupfunc(gamma7,gamma6,gamma5,gamma4,gamma3,gamma2,gamma&
-     &1,eps,gamma_const,epss,f2pywrap_generalutilities_metricinverse,f2p&
-     &ywrap_generalutilities_metrictomatrix,computationalgrads,f2pywrap_&
-     &generalutilities_jacobian,f2pywrap_generalutilities_gradstomatrix,&
-     &twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_gene&
-     &ralutilities_vectorprojection,f2pywrap_generalutilities_soundspeed&
-     &)
+     &1,eps,gamma_const,pi,epss,f2pywrap_generalutilities_metricinverse,&
+     &f2pywrap_generalutilities_metrictomatrix,computationalgrads,f2pywr&
+     &ap_generalutilities_jacobian,f2pywrap_generalutilities_gradstomatr&
+     &ix,twodgradient,f2pywrap_generalutilities_matrixinverse,f2pywrap_g&
+     &eneralutilities_vectorprojection,f2pywrap_generalutilities_soundsp&
+     &eed)
       end subroutine f2pyinitgeneralutilities
 
+      subroutine f2py_generalutilitiestest_getdims_lstsqy(r,s,f2pysetdat&
+     &a,flag)
+      use generalutilitiestest, only: d => lstsqy
+
+      integer flag
+      external f2pysetdata
+      logical ns
+      integer r,i,j
+      integer(8) s(*)
+      ns = .FALSE.
+      if (allocated(d)) then
+         do i=1,r
+            if ((size(d,i).ne.s(i)).and.(s(i).ge.0)) then
+               ns = .TRUE.
+            end if
+         end do
+         if (ns) then
+            deallocate(d)
+         end if
+      end if
+      if ((.not.allocated(d)).and.(s(1).ge.1)) then
+       allocate(d(s(1)))
+      end if
+      if (allocated(d)) then
+         do i=1,r
+            s(i) = size(d,i)
+         end do
+      end if
+      flag = 1
+      call f2pysetdata(d,allocated(d))
+      end subroutine f2py_generalutilitiestest_getdims_lstsqy
+      subroutine f2py_generalutilitiestest_getdims_lstsqx(r,s,f2pysetdat&
+     &a,flag)
+      use generalutilitiestest, only: d => lstsqx
+
+      integer flag
+      external f2pysetdata
+      logical ns
+      integer r,i,j
+      integer(8) s(*)
+      ns = .FALSE.
+      if (allocated(d)) then
+         do i=1,r
+            if ((size(d,i).ne.s(i)).and.(s(i).ge.0)) then
+               ns = .TRUE.
+            end if
+         end do
+         if (ns) then
+            deallocate(d)
+         end if
+      end if
+      if ((.not.allocated(d)).and.(s(1).ge.1)) then
+       allocate(d(s(1)))
+      end if
+      if (allocated(d)) then
+         do i=1,r
+            s(i) = size(d,i)
+         end do
+      end if
+      flag = 1
+      call f2pysetdata(d,allocated(d))
+      end subroutine f2py_generalutilitiestest_getdims_lstsqx
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&
      &derf2pywrap, in)
       use generalutilitiestest, only : guerrorreader
@@ -137,6 +200,44 @@
       integer gutestf2pywrap
       gutestf2pywrap = gutest()
       end subroutine f2pywrap_generalutilitiestest_gutest
+      subroutine f2pywrap_generalutilitiestest_lstsq_init (lstsq_initf2p&
+     &ywrap, x, y, f2py_x_d0, f2py_y_d0)
+      use generalutilitiestest, only : lstsq_init
+      integer f2py_x_d0
+      integer f2py_y_d0
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) y(f2py_y_d0)
+      integer lstsq_initf2pywrap
+      lstsq_initf2pywrap = lstsq_init(x, y)
+      end subroutine f2pywrap_generalutilitiestest_lstsq_init
+      subroutine f2pywrap_generalutilitiestest_lstsq_close (lstsq_closef&
+     &2pywrap)
+      use generalutilitiestest, only : lstsq_close
+      integer lstsq_closef2pywrap
+      lstsq_closef2pywrap = lstsq_close()
+      end subroutine f2pywrap_generalutilitiestest_lstsq_close
+      subroutine f2pywrap_generalutilitiestest_minpack_function_fitting &
+     &(xdat, ydat, fcn, x, fvec, fjac, tol, info, f2py_xdat_d0, f2py_yda&
+     &t_d0, f2py_x_d0, f2py_fvec_d0, f2py_fjac_d0, f2py_fjac_d1)
+      use generalutilitiestest, only : minpack_function_fitting
+      external fcn
+      real(kind=8) tol
+      integer info
+      integer f2py_xdat_d0
+      integer f2py_ydat_d0
+      integer f2py_x_d0
+      integer f2py_fvec_d0
+      integer f2py_fjac_d0
+      integer f2py_fjac_d1
+      real(kind=8) xdat(f2py_xdat_d0)
+      real(kind=8) ydat(f2py_ydat_d0)
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) fvec(f2py_fvec_d0)
+      real(kind=8) fjac(f2py_fjac_d0,f2py_fjac_d1)
+      call minpack_function_fitting(xdat, ydat, fcn, x, fvec, fjac, tol,&
+     & info)
+      end subroutine f2pywrap_generalutilitiestest_minpack_function_fitt&
+     &ing
       subroutine f2pywrap_generalutilitiestest_polyfit (polyfitf2pywrap,&
      & vx, vy, d, f2py_vx_d0, f2py_vy_d0)
       use generalutilitiestest, only : polyfit
@@ -150,6 +251,9 @@
       end subroutine f2pywrap_generalutilitiestest_polyfit
       
       subroutine f2pyinitgeneralutilitiestest(f2pysetupfunc)
+      use generalutilitiestest, only : lstsqy
+      use generalutilitiestest, only : lstsqx
+      use generalutilitiestest, only : exponential_with_y_offset
       interface 
       subroutine f2pywrap_generalutilitiestest_guerrorreader (guerrorrea&
      &derf2pywrap, guerrorreader, in)
@@ -162,6 +266,39 @@
       integer gutest
       integer gutestf2pywrap
       end subroutine f2pywrap_generalutilitiestest_gutest 
+      subroutine f2pywrap_generalutilitiestest_lstsq_init (lstsq_initf2p&
+     &ywrap, lstsq_init, x, y, f2py_x_d0, f2py_y_d0)
+      integer lstsq_init
+      integer f2py_x_d0
+      integer f2py_y_d0
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) y(f2py_y_d0)
+      integer lstsq_initf2pywrap
+      end subroutine f2pywrap_generalutilitiestest_lstsq_init 
+      subroutine f2pywrap_generalutilitiestest_lstsq_close (lstsq_closef&
+     &2pywrap, lstsq_close)
+      integer lstsq_close
+      integer lstsq_closef2pywrap
+      end subroutine f2pywrap_generalutilitiestest_lstsq_close 
+      subroutine f2pywrap_generalutilitiestest_minpack_function_fitting &
+     &(xdat, ydat, fcn, x, fvec, fjac, tol, info, f2py_xdat_d0, f2py_yda&
+     &t_d0, f2py_x_d0, f2py_fvec_d0, f2py_fjac_d0, f2py_fjac_d1)
+      external fcn
+      real(kind=8) tol
+      integer info
+      integer f2py_xdat_d0
+      integer f2py_ydat_d0
+      integer f2py_x_d0
+      integer f2py_fvec_d0
+      integer f2py_fjac_d0
+      integer f2py_fjac_d1
+      real(kind=8) xdat(f2py_xdat_d0)
+      real(kind=8) ydat(f2py_ydat_d0)
+      real(kind=8) x(f2py_x_d0)
+      real(kind=8) fvec(f2py_fvec_d0)
+      real(kind=8) fjac(f2py_fjac_d0,f2py_fjac_d1)
+      end subroutine f2pywrap_generalutilitiestest_minpack_function_fitt&
+     &ing 
       subroutine f2pywrap_generalutilitiestest_polyfit (polyfitf2pywrap,&
      & polyfit, vx, vy, d, f2py_vx_d0, f2py_vy_d0)
       integer d
@@ -174,9 +311,14 @@
       end subroutine f2pywrap_generalutilitiestest_polyfit
       end interface
       external f2pysetupfunc
-      call f2pysetupfunc(f2pywrap_generalutilitiestest_guerrorreader,f2p&
-     &ywrap_generalutilitiestest_gutest,f2pywrap_generalutilitiestest_po&
-     &lyfit)
+      external f2py_generalutilitiestest_getdims_lstsqy
+      external f2py_generalutilitiestest_getdims_lstsqx
+      call f2pysetupfunc(f2py_generalutilitiestest_getdims_lstsqy,f2py_g&
+     &eneralutilitiestest_getdims_lstsqx,f2pywrap_generalutilitiestest_g&
+     &uerrorreader,f2pywrap_generalutilitiestest_gutest,f2pywrap_general&
+     &utilitiestest_lstsq_init,f2pywrap_generalutilitiestest_lstsq_close&
+     &,f2pywrap_generalutilitiestest_minpack_function_fitting,exponentia&
+     &l_with_y_offset,f2pywrap_generalutilitiestest_polyfit)
       end subroutine f2pyinitgeneralutilitiestest
 
       subroutine f2pywrap_boundaryconditionsstuff_wallreflect (wallrefle&
