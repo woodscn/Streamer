@@ -125,7 +125,7 @@ end module FortranNormalVectors
         print '''
 Creating .mod files for FortranNormalVectors
 '''
-        cmd = "gfortran -c GeneralUtilities.f90 BoundaryConditionsStuff.f90"
+        cmd = "gfortran -c -I../bindings ./f90src/GeneralUtilities.f90 ./f90src/BoundaryConditionsStuff.f90"
         try: 
             os.system(cmd)
         except:
@@ -415,6 +415,11 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
                                                bc_state=self.flow_state)
         elif self.type == 'Transmissive':
             out[:,:,:] = main_data
+            Dirichlet = 0*main_data
+            Neumann = Dirichlet+1
+            bc_state = Dirichlet
+            out[:,:,:] = self.firstOrderBoundaryCondition(main_data,Dirichlet,
+                                                     Neumann,bc_state,1)
         elif self.type == 'SolidWall':
             import FortranNormalVectors
             fnv = FortranNormalVectors.fortrannormalvectors
@@ -428,6 +433,33 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
             print "Undefined patch type!"
             raise(Error)
         return out
+    def firstOrderBoundaryCondition(self,interior_cell,Dirichlet,Neumann,
+                                    bc_state,dxi):
+        '''
+        Return the boundary condition for a given point. 
+
+        An example, corresponding to a constant pressure condition for five 
+        physical variables only, would be as follows.
+                          D             N
+                        -----         -----
+                         [1]   [p_0]   [0]     [p_1]         [0]
+                         [0]   [d_0]   [1]     [d_1]         [0]
+        q(ghost point) = [0] * [u_0] + [1] * ( [u_1] + dxi * [0] )
+                         [0]   [v_0]   [1]     [v_1]         [0]
+                         [0]   [w_0]   [1]     [w_1]         [0]
+
+        For a supersonic inflow condition, D and N would be [1,1,1,1,1], 
+        [0,0,0,0,0] respectively. And so on, for other conditions. Of course,
+        any value which is multiplied by a zero value of D or N can be ignored.
+
+        Inputs: 
+          interior_cell: the value of the cell that lies on the boundary
+          Dirichlet: a binary integer array. 1 for a Dirichlet condition, 0 else
+          Neumann: a binary integer array. 1 for a Neumann condition, 0 else
+          bc_value: the value of either the boundary value or derivative
+          dxi: the grid spacing
+        '''
+        return Dirichlet*bc_state+Neumann*(interior_cell+dxi*bc_state)
                 
 def leadingEdgeSearchSTL(leading_face_array, nodes_x, faces_x, face_nodes_x):
     '''LeadingEdgeSearchSTL searches for boundary conditions that may apply to

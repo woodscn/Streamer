@@ -23,10 +23,16 @@ def init():
     front_face_init = []
     inflow_condition = transonic_duct_inflow_generator()
     initial_conds = None
+    solver_options = numpy.zeros(300)
+    solver_options[0] = 1
+    solver_options[101] = 1
+    solver_options[102] = 1
+    solver_options[103] = 0
     stream_options = {
         'solver_type':'euler',
         'boundary_layers':False,
-        'multistream':False
+        'multistream':False,
+        'solver_options':solver_options
         }
     wall_height_throat = 0.5*numpy.tan(numpy.pi*15./180.)
     left_face_init.append(

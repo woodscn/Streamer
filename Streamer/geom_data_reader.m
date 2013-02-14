@@ -73,35 +73,34 @@ while(~feof(fid))
         end
     end
     skip = 10;
-
-        if size(x,2)==1
-             plot(y,rho,'.')
+        if size(x,1)==1
+%              plot(y,rho,'.')
         elseif mod(n,skip) == 0
-     if size(x,2)>1
-%             figure(95756)
-%             plot(rho(2,:))
-           figure(1)
-           colormap(jet(128))
-           mach=vmag./sqrt(1.4*p./rho);
-           e=0.5*rho.*vmag.^2+1.0/0.4*p;
-           vec=.6:.2:1.8;
-           surf(x,y,rho)
-   %         contourf(x,y,mach,vec);
-   %         caxis([.6,1.8])
-           axis equal;
-           xlim([0. 1.]);ylim([0.0 1.0]);%zlim([-0.1 25]);
-           colorbar%('YLim',[.8,3.4],'YTick',[.8,3.4]);
-           view([0,0,1]);
-           xlabel('x');ylabel('y')
-%            shading interp
-           drawnow
-%            pause 
-%            if n > 180
-%                pause
-%            end
-%           set(gca,'CLim',[.8,3.4],'YTick',[-.5,0,.5,1.0])
-%          pause
-     end
+%      if size(x,2)>1
+% %             figure(95756)
+% %             plot(rho(2,:))
+%            figure(1)
+%            colormap(jet(128))
+%            mach=vmag./sqrt(1.4*p./rho);
+%            e=0.5*rho.*vmag.^2+1.0/0.4*p;
+%            vec=.6:.2:1.8;
+%            surf(x,y,rho)
+%    %         contourf(x,y,mach,vec);
+%    %         caxis([.6,1.8])
+%            axis equal;
+%            xlim([0. 1.]);ylim([0.0 1.0]);%zlim([-0.1 25]);
+%            colorbar%('YLim',[.8,3.4],'YTick',[.8,3.4]);
+%            view([0,0,1]);
+%            xlabel('x');ylabel('y')
+% %            shading interp
+%            drawnow
+% %            pause 
+% %            if n > 180
+% %                pause
+% %            end
+% %           set(gca,'CLim',[.8,3.4],'YTick',[-.5,0,.5,1.0])
+% %          pause
+%      end
     %         figure(2)
     %         [dtdx,dtdy]=gradient(theta);
     %         [dgdx,dgdy]=gradient(log(h.*vmag));

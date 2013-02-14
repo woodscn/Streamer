@@ -3,8 +3,8 @@ import numpy
 import BoundaryConditions
 import TimeAdvancementStuff as TAS
 TAS = TAS.timeadvancementstuff
-import Godunov
-Godunov = Godunov.godunov
+import Godunov_driver
+Godunov = Godunov_driver.godunovdriver
 import CGNS_Interface
 cgns = CGNS_Interface.cgns_interface
 import imp, os
@@ -108,11 +108,10 @@ class Stream(object):
                 import pdb;pdb.set_trace()
 #        print self.main_data[1,:,:,1]
 #        import pdb;pdb.set_trace()
-        self.main_data = Godunov.prim_update(
-            numpy.asfortranarray(self.main_data),dt_in=.0001,cfl=.25,bcextent=1,
-            nx=self.main_data.shape[1]-2,
-            ny=self.main_data.shape[2]-2,
-            nz=self.main_data.shape[3]-2)
+        [self.main_data,dt_out] = Godunov.prim_update(
+            numpy.asfortranarray(self.main_data),dt_in=0.0,cfl=.25,
+            nx=self.main_data.shape[1]-2,ny=self.main_data.shape[2]-2,
+            nz=self.main_data.shape[3]-2,options=opts.stream_options['solver_options'])
         #! Check to see if a new column needs to be created
         check_create_column = TAS.checkcreatecolumn(
             self.main_data[:,1,1:-1,1:-1],self.main_data[:,0,1:-1,1:-1])
@@ -129,7 +128,7 @@ class Stream(object):
             self.xi_offset = self.xi_offset + 1
         TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
 #        import pdb;pdb.set_trace()
-        return None
+        return dt_out
 
 def run(input_file,interactive=False):
     global interactive_flag
@@ -146,12 +145,14 @@ def run(input_file,interactive=False):
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     dt = .0001 
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
-    for step in range(5000):
+    for step in range(2000):
         print "Time step = ",step
         for stream in streams:
 #            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:
 #                import pdb;pdb.set_trace()
-            stream.advance(dt)
+            advance_options = Options()
+            advance_options.stream_options = stream_options
+            dt_out = stream.advance(dt,advance_options)
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=False)
     cgns.write_initial_data(stream.main_data,'test.cgns')
     if interactive_flag:

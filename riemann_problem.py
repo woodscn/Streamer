@@ -28,7 +28,6 @@ def init():
         'boundary_layers':False,
         'multistream':False
         }
-    wall_height_throat = 0.5*numpy.tan(numpy.pi*15./180.)
     left_face_init.append(
         PatchInit('Inflow',
                   ((0.0,0.5,-.1),(0.0,0.5,0.1),(0.0,0.0,0.1),(0.0,0.0,-.1)),
