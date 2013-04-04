@@ -13,6 +13,15 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
                                     'Streamer'],
                          library_dirs=['/usr/local/lib','/usr/lib','.']
                          )
+    config.add_extension("Source_functions",
+                         addl_source_dir+'Source_functions.f90',
+                         extra_compile_args=['-J./bindings'],
+                         include_dirs=['/usr/local/include',
+                                       '/usr/include','./bindings'],
+                         libraries=['lapack','recipes_f90','minpack','cgns',
+                                    'Streamer'],
+                         library_dirs=['/usr/local/lib','/usr/lib','.']
+                         )
 #    config.add_extension('Godunov',prepend_GU("Godunov.f90"),
 #                         extra_compile_args=["-fbounds-check"],
 #                         include_dirs=['/usr/local/include','/usr/include','..'],

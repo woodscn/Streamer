@@ -72,7 +72,8 @@ while(~feof(fid))
             
         end
     end
-    skip = 10;
+    skip = 1;
+        
         if size(x,1)==1
 %              plot(y,rho,'.')
         elseif mod(n,skip) == 0

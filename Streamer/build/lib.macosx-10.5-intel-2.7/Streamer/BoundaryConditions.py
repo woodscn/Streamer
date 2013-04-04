@@ -415,9 +415,11 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
                                                bc_state=self.flow_state)
         elif self.type == 'Transmissive':
             out[:,:,:] = main_data
-            out[:,:,:] = firstOrderBoundaryCondition(main_data,0*main_data,
-                                                     0*main_data+1,0*main_data,
-                                                     1)
+            Dirichlet = 0*main_data
+            Neumann = Dirichlet+1
+            bc_state = Dirichlet
+            out[:,:,:] = self.firstOrderBoundaryCondition(main_data,Dirichlet,
+                                                     Neumann,bc_state,1)
         elif self.type == 'SolidWall':
             import FortranNormalVectors
             fnv = FortranNormalVectors.fortrannormalvectors
@@ -431,8 +433,8 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
             print "Undefined patch type!"
             raise(Error)
         return out
-    def firstOrderBoundaryCondition(interior_cell,Dirichlet,Neumann,bc_state,
-                                     dxi):
+    def firstOrderBoundaryCondition(self,interior_cell,Dirichlet,Neumann,
+                                    bc_state,dxi):
         '''
         Return the boundary condition for a given point. 
 

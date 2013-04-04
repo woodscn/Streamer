@@ -49,9 +49,10 @@ class Stream(object):
         if test:
             print "Using prescribed initial conditions."
             temp = initial_conds.shape
+            print "temp = ",temp
             self.main_data = numpy.zeros((temp[0],temp[1]+2*bcextent,
                                           temp[2]+2*bcextent,temp[3]+2*bcextent))
-            self.main_data[:,0,1:-1,1:-1] = initial_conds
+            self.main_data[:,1:-1,1:-1,1:-1] = initial_conds
         else:
             print "No initial conditions given; using boundary conditions."
             temp2 = self._set_inflow_conditions_from_bounds(self.bounds)
@@ -145,7 +146,7 @@ def run(input_file,interactive=False):
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     dt = .0001 
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
-    for step in range(2000):
+    for step in range(200):
         print "Time step = ",step
         for stream in streams:
 #            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:

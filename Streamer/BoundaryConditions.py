@@ -433,6 +433,37 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
             print "Undefined patch type!"
             raise(Error)
         return out
+    def BoundaryCondition(self,interior_cell,weights,Robin,dxi):
+        '''
+        Return the general boundary condition for a given point.
+        
+        The boundary condition is assummed to be given by:
+        
+        weights[0]*boundary_condition + weights[1]*normal_boundary_derivative...
+          =  Robin.
+
+        Approximating the derivative by a centered difference, we return:
+        
+        weights[0]*boundary_condition + 
+          weights[1]*(boundary_condition-bcstate)/dxi = Robin 
+
+        This is then solved for boundary_condition, which is returned.
+
+        Depending on the value of weights, this can return Dirichlet, 
+          Neumann, or Robin boundary conditions, as follows:
+        
+        Dirichlet : weights = [1,0]
+        Neumann   : weights = [0,1]
+        Robin     : weights = [1,1]
+
+        Inputs: 
+          interior_cell: the value of the cell that lies on the boundary
+          Robin: the value of the boundary value, derivative, or combination
+          dxi: the grid spacing
+          weights: a 2xn array, where n = len(interior_cell). 
+        
+        '''
+        (weights[1]*bc_state+dxi*Robin)/(weights[1]+weights[0]*dxi)
     def firstOrderBoundaryCondition(self,interior_cell,Dirichlet,Neumann,
                                     bc_state,dxi):
         '''

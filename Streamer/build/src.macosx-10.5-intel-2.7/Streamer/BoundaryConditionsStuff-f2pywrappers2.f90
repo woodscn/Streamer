@@ -180,6 +180,7 @@
       
       subroutine f2pyinitboundaryconditionsstuff(f2pysetupfunc)
       use boundaryconditionsstuff, only : applyinflowconditions
+      use boundaryconditionsstuff, only : applyfirstorderconditions
       use boundaryconditionsstuff, only : applyoutflowconditions
       interface 
       subroutine f2pywrap_boundaryconditionsstuff_wallreflect (wallrefle&
@@ -232,8 +233,9 @@
       call f2pysetupfunc(f2pywrap_boundaryconditionsstuff_wallreflect,f2&
      &pywrap_boundaryconditionsstuff_reflectionoperator,f2pywrap_boundar&
      &yconditionsstuff_findclosestpoint,f2pywrap_boundaryconditionsstuff&
-     &_computationaldisplacement,applyinflowconditions,applyoutflowcondi&
-     &tions,f2pywrap_boundaryconditionsstuff_checksupersonic)
+     &_computationaldisplacement,applyinflowconditions,applyfirstorderco&
+     &nditions,applyoutflowconditions,f2pywrap_boundaryconditionsstuff_c&
+     &hecksupersonic)
       end subroutine f2pyinitboundaryconditionsstuff
 
 
