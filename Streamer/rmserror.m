@@ -1,0 +1,29 @@
+function rmserror()
+clear;close all;
+Rie0=load('SodsProblem0.dat');
+Rie1=load('SodsProblem1.dat');
+Rie2=load('SodsProblem2.dat');
+Rie3=load('SodsProblem3.dat');
+Rie4=load('SodsProblem4.dat');
+Rie5=load('SodsProblem5.dat');
+Rie6=load('SodsProblem6.dat');
+exact=load('SodsProblem_exact.dat');
+x=[Rie0(18,2)-Rie0(18,1),Rie1(18,2)-Rie1(18,1),...
+    Rie2(18,2)-Rie2(18,1),Rie3(18,2)-Rie3(18,1)...
+    Rie4(18,2)-Rie4(18,1),Rie5(18,2)-Rie5(18,1)...
+    Rie6(18,2)-Rie6(18,1)];
+y=[rmserr(Rie0(2,2:end-1),exact(2,1:64:end))...
+    rmserr(Rie1(2,2:end-1),exact(2,1:32:end))...
+    rmserr(Rie2(2,2:end-1),exact(2,1:16:end))...
+    rmserr(Rie3(2,2:end-1),exact(2,1:8:end))...
+    rmserr(Rie4(2,2:end-1),exact(2,1:4:end))...
+    rmserr(Rie5(2,2:end-1),exact(2,1:2:end))...
+    rmserr(Rie6(2,2:end-1),exact(2,:))];
+p=polyfit(log(x(1:end)),log(y(1:end)),1)
+loglog(log(x),log(y),'.');axis equal;
+figure
+xtest=.01:-.0001:0;
+loglog(x,y,'.',xtest,exp(p(2))*xtest.^(p(1)))
+
+function out = rmserr(sol,exact)
+out=sqrt(sum((sol-exact).^2)/length(sol));
