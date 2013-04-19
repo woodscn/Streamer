@@ -75,7 +75,10 @@ def shocked_sol_1():
                              )/(pressure_hi/pressure_lo*(gamma-1)+(gamma+1))
     velocity_hi = velocity_lo-(pressure_hi/pressure_lo-1)*numpy.sqrt(
         pressure_lo*gamma/density_lo)/numpy.sqrt(.5*gamma*(
-            (gamma+1)*pressure_hi/pressure_lo+(gamma-1)))
+            (gamma+1)*pressure_hi/pressure_lo+(gamma-1))) 
+    shock_function_arg = ((xi-shock_pos_0)-t*shock_speed(
+            pressure_lo,density_lo,velocity_lo,a_lo,b_lo,c_lo,l_lo,m_lo,n_lo,
+            p_lo,q_lo,r_lo,u_lo,gamma,pressure_hi,pm=-1))
     shock_function = sympy.functions.Heaviside((xi-shock_pos_0)-t*shock_speed(
             pressure_lo,density_lo,velocity_lo,a_lo,b_lo,c_lo,l_lo,m_lo,n_lo,
             p_lo,q_lo,r_lo,u_lo,gamma,pressure_hi,pm=-1))
@@ -104,7 +107,9 @@ def shocked_sol_1():
     out.append(xi)
     out.append(eta)
     out.append(zeta)
-    return out
+    out2=[out]
+    out2.append([shock_function_arg])
+    return out2
 def sym_sol():
     return (sympy.Symbol('p'),
             sympy.Symbol('rho'),
@@ -144,47 +149,58 @@ def flx3_sample((t_in,xi_in,eta_in),(zeta_in,func)):
     return out
 def quad_sample(x,y,z,t,func,mc_sample_func):
     return mc_sample_func((x,y,z),(t,func))
-def int_eqn_sum(eqn_obj,sol,t_range,xi_range,eta_range,zeta_range):
+def int_eqn_sum(eqn_obj,sol,t_range,xi_range,eta_range,zeta_range,shocks=()):
     cons,flux1,flux2,flux3,source = eqn_obj(sol)
     calls = 10000
     cons_int_lst = [];flux1_int_lst = [];flux2_int_lst = [];flux3_int_lst = []
-    for elem in cons:
+#    for elem in cons:
 #        left = mc_integrate(cons_sample,(xi_range,eta_range,zeta_range),
 #                            calls,args=(t_range[0],elem))
 #        right = mc_integrate(cons_sample,(xi_range,eta_range,zeta_range),
 #                             calls,args=(t_range[1],elem))
-        left = scipy.integrate.tplquad(
-            quad_sample,xi_range[0],xi_range[1],lambda x:eta_range[0],
-            lambda x:eta_range[1],lambda x,y:zeta_range[0],
-            lambda x,y:zeta_range[1],args=(t_range[0],elem,cons_sample))
-        right = scipy.integrate.tplquad(
-            quad_sample,xi_range[0],xi_range[1],lambda x:eta_range[0],
-            lambda x:eta_range[1],lambda x,y:zeta_range[0],
-            lambda x,y:zeta_range[1],args=(t_range[1],elem,cons_sample))
-        cons_int_lst.append(right[0]-left[0])
-        print left,right
-    print "Done with cons"
-    for elem in flux1:
+#        left = scipy.integrate.tplquad(
+#            quad_sample,xi_range[0],xi_range[1],lambda x:eta_range[0],
+#            lambda x:eta_range[1],lambda x,y:zeta_range[0],
+#            lambda x,y:zeta_range[1],args=(t_range[0],elem,cons_sample))
+#        right = scipy.integrate.tplquad(
+#            quad_sample,xi_range[0],xi_range[1],lambda x:eta_range[0],
+#            lambda x:eta_range[1],lambda x,y:zeta_range[0],
+#            lambda x,y:zeta_range[1],args=(t_range[1],elem,cons_sample))
+#        cons_int_lst.append(right[0]-left[0])
+#        print left,right
+#    print "Done with cons"
+#    for elem in flux1:
 #        left = mc_integrate(flx1_sample,(t_range,eta_range,zeta_range),
 #                            calls,args=(xi_range[0],elem))
 #        right = mc_integrate(flx1_sample,(t_range,eta_range,zeta_range),
 #                             calls,args=(xi_range[1],elem))
-        left = scipy.integrate.tplquad(
-            quad_sample,t_range[0],t_range[1],lambda x:eta_range[0],
-            lambda x:eta_range[1],lambda x,y:zeta_range[0],
-            lambda x,y:zeta_range[1],args=(xi_range[0],elem,flx1_sample))
-        right = scipy.integrate.tplquad(
-            quad_sample,t_range[0],t_range[1],lambda x:eta_range[0],
-            lambda x:eta_range[1],lambda x,y:zeta_range[0],
-            lambda x,y:zeta_range[1],args=(xi_range[1],elem,flx1_sample))
-        flux1_int_lst.append(right[0]-left[0])
-        print left,right
-    print "Done with flx1"
+#        left = scipy.integrate.tplquad(
+#            quad_sample,t_range[0],t_range[1],lambda x:eta_range[0],
+#            lambda x:eta_range[1],lambda x,y:zeta_range[0],
+#            lambda x,y:zeta_range[1],args=(xi_range[0],elem,flx1_sample))
+#        right = scipy.integrate.tplquad(
+#            quad_sample,t_range[0],t_range[1],lambda x:eta_range[0],
+#            lambda x:eta_range[1],lambda x,y:zeta_range[0],
+#            lambda x,y:zeta_range[1],args=(xi_range[1],elem,flx1_sample))
+#        flux1_int_lst.append(right[0]-left[0])
+#        print left,right
+#    print "Done with flx1"
     for elem in flux2:
 #        left = mc_integrate(flx2_sample,(t_range,xi_range,zeta_range),
 #                            calls,(eta_range[0],elem))
 #        right = mc_integrate(flx2_sample,(t_range,xi_range,zeta_range),
 #                             calls,(eta_range[1],elem))
+        points=[]
+# This doesn't work if the shock point is outside the range of integration.
+        for shock in shocks:
+            points.append(
+                float(
+                    sympy.solve(shocks[0].subs({xi:.5}),sympy.Symbol('t'))[0]))
+        import pdb;pdb.set_trace()
+        test = scipy.integrate.quad(quad_sample,t_range[0],t_range[1],
+                                    args=(.5,.5,.5,elem,flx2_sample),
+                                    points=points)
+        pdb.set_trace()
         left = scipy.integrate.tplquad(
             quad_sample,t_range[0],t_range[1],lambda x:xi_range[0],
             lambda x:xi_range[1],lambda x,y:zeta_range[0],
@@ -218,4 +234,5 @@ def int_eqn_sum(eqn_obj,sol,t_range,xi_range,eta_range,zeta_range):
             numpy.array(flux2_int_lst)+numpy.array(flux3_int_lst)+source)
 if __name__=="__main__":
     junk = Euler_UCS_manufactured.Euler_UCS()
-    print int_eqn_sum(junk,shocked_sol_1(),(0,1),(0,1),(0,1),(0,1))
+    sol=shocked_sol_1()
+    print int_eqn_sum(junk,sol[0],(0,1),(0,1),(0,1),(0,1),shocks=sol[1])
