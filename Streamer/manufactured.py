@@ -4,9 +4,12 @@ import scipy.integrate
 import Euler_UCS_manufactured
 import multiprocessing
 from sympy.core.cache import * # Needed for clear_cache
-#from pygsl import monte
-#import pygsl.rng
-import gc
+
+import myquad
+from shocked_solutions import shocked_sol_1
+from smooth_solutions import smooth_sols_1
+from symbolic_solution import sym_sol
+
 t=sympy.Symbol('t')
 xi=sympy.Symbol('xi')
 eta=sympy.Symbol('eta')
@@ -27,110 +30,6 @@ def sample_point(eqns,t_in,xi_in,eta_in,zeta_in):
     for eqn in eqns:
         out.append(eqn.evalf(subs={t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}))
     return out
-def smooth_sols_1():
-    return [1+t,  # pressure
-     1+t,  # density
-     xi,    # x-velocity
-     eta,    # y-velocity
-     zeta,    # z-velocity
-     1,    # dx_dxi
-     0,    # dy_dxi
-     0,    # dz_dxi
-     0,    # dx_deta
-     1,    # dy_deta
-     0,    # dz_deta
-     0,    # dx_dzeta
-     0,    # dy_dzeta
-     1,    # dz_dzeta
-     0,    # dx_dt
-     0,    # dy_dt
-     0,    # dz_dt
-     0,    # x
-     0,    # y
-     0]    # z
-def jacobian(a,b,c,l,m,n,p,q,r):
-    return a*(m*r-n*q)+b*(n*p-l*r)+c*(l*q-m*p)
-def gradxi(a,b,c,l,m,n,p,q,r):
-    return sympy.Matrix([(m*r-n*q)/jacobian(a,b,c,l,m,n,p,q,r),
-            (n*p-l*r)/jacobian(a,b,c,l,m,n,p,q,r),
-            (l*q-m*p)/jacobian(a,b,c,l,m,n,p,q,r)])
-def shock_speed(pressure,density,velocity,a,b,c,l,m,n,p,q,r,u,
-                gamma,pressure_hi,pm):
-    return(sympy.sqrt(sum(gradxi(a,b,c,l,m,n,p,q,r).applyfunc(lambda x:x**2)))*(
-        velocity-u+pm*sympy.sqrt(gamma*pressure/density)*sympy.sqrt(
-            (gamma+1)/(2*gamma)*(pressure_hi/pressure-1)+1)))
-def shocked_sol_1():
-    xmin, xmax = 0, 1
-    nx = 100
-    dx = (xmax-xmin)/(nx)
-    gamma = 1.4
-    shock_pos_0 = .1
-    pressure_lo, density_lo = 1, 1
-    velocity_lo = 1.5*numpy.sqrt(1.4*pressure_lo/density_lo)
-    a_lo, b_lo, c_lo, l_lo, m_lo, n_lo, p_lo, q_lo, r_lo = (1,0,0,0,1,0,0,0,1)
-    u_lo, v_lo, w_lo = 0, 0, 0
-    pressure_hi = 2#2.458333333333333*pressure_lo
-    u_hi, v_hi, w_hi = 0, 0, 0
-    density_hi = density_lo*(pressure_hi/pressure_lo*(gamma+1)+(gamma-1)
-                             )/(pressure_hi/pressure_lo*(gamma-1)+(gamma+1))
-    velocity_hi = velocity_lo-(pressure_hi/pressure_lo-1)*numpy.sqrt(
-        pressure_lo*gamma/density_lo)/numpy.sqrt(.5*gamma*(
-            (gamma+1)*pressure_hi/pressure_lo+(gamma-1))) 
-    shock_function_arg = ((xi-shock_pos_0)-t*shock_speed(
-            pressure_lo,density_lo,velocity_lo,a_lo,b_lo,c_lo,l_lo,m_lo,n_lo,
-            p_lo,q_lo,r_lo,u_lo,gamma,pressure_hi,pm=-1))
-    shock_function = sympy.functions.Heaviside((xi-shock_pos_0)-t*shock_speed(
-            pressure_lo,density_lo,velocity_lo,a_lo,b_lo,c_lo,l_lo,m_lo,n_lo,
-            p_lo,q_lo,r_lo,u_lo,gamma,pressure_hi,pm=-1))
-#    print "pressure ratio = "+str(pressure_hi/pressure_lo)
-#    print "density ratio = "+str(density_hi/density_lo)
-#    print "mach hi = "+str(velocity_hi/numpy.sqrt(1.4*pressure_hi/density_hi))
-#    print "mach lo = "+str(velocity_lo/numpy.sqrt(1.4*pressure_lo/density_lo))
-    out = []
-    out.append(pressure_lo+(pressure_hi-pressure_lo)*shock_function)
-    out.append(density_lo+(density_hi-density_lo)*shock_function)
-    out.append(velocity_lo+(velocity_hi-velocity_lo)*shock_function)
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(1))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(1))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(1))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(sympy.Integer(0))
-    out.append(xi)
-    out.append(eta)
-    out.append(zeta)
-    out2=[out]
-    out2.append([shock_function_arg])
-    return out2
-def sym_sol():
-    return (sympy.Symbol('p'),
-            sympy.Symbol('rho'),
-            sympy.Symbol('u'),
-            sympy.Symbol('v'),
-            sympy.Symbol('w'),
-            sympy.Symbol('A'),
-            sympy.Symbol('B'),
-            sympy.Symbol('C'),
-            sympy.Symbol('L'),
-            sympy.Symbol('M'),
-            sympy.Symbol('N'),
-            sympy.Symbol('P'),
-            sympy.Symbol('Q'),
-            sympy.Symbol('R'),
-            sympy.Symbol('U'),
-            sympy.Symbol('V'),
-            sympy.Symbol('W'),
-            sympy.Symbol('x'),
-            sympy.Symbol('y'),
-            sympy.Symbol('z'))
 def cons_sample((xi_in,eta_in,zeta_in),(t_in,func)):
     out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
     clear_cache()
@@ -147,8 +46,6 @@ def flx3_sample((t_in,xi_in,eta_in),(zeta_in,func)):
     out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
     clear_cache()
     return out
-def quad_sample(x,y,z,t,func,mc_sample_func):
-    return mc_sample_func((x,y,z),(t,func))
 def int_eqn_sum(eqn_obj,sol,t_range,xi_range,eta_range,zeta_range,shocks=()):
     cons,flux1,flux2,flux3,source = eqn_obj(sol)
     calls = 10000
