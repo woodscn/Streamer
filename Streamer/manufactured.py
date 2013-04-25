@@ -10,42 +10,78 @@ from shocked_solutions import shocked_sol_1
 from smooth_solutions import smooth_sols_1
 from symbolic_solution import sym_sol
 
-t=sympy.Symbol('t')
-xi=sympy.Symbol('xi')
-eta=sympy.Symbol('eta')
-zeta=sympy.Symbol('zeta')
-def mc_integrate(f,ranges,calls,args=()):
-#    pool = multiprocessing.Pool()
-    f_sum = 0
-    for n in xrange(calls):
-        coords_lst = []
-        for rng in ranges:
-            coords_lst.append(rng[0] + rng[1]*numpy.random.random())
-        f_sum += f(coords_lst,args)
-#        clear_cache()
-    vol = numpy.prod([float(rng[1])-float(rng[0]) for rng in ranges])
-    return vol/calls*f_sum    
-def sample_point(eqns,t_in,xi_in,eta_in,zeta_in):
-    out = []
-    for eqn in eqns:
-        out.append(eqn.evalf(subs={t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}))
-    return out
-def cons_sample((xi_in,eta_in,zeta_in),(t_in,func)):
-    out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
-    clear_cache()
-    return out
-def flx1_sample((t_in,eta_in,zeta_in),(xi_in,func)):
-    out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
-    clear_cache()
-    return out
-def flx2_sample((t_in,xi_in,zeta_in),(eta_in,func)):
-    out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
-    clear_cache()
-    return out
-def flx3_sample((t_in,xi_in,eta_in),(zeta_in,func)):
-    out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
-    clear_cache()
-    return out
+class ManufacturedSolution:
+
+    """
+    
+    """
+
+    t=sympy.Symbol('t')
+    xi=sympy.Symbol('xi')
+    eta=sympy.Symbol('eta')
+    zeta=sympy.Symbol('zeta')
+
+    def __init__(self,symbolic_solution):
+        self.symbolic_solution = symbolic_solution
+
+    def mc_integrate(f,ranges,ncalls,args=()):
+        """
+        Evaluate the integral of a function using the Monte Carlo technique.
+
+        mc_integrate(f,ranges,calls,args=())
+
+        Monte Carlo integration is a robust, though inaccurate, method of
+        integration. mc_integrate evaluates function f ncalls number of 
+        times at random points, and uses the sum of these evaluations to 
+        compute the integral of function f over the rectangular volume 
+        specified by ranges. The error of the integral scales as 
+        1/sqrt(ncalls)
+
+        Inputs:
+          f - Callable that returns a number. Must have at least as many 
+            number arguments as the number of ranges provided.
+          ranges - Sequence of ranges over which to evaluate the integral.
+          ncalls - Number of function samples to take. 
+          args - Any additional arguments required by f
+
+        Example:
+          mc_integrate(f(x,y,z),((0,1),(-.5,.5)),10000,args=3) evaluates
+          the integral of f(x,y,z) over the range x=(0,1), y=(-.5,.5), 
+          at z=3. The function is sampled 10e4 times, and so the error
+          can be expected to be around 0.01.
+        """
+        f_sum = 0
+        for n in xrange(ncalls):
+            coords_lst = []
+            for rng in ranges:
+                coords_lst.append(rng[0] + rng[1]*numpy.random.random())
+            f_sum += f(coords_lst,args)
+        vol = numpy.prod([float(rng[1])-float(rng[0]) for rng in ranges])
+        return vol/calls*f_sum
+
+    # In order to be of use in an integration routine, symbolic 
+    # expressions must be evaluated at a given point. The order of 
+    # arguments 
+    def cons_sample(xi_in,eta_in,zeta_in,t_in,func):
+        out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
+        clear_cache()
+        return out
+
+    def flx1_sample(t_in,eta_in,zeta_in,xi_in,func):
+        out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
+        clear_cache()
+        return out
+
+    def flx2_sample(t_in,xi_in,zeta_in,eta_in,func):
+        out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
+        clear_cache()
+        return out
+
+    def flx3_sample(t_in,xi_in,eta_in,zeta_in,func):
+        out = func.subs({t:t_in,xi:xi_in,eta:eta_in,zeta:zeta_in}).evalf()
+        clear_cache()
+        return out
+
 def int_eqn_sum(eqn_obj,sol,t_range,xi_range,eta_range,zeta_range,shocks=()):
     cons,flux1,flux2,flux3,source = eqn_obj(sol)
     calls = 10000
