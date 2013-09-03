@@ -1,0 +1,34 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module Godunov_driver ! in 
+    interface  ! in :Godunov_driver
+        module godunovdriver ! in :Godunov_driver:Godunov_driver.f90
+            use godunov, only: prim_update_hui3d,prim_update_fv
+            interface  ! in :Godunov_driver:Godunov_driver.f90:godunovdriver
+                subroutine bc_func(main,nx,ny,nz) ! in :Godunov_driver:Godunov_driver.f90:godunovdriver:unknown_interface
+                    real(kind=8) dimension(21,nx,ny,nz),intent(inout) :: main
+                    integer, optional,intent(in),check(shape(main,1)==nx),depend(main) :: nx=shape(main,1)
+                    integer, optional,intent(in),check(shape(main,2)==ny),depend(main) :: ny=shape(main,2)
+                    integer, optional,intent(in),check(shape(main,3)==nz),depend(main) :: nz=shape(main,3)
+                end subroutine bc_func
+            end interface 
+            subroutine prim_update(main,dt_out,bcextent,dt_in,cfl,nx,ny,nz,options) ! in :Godunov_driver:Godunov_driver.f90:godunovdriver
+                real(kind=8) dimension(:,:,:,:),intent(in,out) :: main
+                real(kind=8) :: dt_out
+                integer :: bcextent
+                real(kind=8) :: dt_in
+                real(kind=8) :: cfl
+                integer :: nx
+                integer :: ny
+                integer :: nz
+                integer dimension(:),intent(in) :: options
+                intent(callback) bc_func
+                external bc_func
+            end subroutine prim_update
+        end module godunovdriver
+    end interface 
+end python module Godunov_driver
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

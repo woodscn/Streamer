@@ -1,0 +1,33 @@
+\begin{thebibliography}{1}
+
+\bibitem{netlib}
+{\sc {AT\&T Bell Laboratories}, {University of Tennessee}, and {Oak Ridge
+  National Laboratory}}, {\em {www.netlib.org}}.
+
+\bibitem{Knupp2002}
+{\sc P.~Knupp and K.~Salari}, {\em {Verification of Computer Codes in
+  Computational Science and Engineering}}, Chapman and Hall/CRC, 2002.
+
+\bibitem{Malaya2012}
+{\sc Nicholas Malaya, Kemelli~C. Estacio-Hiroms, Roy~H. Stogner, Karl~W.
+  Schulz, Paul~T. Bauman, and Graham~F. Carey}, {\em {MASA : a library for
+  verification using manufactured and analytical solutions}}, Engineering with
+  Computers,  (2012).
+
+\bibitem{Polyanin}
+{\sc Andrei~D. Polyanin}, {\em {Linear Heat Equation}}.
+
+\bibitem{Roache1998}
+{\sc Patrick~J. Roache}, {\em {Verification and Validation in Computational
+  Science and Engineering}}, Hermosa Publishers, 1998.
+
+\bibitem{Roache2002}
+\leavevmode\vrule height 2pt depth -1.6pt width 23pt, {\em {Code Verification
+  by the Method of Manufactured Solutions}}, Journal of Fluids Engineering, 124
+  (2002), p.~4.
+
+\bibitem{Toro2009}
+{\sc Euletorio Toro}, {\em {Riemann Solvers and Numerical Methods for Fluid
+  Dynamics}}, Springer, 2009.
+
+\end{thebibliography}

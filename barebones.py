@@ -25,6 +25,7 @@ def init():
     initial_conds = None
     solver_options = numpy.zeros(300)
     solver_options[0] = 1
+    solver_options[100] = 1
     solver_options[101] = 1
     solver_options[102] = 1
     solver_options[103] = 0

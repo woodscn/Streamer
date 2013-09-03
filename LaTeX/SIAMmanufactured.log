@@ -1,0 +1,155 @@
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  21 AUG 2013 12:28
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**SIAMmanufactured.tex
+(./SIAMmanufactured.tex
+LaTeX2e <2011/06/27>
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman-x-2012-05-30, ngerman-x-2012-05-30, afrikaans, ancientgreek, ibycus, arabi
+c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
+h, dutch, ukenglish, usenglishmax, esperanto, estonian, ethiopic, farsi, finnis
+h, french, friulan, galician, german, ngerman, swissgerman, monogreek, greek, h
+ungarian, icelandic, assamese, bengali, gujarati, hindi, kannada, malayalam, ma
+rathi, oriya, panjabi, tamil, telugu, indonesian, interlingua, irish, italian, 
+kurmanji, latin, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk,
+ polish, portuguese, romanian, romansh, russian, sanskrit, serbian, serbianc, s
+lovak, slovenian, spanish, swedish, turkish, turkmen, ukrainian, uppersorbian, 
+welsh, loaded.
+(./siamltex.cls
+Document Class: siamltex 1996/10/11 v1.2 LaTeX document class
+(/usr/local/texlive/2012/texmf-dist/tex/latex/base/leqno.clo
+File: leqno.clo 1998/08/17 v1.1c Standard LaTeX option (left equation numbers)
+)
+(/usr/local/texlive/2012/texmf-dist/tex/latex/base/leqno.clo
+File: leqno.clo 1998/08/17 v1.1c Standard LaTeX option (left equation numbers)
+) (./siam10.clo
+File: siam10.clo 1994/10/01 v1.0 SIAM LaTeX file (size option)
+)
+\c@section=\count79
+\c@subsection=\count80
+\c@subsubsection=\count81
+\c@paragraph=\count82
+\c@subparagraph=\count83
+\c@rmnum=\count84
+\c@muni=\count85
+\c@theorem=\count86
+\c@figure=\count87
+\c@table=\count88
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/local/texlive/2012/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2000/07/18 v2.13 AMS math features
+\@mathmargin=\skip43
+
+For additional information on amsmath, use the `?' option.
+(/usr/local/texlive/2012/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2000/06/29 v2.01
+
+(/usr/local/texlive/2012/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0
+\@emptytoks=\toks14
+\ex@=\dimen103
+))
+(/usr/local/texlive/2012/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d
+\pmbraise@=\dimen104
+)
+(/usr/local/texlive/2012/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 1999/12/14 v2.01 operator names
+)
+\inf@bad=\count89
+LaTeX Info: Redefining \frac on input line 211.
+\uproot@=\count90
+\leftroot@=\count91
+LaTeX Info: Redefining \overline on input line 307.
+\classnum@=\count92
+\DOTSCASE@=\count93
+LaTeX Info: Redefining \ldots on input line 379.
+LaTeX Info: Redefining \dots on input line 382.
+LaTeX Info: Redefining \cdots on input line 467.
+\Mathstrutbox@=\box26
+\strutbox@=\box27
+\big@size=\dimen105
+LaTeX Font Info:    Redeclaring font encoding OML on input line 567.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
+\macc@depth=\count94
+\c@MaxMatrixCols=\count95
+\dotsspace@=\muskip10
+\c@parentequation=\count96
+\dspbrk@lvl=\count97
+\tag@help=\toks15
+\row@=\count98
+\column@=\count99
+\maxfields@=\count100
+\andhelp@=\toks16
+\eqnshift@=\dimen106
+\alignsep@=\dimen107
+\tagshift@=\dimen108
+\tagwidth@=\dimen109
+\totwidth@=\dimen110
+\lineht@=\dimen111
+\@envbody=\toks17
+\multlinegap=\skip44
+\multlinetaggap=\skip45
+\mathdisplay@stack=\toks18
+LaTeX Info: Redefining \[ on input line 2666.
+LaTeX Info: Redefining \] on input line 2667.
+)
+(./SIAMmanufactured.aux)
+\openout1 = `SIAMmanufactured.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 86.
+LaTeX Font Info:    ... okay on input line 86.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 86.
+LaTeX Font Info:    ... okay on input line 86.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 86.
+LaTeX Font Info:    ... okay on input line 86.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 86.
+LaTeX Font Info:    ... okay on input line 86.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 86.
+LaTeX Font Info:    ... okay on input line 86.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 86.
+LaTeX Font Info:    ... okay on input line 86.
+ [1
+
+{/usr/local/texlive/2012/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+Missing character: There is no Õ in font cmr10!
+ [2]
+Missing character: There is no Õ in font cmr10!
+ [3] [4] [5] [6] [7] (./SIAMmanufactured.bbl) [8]
+(./SIAMmanufactured.aux) ) 
+Here is how much of TeX's memory you used:
+ 958 strings out of 493488
+ 10399 string characters out of 3141326
+ 71093 words of memory out of 3000000
+ 4313 multiletter control sequences out of 15000+200000
+ 7973 words of font info for 30 fonts, out of 3000000 for 9000
+ 957 hyphenation exceptions out of 8191
+ 27i,16n,20p,1040b,203s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/local/texlive/2012/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmcsc10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmex10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmmi10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmmi7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmr8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/c
+msy10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+sy6.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
+7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.
+pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.p
+fb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb
+>
+Output written on SIAMmanufactured.pdf (8 pages, 212705 bytes).
+PDF statistics:
+ 91 PDF objects out of 1000 (max. 8388607)
+ 65 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+
