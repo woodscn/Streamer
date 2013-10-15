@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  21 AUG 2013 12:28
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  27 SEP 2013 13:46
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -114,42 +114,86 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 86.
 LaTeX Font Info:    ... okay on input line 86.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 86.
 LaTeX Font Info:    ... okay on input line 86.
- [1
+
+
+LaTeX Warning: Citation `Roache1998' on page 1 undefined on input line 111.
+
+
+LaTeX Warning: Citation `Roache1998' on page 1 undefined on input line 119.
+
+[1
 
 {/usr/local/texlive/2012/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Missing character: There is no Õ in font cmr10!
- [2]
-Missing character: There is no Õ in font cmr10!
- [3] [4] [5] [6] [7] (./SIAMmanufactured.bbl) [8]
-(./SIAMmanufactured.aux) ) 
-Here is how much of TeX's memory you used:
- 958 strings out of 493488
- 10399 string characters out of 3141326
- 71093 words of memory out of 3000000
- 4313 multiletter control sequences out of 15000+200000
- 7973 words of font info for 30 fonts, out of 3000000 for 9000
- 957 hyphenation exceptions out of 8191
- 27i,16n,20p,1040b,203s stack positions out of 5000i,500n,10000p,200000b,50000s
-</usr/local/texlive/2012/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmcsc10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmex10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmmi7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmr10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmr7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmr8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/c
-msy10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-sy6.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
-7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.
-pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.p
-fb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb
->
-Output written on SIAMmanufactured.pdf (8 pages, 212705 bytes).
-PDF statistics:
- 91 PDF objects out of 1000 (max. 8388607)
- 65 compressed objects within 1 object stream
- 0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
+LaTeX Warning: Citation `Knupp2002' on page 2 undefined on input line 125.
+
+
+LaTeX Warning: Citation `Knupp2002' on page 2 undefined on input line 127.
+
+
+LaTeX Warning: Citation `Roache1998' on page 2 undefined on input line 127.
+
+Missing character: There is no Õ in font cmr10!
+
+LaTeX Warning: Citation `Knupp2002' on page 2 undefined on input line 137.
+
+[2]
+Missing character: There is no Õ in font cmr10!
+
+
+LaTeX Warning: Citation `Malaya2012' on page 3 undefined on input line 156.
+
+
+LaTeX Warning: Citation `Malaya2012' on page 3 undefined on input line 158.
+
+
+LaTeX Warning: Citation `Roache2002' on page 3 undefined on input line 158.
+
+
+LaTeX Warning: Citation `Knupp2002' on page 3 undefined on input line 158.
+
+[3]
+
+LaTeX Warning: Reference `eq:balance_law' on page 4 undefined on input line 184
+.
+
+
+LaTeX Warning: Reference `eq:balance_law' on page 4 undefined on input line 199
+.
+
+[4]
+
+LaTeX Warning: Citation `netlib' on page 5 undefined on input line 203.
+
+
+LaTeX Warning: Reference `eq:balance_law' on page 5 undefined on input line 209
+.
+
+[5]
+
+LaTeX Warning: Citation `Polyanin' on page 6 undefined on input line 232.
+
+
+LaTeX Warning: Reference `fig:heat_exact_residual' on page 6 undefined on input
+ line 242.
+
+./SIAMmanufactured.tex:246: Undefined control sequence.
+l.246 \includegraphics
+                      {heat_exact_best_parallelcoords.pdf}
+? 
+./SIAMmanufactured.tex:246: Emergency stop.
+l.246 \includegraphics
+                      {heat_exact_best_parallelcoords.pdf}
+End of file on the terminal!
+
+ 
+Here is how much of TeX's memory you used:
+ 946 strings out of 493488
+ 10236 string characters out of 3141326
+ 67093 words of memory out of 3000000
+ 4308 multiletter control sequences out of 15000+200000
+ 7320 words of font info for 28 fonts, out of 3000000 for 9000
+ 957 hyphenation exceptions out of 8191
+ 27i,9n,20p,1040b,203s stack positions out of 5000i,500n,10000p,200000b,50000s
+./SIAMmanufactured.tex:246:  ==> Fatal error occurred, no output PDF file produ
+ced!

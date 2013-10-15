@@ -105,43 +105,35 @@ contains
     do dir = 1, 3
        call riemann_solve(test_1_left,test_1_right,dir,1,[0d0],out,max_wave_speed,&
             riemann_middle_states,riemann_wave_speeds)
+       write(*,*) test_1_left(1:5)
+       write(*,*) test_1_right(1:5)
        write(*,*) riemann_middle_states
        write(*,*) riemann_wave_speeds
+       read(*,*)
        if(.not.(maxval(abs(riemann_middle_states-test_1_sol))<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs((riemann_wave_speeds-test_1_speeds)/test_1_speeds))<5d-5))&
             RieTester = 1
        call riemann_solve(test_2_left,test_2_right,dir,1,[0d0],out,max_wave_speed,&
             riemann_middle_states,riemann_wave_speeds)
-       write(*,*) riemann_middle_states
-       write(*,*) riemann_wave_speeds
        if(.not.(maxval(abs(riemann_middle_states-test_2_sol)/test_2_sol)<5d-3))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_2_speeds))<5d-4))&
             RieTester = 1
        call riemann_solve(test_3_left,test_3_right,dir,1,[0d0],out,max_wave_speed,&
             riemann_middle_states,riemann_wave_speeds)
-       write(*,*) riemann_middle_states
-       write(*,*) riemann_wave_speeds
        if(.not.(maxval(abs(riemann_middle_states-test_3_sol)/test_3_sol)<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_3_speeds))<7d-5))&
             RieTester = 1
        call riemann_solve(test_4_left,test_4_right,dir,1,[0d0],out,max_wave_speed,&
             riemann_middle_states,riemann_wave_speeds)
-       write(*,*) riemann_middle_states
-       write(*,*) riemann_wave_speeds
        if(.not.(maxval(abs(riemann_middle_states-test_4_sol)/test_4_sol)<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_4_speeds))<5d-5))&
             RieTester = 1
        call riemann_solve(test_5_left,test_5_right,dir,1,[0d0],out,max_wave_speed,&
             riemann_middle_states,riemann_wave_speeds)
-       write(*,*) test_5_left
-       write(*,*) test_5_right
-       write(*,*) riemann_middle_states
-       write(*,*) riemann_wave_speeds
-       read(*,*)
        if(.not.(maxval(abs(riemann_middle_states-test_5_sol)/test_5_sol)<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_5_speeds))<8d-5))&

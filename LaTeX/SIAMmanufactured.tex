@@ -230,17 +230,16 @@ A few exact solutions to this equation are given by:
 \item $u=A\exp\left(-a\mu^2t\right)\cos\left(\mu \xi+B\right)+C$
 \item $u=A\exp\left(-\mu \xi\right)\cos\left(\mu \xi-2a\mu^2t+B\right)+C$
 \end{enumerate}\cite{Polyanin},
-where $A$,$B$,$C$, $a$, and $\mu$ are arbitrary constants, and $n$ is a positive integer.
+where $A$,$B$,$C$, and $\mu$ are arbitrary constants, $n$ is a positive integer, and $a$ is the thermal diffusivity given by $a = \frac{k}{\rho c_p}$.
  
 The spatial coordinate $\xi$ is taken as
 \begin{equation}
 \label{eq:coord_rotation}
-\xi = \cos\left(\phi\right)\cos\left(\theta\right)x-\cos\left(\phi\right)\sin\left(\theta\right)y+
-\sin\left(\theta\right)z
+\xi = \cos(\theta)x+\sin(\theta)\cos(\phi)y+\sin(\theta)\sin(\phi)z,
 \end{equation}
-subject to the constraint $\phi = \theta$.
+so that $\theta$ corresponds to rotation away from the positive $x$-axis, and $\phi$ to rotation around the $x$-axis starting from the positive $y$-axis.
 
-The value of $S'$ can be computed for varying values of $\phi$ in order to measure the accuracy of a particular IMMS implementation, and results for {\tt BACL-IMMS} are shown in Fig. \ref{fig:heat_exact_residual}
+The value of $S'$ can be computed for varying values of $\theta$, $\phi$, and the other solution parameters, as a test of accuracy. A parallel-coordinates plot is shown in  in order to measure the accuracy of a particular IMMS implementation, and results for {\tt BACL-IMMS} are shown in Fig. \ref{fig:heat_exact_residual}
 
 \begin{figure}
 \label{fig:heat_exact_residual}
