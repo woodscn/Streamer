@@ -1,5 +1,6 @@
 import sys
 import numpy
+import scipy
 import BoundaryConditions
 import TimeAdvancementStuff as TAS
 TAS = TAS.timeadvancementstuff
@@ -101,7 +102,6 @@ class Stream(object):
         
     def advance(self,dt,opts=Options()):
         opts.xi_offset = self.xi_offset
-#        import pdb;pdb.set_trace()
         self.bounds(self.main_data,opts)
         for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
             if numpy.isnan(element):
@@ -109,10 +109,22 @@ class Stream(object):
                 import pdb;pdb.set_trace()
 #        print self.main_data[1,:,:,1]
 #        import pdb;pdb.set_trace()
+        import pdb;pdb.set_trace()
         [self.main_data,dt_out] = Godunov.prim_update(
-            numpy.asfortranarray(self.main_data),dt_in=0.0,cfl=.25,
-            nx=self.main_data.shape[1]-2,ny=self.main_data.shape[2]-2,
-            nz=self.main_data.shape[3]-2,options=opts.stream_options['solver_options'])
+            self.main_data,dt_in=0.0,cfl=.25,nx=self.main_data.shape[1]-2,
+            ny=self.main_data.shape[2]-2,nz=self.main_data.shape[3]-2,
+            options=opts.stream_options['solver_options'])
+        if opts.stream_options['manufactured']:
+            t=0.
+            t_array = [t,t+dt_out]
+            for i in range(self.main_data.shape[1]-2):
+                for j in range(self.main_data.shape[2]-2):
+                    for k in range(self.main_data.shape[3]-2):
+                        out = scipy.integrate.odeint(
+                            opts.stream_options['source_funcs'][i,j,k],
+                            self.main_data[:,i+1,j+1,k+1],t_array)
+            t+=dt_out
+#            opts['source_funcs']
         #! Check to see if a new column needs to be created
         check_create_column = TAS.checkcreatecolumn(
             self.main_data[:,1,1:-1,1:-1],self.main_data[:,0,1:-1,1:-1])
@@ -186,7 +198,7 @@ if __name__=='__main__':
             cProfile.run('run(filename)','cProfout')
             import pstats
             p=pstats.Stats('cProfout')
-            p.sort_stats('time').print_stats(10)        
+            p.sort_stats('time').print_stats(10)  
 #    usage = ""
 #    try:
 #        if sys.argv[1].startswith('-'):

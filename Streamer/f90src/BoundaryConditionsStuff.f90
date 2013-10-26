@@ -143,8 +143,8 @@ contains
 ! Return the boundary condition for a given point. 
 ! An example, corresponding to a constant pressure condition for five 
 ! physical variables only, would be as follows.
-!                   D             N
-!                 -----         -----
+!                   D             N                  
+!                 -----         -----                
 !                  [1]   [p_0]   [0]     [p_1]         [0]
 !                  [0]   [d_0]   [1]     [d_1]         [0]
 ! q(ghost point) = [0] * [u_0] + [1] * ( [u_1] + dxi * [0] )

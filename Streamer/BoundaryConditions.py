@@ -246,8 +246,8 @@ The current implementation is only valid for 2-dimensional simulations.'''
             # Only pass the points that lie completely within the patch.
             # I believe that using only computational coordinates may obviate
             # the problems with overlapping boundaries and such.
-            xi_min   =  np.ceil(min(patch.bounding_points_xi[:,0]))+opts.xi_offset
-            xi_max   = np.floor(max(patch.bounding_points_xi[:,0]))+opts.xi_offset
+            xi_min =  np.ceil(min(patch.bounding_points_xi[:,0]))+opts.xi_offset
+            xi_max = np.floor(max(patch.bounding_points_xi[:,0]))+opts.xi_offset
             eta_min  =  np.ceil(min(patch.bounding_points_xi[:,1]))
             eta_max  = np.floor(max(patch.bounding_points_xi[:,1]))
             zeta_min =  np.ceil(min(patch.bounding_points_xi[:,2]))
@@ -387,6 +387,8 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
         except ValueError: # This means that the truth value is ambiguous (array).
             iftest = bool(self.flow_state.ndim == 1)
         if iftest:
+            print "This segment of code is not ready for prime time yet."
+            import pdb;pdb.set_trace()
             temp = zeros((points.shape[1],points.shape[2]))
             for i in range(points.shape[1]):
                 for j in range(points.shape[2]):
@@ -429,6 +431,14 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
                     main_data,str(id(self)),self.dim,opts.t)
             except ValueError:
                 import pdb;pdb.set_trace()
+
+        elif self.type == 'Dirichlet':
+            interior_cell = main_data
+            Neumann = 0.*main_data
+            Dirichlet = Neumann + 1.
+            weights = (Dirichlet, Neumann)
+            Robin = self.flow_state
+            out[:,:,:] = self.BoundaryCondition(interior_cell,weights,Robin,1)
         else:
             print "Undefined patch type!"
             raise(Error)
@@ -437,17 +447,18 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
         '''
         Return the general boundary condition for a given point.
         
-        The boundary condition is assummed to be given by:
+        The boundary condition u_0 is assummed to be given by:
         
-        weights[0]*boundary_condition + weights[1]*normal_boundary_derivative...
+        weights[0]*u_0 + weights[1]*normal_boundary_derivative...
           =  Robin.
 
         Approximating the derivative by a centered difference, we return:
         
-        weights[0]*boundary_condition + 
-          weights[1]*(boundary_condition-bcstate)/dxi = Robin 
+        weights[0]*u_0 + weights[1]*(interior_cell-u_0)/dxi = Robin 
 
-        This is then solved for boundary_condition, which is returned.
+        This is then solved for u_0, which is returned:
+        
+        u_0 = (R - N/dxi)/(D - N/dxi)
 
         Depending on the value of weights, this can return Dirichlet, 
           Neumann, or Robin boundary conditions, as follows:
@@ -456,14 +467,15 @@ normal=[real('''+fcode(sp.diff(sp.sympify(self.boundary_surface.split('=')[1].st
         Neumann   : weights = [0,1]
         Robin     : weights = [1,1]
 
-        Inputs: 
+b        Inputs: 
           interior_cell: the value of the cell that lies on the boundary
           Robin: the value of the boundary value, derivative, or combination
           dxi: the grid spacing
           weights: a 2xn array, where n = len(interior_cell). 
         
         '''
-        (weights[1]*bc_state+dxi*Robin)/(weights[1]+weights[0]*dxi)
+#        import pdb;pdb.set_trace()
+        return (Robin - weights[1]*interior_cell/dxi)/(weights[0] - weights[1]/dxi)
     def firstOrderBoundaryCondition(self,interior_cell,Dirichlet,Neumann,
                                     bc_state,dxi):
         '''
