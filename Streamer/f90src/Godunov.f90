@@ -485,6 +485,7 @@ contains
     max_wave_speed = max(max_wave_speed,EPS)
     select case(time_step_scheme)
     case(0)
+       write(*,*) "Using given timestep" time_step_scheme
        dt = dt_in
     case(1)
        dt = min(CFL/max_wave_speed,dt_in)

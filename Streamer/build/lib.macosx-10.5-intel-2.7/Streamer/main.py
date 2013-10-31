@@ -1,5 +1,6 @@
 import sys
 import numpy
+import scipy
 import BoundaryConditions
 import TimeAdvancementStuff as TAS
 TAS = TAS.timeadvancementstuff
@@ -99,20 +100,33 @@ class Stream(object):
         return initial_condition
 #    def _find_computational_coords(self,
         
-    def advance(self,dt,opts=Options()):
+    def advance(self,t_in,dt,opts=Options()):
         opts.xi_offset = self.xi_offset
-#        import pdb;pdb.set_trace()
         self.bounds(self.main_data,opts)
         for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
             if numpy.isnan(element):
                 print ind
                 import pdb;pdb.set_trace()
-#        print self.main_data[1,:,:,1]
 #        import pdb;pdb.set_trace()
         [self.main_data,dt_out] = Godunov.prim_update(
-            numpy.asfortranarray(self.main_data),dt_in=0.0,cfl=.25,
-            nx=self.main_data.shape[1]-2,ny=self.main_data.shape[2]-2,
-            nz=self.main_data.shape[3]-2,options=opts.stream_options['solver_options'])
+            self.main_data,dt_in=0.0,cfl=.25,nx=self.main_data.shape[1]-2,
+            ny=self.main_data.shape[2]-2,nz=self.main_data.shape[3]-2,
+            options=opts.stream_options['solver_options'])
+        import pdb;pdb.set_trace()
+        t_out = t_in + dt_out
+        try:
+            if opts.stream_options['manufactured']:
+                t=0.
+                t_array = [t_in,t_out]
+                for i in range(self.main_data.shape[1]-2):
+                    for j in range(self.main_data.shape[2]-2):
+                        for k in range(self.main_data.shape[3]-2):
+                            out = scipy.integrate.odeint(
+                                opts.stream_options['source_funcs'][i,j,k],
+                                self.main_data[:,i+1,j+1,k+1],t_array)
+        except(KeyError):
+            pass
+#            opts['source_funcs']
         #! Check to see if a new column needs to be created
         check_create_column = TAS.checkcreatecolumn(
             self.main_data[:,1,1:-1,1:-1],self.main_data[:,0,1:-1,1:-1])
@@ -144,6 +158,7 @@ def run(input_file,interactive=False):
         print "Input file does not contain an init() function"
         sys.exit()
     streams = [Stream(bounds_init, initial_conds,stream_options)]
+    t = 0.
     dt = .0001 
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(200):
@@ -153,7 +168,9 @@ def run(input_file,interactive=False):
 #                import pdb;pdb.set_trace()
             advance_options = Options()
             advance_options.stream_options = stream_options
-            dt_out = stream.advance(dt,advance_options)
+            dt_out = stream.advance(t,dt,advance_options)
+            t += dt_out
+    import pdb;pdb.set_trace()
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=False)
     cgns.write_initial_data(stream.main_data,'test.cgns')
     if interactive_flag:
@@ -186,7 +203,7 @@ if __name__=='__main__':
             cProfile.run('run(filename)','cProfout')
             import pstats
             p=pstats.Stats('cProfout')
-            p.sort_stats('time').print_stats(10)        
+            p.sort_stats('time').print_stats(10)  
 #    usage = ""
 #    try:
 #        if sys.argv[1].startswith('-'):

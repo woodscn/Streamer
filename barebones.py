@@ -35,7 +35,6 @@ def init():
         'multistream':False,
         'solver_options':solver_options
         }
-    wall_height_throat = 0.5*numpy.tan(numpy.pi*15./180.)
     left_face_init.append(
         PatchInit('Inflow',
                   ((0.0,0.0,-.1),(0.0,0.0,0.1),(0.0,1.0,0.1),(0.0,1.0,-.1)),
@@ -48,21 +47,11 @@ def init():
                   1,'f = -x+3.6', 
                   None))
     bottom_face_init.append(
-        PatchInit('SolidWall',
+        PatchInit('Transmissive',
                   ((0.0,0.0,-.1),(3.6,0.0,-.1),(3.6,0.0,0.1),(0.0,0.0,0.1)),
             2,"f = y"))
-#    bottom_face_init.append(
-#        PatchInit('SolidWall',
-#                  ((0.5,0.0,-.1),(1.0,wall_height_throat,-.1),
-#                   (1.0,wall_height_throat,0.1),(0.5,0.0,0.1)),
-#            2,"f = "+str(wall_height_throat/0.5)+"*x - y"))
-#    bottom_face_init.append(
-#        PatchInit('SolidWall',
-#                  ((1.0,wall_height_throat,-.1),(3.6,wall_height_throat,-.1),
-#                   (3.6,wall_height_throat,0.1),(1.0,wall_height_throat,0.1)),
-#            2,"f = y"))
     top_face_init.append(
-        PatchInit('SolidWall',
+        PatchInit('Transmissive',
                   ((0.0,1.0,-.1),(3.6,1.0,-.1),(3.6,1.0,0.1),(0.0,1.0,0.1)),
             2,"f = -y"))
     back_face_init.append(

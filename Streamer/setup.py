@@ -11,7 +11,8 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
                                        '/usr/include','./bindings'],
                          libraries=['lapack','recipes_f90','minpack','cgns',
                                     'Streamer'],
-                         library_dirs=['/usr/local/lib','/usr/lib','.']
+                         library_dirs=['/usr/local/lib','/usr/lib','.'],
+                         extra_link_args=['-L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/']
                          )
     config.add_extension("Source_functions",
                          addl_source_dir+'Source_functions.f90',
@@ -20,7 +21,8 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
                                        '/usr/include','./bindings'],
                          libraries=['lapack','recipes_f90','minpack','cgns',
                                     'Streamer'],
-                         library_dirs=['/usr/local/lib','/usr/lib','.']
+                         library_dirs=['/usr/local/lib','/usr/lib','.'],
+                         extra_link_args=['-L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/']
                          )
 #    config.add_extension('Godunov',prepend_GU("Godunov.f90"),
 #                         extra_compile_args=["-fbounds-check"],
@@ -33,26 +35,30 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
                          extra_compile_args=["-fbounds-check"],
                          include_dirs=['/usr/local/include','/usr/include'],
                          libraries=['lapack'],
-                         library_dirs=['/usr/local/lib','/usr/lib']
+                         library_dirs=['/usr/local/lib','/usr/lib'],
+                         extra_link_args=['-L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/']
                          )
     config.add_extension('STLA_IO',addl_source_dir+'stla_io.f90',        
                          extra_compile_args=["-fbounds-check"],
                          include_dirs=['/usr/local/include','/usr/include'],
                          libraries=['lapack'],
-                         library_dirs=['/usr/local/lib','/usr/lib']
+                         library_dirs=['/usr/local/lib','/usr/lib'],
+                         extra_link_args=['-L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/']
                          )
     config.add_extension('TimeAdvancementStuff',
                          prepend_GU('TimeAdvancementStuff.f90'),
                          extra_compile_args=["-fbounds-check"],
                          include_dirs=['/usr/local/include','/usr/include'],
                          libraries=['lapack'],
-                         library_dirs=['/usr/local/lib','/usr/lib']
+                         library_dirs=['/usr/local/lib','/usr/lib'],
+                         extra_link_args=['-L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/']
                          )
     config.add_extension('CGNS_Interface',addl_source_dir+'cgns_interface.f90',
                          include_dirs=['/usr/local/include','/usr/include'],
                          libraries=['cgns','lapack'],
                          library_dirs=['/usr/local/lib','/usr/lib'],
-                         extra_compile_args=["-fbounds-check"])
+                         extra_compile_args=["-fbounds-check"],
+                         extra_link_args=['-L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/'])
     return config
 
 def prepend_GU(fin):

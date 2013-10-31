@@ -1,5 +1,5 @@
-GFORTRAN module version '6' created from ./GU.f90 on Mon Jan 14 16:50:17 2013
-MD5:9e2e95820d4163f3346e42c642783d57 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '6' created from ./f90src/TimeAdvancementStuffGU.f90 on Wed Oct 30 11:28:59 2013
+MD5:c81a26ea61f2fdf420d9f6748193aeea -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () ()
 () () () ())
@@ -18,16 +18,15 @@ MD5:9e2e95820d4163f3346e42c642783d57 -- If you edit this, you'll get what you de
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 FUNCTION ELEMENTAL PURE)
 (REAL 8 0 0 REAL ()) 0 0 () () 2 () () () 0 0)
 3 'checkcreatecolumn' 'timeadvancementstuff' 'checkcreatecolumn' 1 ((
-PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 FUNCTION
-IMPLICIT_PURE) (LOGICAL 4 0 0 LOGICAL ()) 4 0 (5 6 7 8) () 3 () () () 0
-0)
+PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 FUNCTION) (
+LOGICAL 4 0 0 LOGICAL ()) 4 0 (5 6 7 8) () 3 () () () 0 0)
 9 'computationalgrads' 'generalutilities' 'computationalgrads' 1 ((
 PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE
 IMPLICIT_PURE) (UNKNOWN 0 0 0 UNKNOWN ()) 10 0 (11 12 13 14 15) () 0 ()
 () () 0 0)
 16 'createcolumn' 'timeadvancementstuff' 'createcolumn' 1 ((PROCEDURE
-UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE) (
-UNKNOWN 0 0 0 UNKNOWN ()) 17 0 (18 19 20 21 22) () 0 () () () 0 0)
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 17 0 (18 19 20 21 22) () 0 () () () 0 0)
 23 'eps' 'generalutilities' 'eps' 1 ((PARAMETER UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 REAL ()) 0 0 () (
 CONSTANT (REAL 8 0 0 REAL ()) 0 '0.16849b86a12b9b@-11') () 0 () () () 0

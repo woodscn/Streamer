@@ -137,7 +137,7 @@ Creating .mod files for FortranNormalVectors
         f2py.compile(fortran_normal_src,modulename='FortranNormalVectors',
                      verbose=False,source_fn='FortranNormalVectors.f90',
                      extra_args=
-                     '--quiet --f90flags=-Wno-unused-dummy-argument')
+                     '--quiet --f90flags=-Wno-unused-dummy-argument -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib/')
     def __iter__(self):
         faces = (self.left_face,self.right_face,self.bottom_face,self.top_face,
                  self.back_face,self.front_face)
