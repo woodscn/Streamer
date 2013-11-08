@@ -4,7 +4,7 @@ AR = ar
 ARFLAGS = rv
 FC = gfortran
 # Debug options for gfortran
-FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p
+FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p #-fopenmp
 # # Release options for gfortran
 # FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -O3
 # # Profiling options for gfortran
@@ -43,7 +43,6 @@ libStreamer.a: $(LIBSRCDIR)/GeneralUtilities.o \
 	$(LIBSRCDIR)/Riemann.o \
 	$(LIBSRCDIR)/TimeAdvancementStuff.o \
 	$(LIBSRCDIR)/Godunov.o \
-	$(LIBSRCDIR)/ODE_Solvers.o \
 	$(LIBSRCDIR)/BoundaryConditionsStuff.o \
 	$(LIBSRCDIR)/FortranNormalVectors.o \
 	$(LIBSRCDIR)/cgns_interface.o
@@ -73,4 +72,4 @@ $(LIBTESTSRCDIR)/Godunov_tester.o: $(DRVDIR)/Godunov_driver.o
 	$(FC) -c $(FFLAGS) $< -o $@
 clean: 
 	$(RM) $(LIBSRCDIR)/*.o $(LIBTESTSRCDIR)/*.o $(DRVDIR)/Godunov_driver.o \
-	$(MODDIR)/*.mod libStreamer.a
+	$(MODDIR)/*.mod libStreamer.a libStreamerTest.a

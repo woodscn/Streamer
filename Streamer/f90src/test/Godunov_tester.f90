@@ -15,6 +15,11 @@ module Godunov_tester
   use GodunovDriver
   use TimeAdvancementStuff
 contains
+  real(8) function norm2(in)
+    implicit none
+    real(8), dimension(:), intent(in) :: in
+    norm2 = sqrt(sum(in**2))
+  end function norm2
   integer function GodErrorReader(in)
     integer, intent(in) :: in
     write(*,*) 
