@@ -3,9 +3,12 @@ module Godunov
   use Riemann
   implicit none
   real(8), parameter :: max_dt = 1.d0
-  real(8), parameter :: dxi   = 1.d0
-  real(8), parameter :: deta  = 1.d0
-  real(8), parameter :: dzeta = 1.d0
+  real(8), parameter :: dxi   = .5d0
+  real(8), parameter :: deta  = .5d0
+  real(8), parameter :: dzeta = .5d0
+!  real(8), parameter :: dxi   = 1.d0
+!  real(8), parameter :: deta  = 1.d0
+!  real(8), parameter :: dzeta = 1.d0
   real(8), parameter :: dxi_inv   = 1.d0/dxi
   real(8), parameter :: deta_inv  = 1.d0/deta
   real(8), parameter :: dzeta_inv = 1.d0/dzeta

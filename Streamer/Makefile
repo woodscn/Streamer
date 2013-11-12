@@ -22,6 +22,7 @@ LDFLAGS = -L. -llapack -lStreamer -lStreamerTest -lminpack #-lcgns
 MODDIR = ./bindings
 LIBSRCDIR = ./f90src
 LIBTESTSRCDIR = ./f90src/test
+MINPACKSRCDIR = ./minpack
 DATDIR = ./dat
 EXEDIR = ./exe
 DRVDIR = .
@@ -53,7 +54,7 @@ $(LIBSRCDIR)/Godunov.o: $(LIBSRCDIR)/GeneralUtilities.o \
 $(LIBSRCDIR)/ODE_Solvers.o: $(LIBSRCDIR)/Source_functions.o
 $(LIBSRCDIR)/Source_functions.o: $(LIBSRCDIR)/GeneralUtilities.o
 $(LIBSRCDIR)/BoundaryConditionsStuff.o: $(LIBSRCDIR)/GeneralUtilities.o
-check: lib libStreamerTest.a\
+check: lib libStreamerTest.a libminpack.a\
 	$(LIBTESTSRCDIR)/test_program.f90 \
 	$(DRVDIR)/Godunov_driver.f90 \
 # 	End dependencies
@@ -65,6 +66,14 @@ libStreamerTest.a: $(LIBTESTSRCDIR)/GeneralUtilities_tester.o \
 	$(LIBTESTSRCDIR)/Riemann_tester.o 
 #	$(LIBTESTSRCDIR)/ODE_Solvers_tester.o
 	$(AR) $(ARFLAGS) $@ $?
+libminpack.a: $(MINPACKSRCDIR)/lmder1.o \
+	$(MINPACKSRCDIR)/dpmpar.o \
+	$(MINPACKSRCDIR)/lmder.o \
+	$(MINPACKSRCDIR)/lmpar.o \
+	$(MINPACKSRCDIR)/qrsolv.o \
+	$(MINPACKSRCDIR)/enorm.o \
+	$(MINPACKSRCDIR)/qrfac.o
+	$(AR) $(ARFLAGS) $@ $?
 $(LIBTESTSRCDIR)/Godunov_tester.o: $(DRVDIR)/Godunov_driver.o
 #$(EXEDIR)/test_program: $(SRCDIR)/test_program.f90 lib
 #	$(FC) $(FFLAGS) $(LDFLAGS) $< -o $@
@@ -72,4 +81,4 @@ $(LIBTESTSRCDIR)/Godunov_tester.o: $(DRVDIR)/Godunov_driver.o
 	$(FC) -c $(FFLAGS) $< -o $@
 clean: 
 	$(RM) $(LIBSRCDIR)/*.o $(LIBTESTSRCDIR)/*.o $(DRVDIR)/Godunov_driver.o \
-	$(MODDIR)/*.mod libStreamer.a libStreamerTest.a
+	$(MODDIR)/*.mod libStreamer.a libStreamerTest.a *.so *.a *.mod *.o
