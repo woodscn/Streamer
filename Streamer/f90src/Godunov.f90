@@ -495,8 +495,6 @@ contains
     end select
     dt_out = dt
 !    write(*,*) "Got here -- prim_update"
-    write(*,*) "Got here too"
-    write(*,*) size(main,1),size(main,2),size(main,3),size(main,4)
     call primtocons(main(:,0:nx-1,0:ny-1,0:nz-1))
     main(1:14,0:nx-1,0:ny-1,0:nz-1) = main(1:14,0:nx-1,0:ny-1,0:nz-1) - (&
          (fluxx(:,1:nx,:,:)-fluxx(:,0:nx-1,:,:))*deta*dzeta + &

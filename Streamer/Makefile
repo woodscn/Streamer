@@ -17,7 +17,7 @@ FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p 
 # # Profiling options for ifort
 # FFLAGS = -I/usr/local/include -module $(MODDIR) -fast -p
 
-LDFLAGS = -L. -llapack -lminpack -lStreamer -lcgns -lStreamerTest
+LDFLAGS = -L. -llapack -lStreamer -lStreamerTest -lminpack #-lcgns
 
 MODDIR = ./bindings
 LIBSRCDIR = ./f90src

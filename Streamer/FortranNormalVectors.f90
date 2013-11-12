@@ -19,17 +19,17 @@ x = main_data(18,i,j)
 y = main_data(19,i,j)
 z = main_data(20,i,j)
 select case (patch_id)
-case(4353256464_8)
+case(4413138640_8)
 normal=[real(1,8),real(0,8),real(0,8)]
-case(4365595408_8)
+case(4420121680_8)
 normal=[real(-1,8),real(0,8),real(0,8)]
-case(4365594896_8)
+case(4420122320_8)
 normal=[real(0,8),real(1,8),real(0,8)]
-case(4363883280_8)
+case(4420121808_8)
 normal=[real(0,8),real(-1,8),real(0,8)]
-case(4363885520_8)
+case(4420120976_8)
 normal=[real(0,8),real(0,8),real(1,8)]
-case(4363891856_8)
+case(4420123536_8)
 normal=[real(0,8),real(0,8),real(1,8)]
 end select
 out(:,i,j) = WallReflect(main_data(:,i,j), normal,&
