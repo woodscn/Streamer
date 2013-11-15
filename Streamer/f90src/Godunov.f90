@@ -3,16 +3,17 @@ module Godunov
   use Riemann
   implicit none
   real(8), parameter :: max_dt = 1.d0
-  real(8), parameter :: dxi   = .5d0
-  real(8), parameter :: deta  = .5d0
-  real(8), parameter :: dzeta = .5d0
+  real(8), dimension(3), parameter :: dxi_a = [1.d0, .5d0, .25d0]
+  real(8), dimension(3), parameter :: deta_a = [1.d0, .5d0, .25d0]
+  real(8), dimension(3), parameter :: dzeta_a = [1.d0, .5d0, .25d0]
+  real(8) :: dxi, deta, dzeta, dxi_inv, deta_inv, dzeta_inv, dV_inv
 !  real(8), parameter :: dxi   = 1.d0
 !  real(8), parameter :: deta  = 1.d0
 !  real(8), parameter :: dzeta = 1.d0
-  real(8), parameter :: dxi_inv   = 1.d0/dxi
-  real(8), parameter :: deta_inv  = 1.d0/deta
-  real(8), parameter :: dzeta_inv = 1.d0/dzeta
-  real(8), parameter :: dV_inv = dxi_inv*deta_inv*dzeta_inv
+!  real(8), parameter :: dxi_inv   = 1.d0/dxi
+!  real(8), parameter :: deta_inv  = 1.d0/deta
+!  real(8), parameter :: dzeta_inv = 1.d0/dzeta
+!  real(8), parameter :: dV_inv = dxi_inv*deta_inv*dzeta_inv
 !  integer :: update_type = 1 ! 1 = FV, 2 = HUI3D
 
   interface primtocons
@@ -426,6 +427,11 @@ contains
     spatial_order = opts(102)
     grid_motion = opts(103)
     time_step_scheme = opts(104)
+    ! Set module values for dxi, deta, dzeta, based on opts.
+    dxi = dxi_a(opts(3)+1); deta = deta_a(opts(4)+1); dzeta = dzeta_a(opts(5)+1)
+    dxi_inv = 1.d0/dxi; deta_inv = 1.d0/deta; dzeta_inv = 1.d0/dzeta
+    dV_inv = dxi_inv*deta_inv*dzeta_inv
+    
   ! Riemann_solve expects the left and right states to express velocities in
   ! grid-oriented components: normal, tangential, tangential.
     fluxx = 0d0; fluxy = 0d0; fluxz = 0d0

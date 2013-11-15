@@ -6,7 +6,7 @@ libpath = os.path.abspath('/Users/woodscn/')
 sys.path.insert(0,libpath)
 from manufactured import Euler_UCS
 Euler_UCS = Euler_UCS.Euler_UCS(
-    Euler_UCS.MASA_with_pinned_bounds([[0,100],[0,1],[0,1]])
+    Euler_UCS.MASA_with_pinned_bounds([[0,100],[0,1],[0,1]],(25,1,1))
     )
 manufactured_source_function = Euler_UCS.balance_lambda_init()
 

@@ -1,5 +1,5 @@
 GFORTRAN module version '10' created from ./Godunov_driver.f90
-MD5:0479209c7241cee456a11dc98b624c8b -- If you edit this, you'll get what you deserve.
+MD5:6f7a504464e9bbd906b1bcd44b769790 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () ()
 () () () ())
@@ -37,25 +37,25 @@ MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE ALWAYS_EXPLICIT) (
 UNKNOWN 0 0 0 0 UNKNOWN ()) 35 0 (36) () 0 () () () 0 0)
 37 'deta' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (REAL 8 0 0 0
-REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL ()) 0 '0.80000000000000@0') () 0 () () () 0 0)
 38 'deta_inv' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (
-REAL 8 0 0 0 REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL 8 0 0 0 REAL ()) 0 '0.20000000000000@1') () 0 () () () 0 0)
 39 'dv_inv' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (
-REAL 8 0 0 0 REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL 8 0 0 0 REAL ()) 0 '0.80000000000000@1') () 0 () () () 0 0)
 40 'dxi' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (REAL 8 0 0 0
-REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL ()) 0 '0.80000000000000@0') () 0 () () () 0 0)
 41 'dxi_inv' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (
-REAL 8 0 0 0 REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL 8 0 0 0 REAL ()) 0 '0.20000000000000@1') () 0 () () () 0 0)
 42 'dzeta' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (
-REAL 8 0 0 0 REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL 8 0 0 0 REAL ()) 0 '0.80000000000000@0') () 0 () () () 0 0)
 43 'dzeta_inv' 'godunov' '' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () (CONSTANT (
-REAL 8 0 0 0 REAL ()) 0 '0.10000000000000@1') () 0 () () () 0 0)
+REAL 8 0 0 0 REAL ()) 0 '0.20000000000000@1') () 0 () () () 0 0)
 44 'energy_func' 'godunov' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC
 DECL UNKNOWN 0 0 FUNCTION IMPLICIT_PURE ALWAYS_EXPLICIT) (REAL 8 0 0 0
 REAL ()) 45 0 (46) () 44 () () () 0 0)
