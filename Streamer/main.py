@@ -188,7 +188,6 @@ def run(input_file,interactive=False):
             t += dt_out
             TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
                                    0.,first_flag=False)
-            import pdb;pdb.set_trace()
     
 #    cgns.write_initial_data(stream.main_data,'test.cgns')
     return streams, errors, sol
