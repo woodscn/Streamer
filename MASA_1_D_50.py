@@ -5,9 +5,14 @@ import numpy
 libpath = os.path.abspath('/Users/woodscn/')
 sys.path.insert(0,libpath)
 from manufactured import Euler_UCS
+xmin,xmax,ymin,ymax,zmin,zmax = 0,100,0,1,0,1
+nx = 51
+ny = 1
+nz = 1
+dxis = [1,1,1]
 Euler_UCS = Euler_UCS.Euler_UCS(
-    Euler_UCS.MASA_with_pinned_bounds([[0,100],[0,1],[0,1]])
-    )
+    Euler_UCS.MASA_with_pinned_bounds(
+        ranges=[[xmin,xmax],[ymin,ymax],[zmin,zmax]],nxes=(nx,ny,nz),dxis=dxis))
 manufactured_source_function = Euler_UCS.balance_lambda_init()
 
 class PatchInit:
@@ -32,22 +37,46 @@ def init():
     bottom_face_init = []
     back_face_init = []
     front_face_init = []
-    nx = 50
-    ny = 1
-    nz = 1
     initial_conds = numpy.zeros((21,nx,ny,nz),order="F")
     source_funcs = numpy.zeros((nx,ny,nz),dtype=object)
     Dirichlet_pin = 0.01
-    x_bcs = numpy.zeros((21,ny,nz))
-    y_bcs = numpy.zeros((21,nx,nz))
-    z_bcs = numpy.zeros((21,nx,ny))
-    x_bcs[:5,:,:] += Dirichlet_pin
-    x_bcs[5:14:4,:,:] = 1.
-    y_bcs[:5,:,:] += Dirichlet_pin
-    y_bcs[5:14:4,:,:] = 1.
-    z_bcs[:5,:,:] += Dirichlet_pin
-    z_bcs[5:14:4,:,:] = 1.
-    x_bcs[-1],y_bcs[-1],z_bcs[-1] = 1.,1.,1.
+    x_min_bcs = numpy.zeros((21,ny,nz))
+    x_max_bcs = numpy.zeros((21,ny,nz))
+    for inda in range(ny):
+        for indb in range(nz):
+            x_min_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
+                        Euler_UCS.vars_,(0.,xmin,float(inda),float(indb))))
+                                                          ).evalf()[:]
+            x_max_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
+                        Euler_UCS.vars_,(0.,xmax,float(inda),float(indb))))
+                                                          ).evalf()[:]
+    y_min_bcs = numpy.zeros((21,nx,nz))
+    y_max_bcs = numpy.zeros((21,nx,nz))
+    for inda in range(nx):
+        for indb in range(nz):
+            y_min_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
+                        Euler_UCS.vars_,(0.,float(inda),ymin,float(indb))))
+                                                          ).evalf()[:]
+            y_max_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
+                        Euler_UCS.vars_,(0.,float(inda),ymax,float(indb))))
+                                                          ).evalf()[:]
+    z_min_bcs = numpy.zeros((21,nx,ny))
+    z_max_bcs = numpy.zeros((21,nx,ny))
+    for inda in range(nx):
+        for indb in range(ny):
+            z_min_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
+                        Euler_UCS.vars_,(0.,float(inda),float(indb),zmin)))
+                                                          ).evalf()[:]
+            z_max_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
+                        Euler_UCS.vars_,(0.,float(inda),float(indb),zmax)))
+                                                          ).evalf()[:]
+#    x_bcs[:5,:,:] += Dirichlet_pin
+#    x_bcs[5:14:4,:,:] = 1.
+#    y_bcs[:5,:,:] += Dirichlet_pin
+#    y_bcs[5:14:4,:,:] = 1.
+#    z_bcs[:5,:,:] += Dirichlet_pin
+#    z_bcs[5:14:4,:,:] = 1.
+#    x_bcs[-1],y_bcs[-1],z_bcs[-1] = 1.,1.,1.
 
     for i in range(nx):
         for j in range(ny):
@@ -92,67 +121,33 @@ def init():
         }
     left_face_init.append(
         PatchInit('Dirichlet',
-                  ((0.0,0.0,-.1),(0.0,0.0,0.1),(0.0,1.0,0.1),(0.0,1.0,-.1)),
-                  1,'f = x',x_bcs))
+                  ((0.0,-.1,-.1),(0.0,-.1,1.1),(0.0,1.1,1.1),(0.0,1.1,-.1)),
+                  1,'f = x',x_min_bcs))
     right_face_init.append(
         PatchInit('Dirichlet',
-                  ((1.0,0.0,-.1),(0.0,1.0,-.1),(0.0,1.0,0.1),(0.0,0.0,0.1)),
-                  1,'f = -x+1.0',x_bcs))
+                  ((100.0,-.1,-.1),(100.0,1.1,-.1),
+                   (100.0,1.1,1.1),(100.0,-.1,1.1)),
+                  1,'f = -x+100.0',x_max_bcs))
     bottom_face_init.append(
-        PatchInit('Transmissive',#'Dirichlet',
-                  ((0.0,0.0,-.1),(100.1,0.0,-.1),(100.1,0.0,0.1),(0.0,0.0,0.1)),
-                  2,"f = y",y_bcs))
+        PatchInit('Transmissive',
+                  ((-.1,0.0,-.1),(100.1,0.0,-.1),(100.1,0.0,1.1),(-0.1,0.0,1.1)),
+                  2,"f = y",y_min_bcs))
     top_face_init.append(
-        PatchInit('Transmissive',#'Dirichlet',
-#        PatchInit('Dirichlet',
-                  ((0.0,1.0,-.1),(100.1,1.0,-.1),(100.1,1.0,0.1),(0.0,1.0,0.1)),
-                  2,"f = 1.-y",y_bcs))
+        PatchInit('Transmissive',
+                  ((-.1,1.0,-.1),(100.1,1.0,-.1),(100.1,1.0,1.1),(-.1,1.0,1.1)),
+                  2,"f = 1.-y",y_max_bcs))
     back_face_init.append(
-        PatchInit('Transmissive',#'Dirichlet',
-#        PatchInit('Dirichlet',
-                  ((0.0,0.0,-.1),(100.1,0.0,-.1),(100.1,1.0,-.1),(0.0,1.0,-.1)),
-                  3,'f = z+.1',z_bcs))
+        PatchInit('Transmissive',
+                  ((-.1,-.1,0.),(100.1,-0.1,0.),(100.1,1.1,0.),(-.1,1.1,0.)),
+                  3,'f = z+1',z_min_bcs))
     front_face_init.append(
-        PatchInit('Transmissive',#'Dirichlet',
-#        PatchInit('Dirichlet',
-                  ((0.0,0.0,0.1),(100.1,0.0,0.1),(100.1,1.0,0.1),(0.0,1.0,0.1)),
-                  3,'f = z-.1',z_bcs))
+        PatchInit('Transmissive',
+                  ((-.1,-.1,1.),(100.1,-.1,1.),(100.1,1.1,1.),(-0.1,1.1,1.)),
+                  3,'f = z-1',z_max_bcs))
     bounds_init = BoundsInit(lf=left_face_init,rf=right_face_init,
                              bof=bottom_face_init,tf=top_face_init,
                              baf=back_face_init,ff=front_face_init)
     return bounds_init, initial_conds, stream_options
-
-def MASA_generator():
-    import numpy as np
-    inputs = np.zeros((21,25,1))
-    inputs[0,:,:] = 1.
-    inputs[1,:,:] = 1.
-    inputs[2,:,:] = 1.8*np.sqrt(1.4*inputs[0,:,:]/inputs[1,:,:])
-    inputs[3,:,:] = 0.
-    inputs[4,:,:] = 0.
-    inputs[ 5,:,:] = 1./24.
-    inputs[ 6,:,:] = 0.
-    inputs[ 7,:,:] = 0.
-    inputs[ 8,:,:] = 0.
-    inputs[ 9,:,:] = 1./24.
-    inputs[10,:,:] = 0.
-    inputs[11,:,:] = 0.
-    inputs[12,:,:] = 0.
-    inputs[13,:,:] = 1.
-    inputs[14,:,:] = .25*inputs[2,:,:]
-    inputs[15,:,:] = 0.
-    inputs[16,:,:] = 0.
-    inputs[17,:,:] = 0.
-    for inda in range(inputs.shape[1]):
-        for indb in range(inputs.shape[2]):
-            inputs[18,inda,indb] = 1./25.*(inda+.5)
-            inputs[19,inda,indb] = 0.
-    inputs[20,:,:] = 1./24./24.
-    # np.savetxt("transonic_duct_bounds_x.txt",np.reshape(inputs[17,:,:],-1))
-    # np.savetxt("transonic_duct_bounds_y.txt",np.reshape(inputs[18,:,:],-1))
-    # np.savetxt("transonic_duct_bounds_z.txt",np.reshape(inputs[19,:,:],-1))
-    # np.save("transonic_duct_bounds",inputs)
-    return(inputs)
 
 if __name__=='__main__':
     test = init()
