@@ -9,7 +9,7 @@ xmin,xmax,ymin,ymax,zmin,zmax = 0,100,0,1,0,1
 nx = 26
 ny = 1
 nz = 1
-dxis = [1,1,1]
+dxis = [4,1,1]
 Euler_UCS = Euler_UCS.Euler_UCS(
     Euler_UCS.MASA_with_pinned_bounds(
         ranges=[[xmin,xmax],[ymin,ymax],[zmin,zmax]],nxes=(nx,ny,nz),dxis=dxis))
@@ -45,30 +45,38 @@ def init():
     for inda in range(ny):
         for indb in range(nz):
             x_min_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
-                        Euler_UCS.vars_,(0.,xmin,float(inda),float(indb))))
+                        Euler_UCS.vars_,(0.,xmin,
+                                         dxis[1]*float(inda),
+                                         dxis[2]*float(indb))))
                                                           ).evalf()[:]
             x_max_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
-                        Euler_UCS.vars_,(0.,xmax,float(inda),float(indb))))
+                        Euler_UCS.vars_,(0.,xmax,
+                                         dxis[1]*float(inda),
+                                         dxis[2]*float(indb))))
                                                           ).evalf()[:]
     y_min_bcs = numpy.zeros((21,nx,nz))
     y_max_bcs = numpy.zeros((21,nx,nz))
     for inda in range(nx):
         for indb in range(nz):
             y_min_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
-                        Euler_UCS.vars_,(0.,float(inda),ymin,float(indb))))
+                        Euler_UCS.vars_,(0.,dxis[0]*float(inda),
+                                         ymin,dxis[2]*float(indb))))
                                                           ).evalf()[:]
             y_max_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
-                        Euler_UCS.vars_,(0.,float(inda),ymax,float(indb))))
+                        Euler_UCS.vars_,(0.,dxis[0]*float(inda),
+                                         ymax,dxis[1]*float(indb))))
                                                           ).evalf()[:]
     z_min_bcs = numpy.zeros((21,nx,ny))
     z_max_bcs = numpy.zeros((21,nx,ny))
     for inda in range(nx):
         for indb in range(ny):
             z_min_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
-                        Euler_UCS.vars_,(0.,float(inda),float(indb),zmin)))
+                        Euler_UCS.vars_,(0.,dxis[0]*float(inda),
+                                         dxis[1]*float(indb),zmin)))
                                                           ).evalf()[:]
             z_max_bcs[:-1,inda,indb] = Euler_UCS.sol.subs(dict(zip(
-                        Euler_UCS.vars_,(0.,float(inda),float(indb),zmax)))
+                        Euler_UCS.vars_,(0.,dxis[0]*float(inda),
+                                         dxis[1]*float(indb),zmax)))
                                                           ).evalf()[:]
 #    x_bcs[:5,:,:] += Dirichlet_pin
 #    x_bcs[5:14:4,:,:] = 1.
@@ -85,8 +93,11 @@ def init():
 #                    dict(zip(Euler_UCS.vars_,(0,i,j,k)))).evalf()
                 initial_conds[:-1,i,j,k] = Euler_UCS.sol.subs(dict(zip(
                             Euler_UCS.vars_,
-                            (0.,float(i),float(j),float(k))))).evalf()[:]
-                source_funcs[i,j,k] = (lambda y, t, i=i, j=j, k=k : numpy.array(
+                            (0.,dxis[0]*float(i),dxis[1]*float(j),
+                             dxis[2]*float(k))))).evalf()[:]
+                source_funcs[i,j,k] = (lambda y, t, i=(dxis[0]*i), 
+                                       j=(dxis[1]*j), 
+                                       k=(dxis[2]*k) : numpy.array(
                         [item[0,0] for item in 
                          manufactured_source_function(t,i,j,k)]+[0]
                         ,dtype=numpy.float64))
@@ -94,7 +105,9 @@ def init():
                                initial_conds[13,:,:,:])
     exact_solution = lambda t,x,y,z : (
         numpy.array(
-            Euler_UCS.sol.subs(dict(zip(Euler_UCS.vars_,(t,x,y,z)))).evalf()[:]
+            Euler_UCS.sol.subs(dict(zip(Euler_UCS.vars_,(t,dxis[0]*x,
+                                                         dxis[1]*y,dxis[2]*z
+                                                         )))).evalf()[:]
             )       
         )
     solver_options = numpy.zeros(300)
@@ -106,6 +119,7 @@ def init():
 # [104]: Controls type of time step (constant or CFL)
 # [201-203]: same as [101-103]
     solver_options[0] = 1
+    solver_options[2] = 5
     solver_options[100] = 1
     solver_options[101] = 1
     solver_options[102] = 0
