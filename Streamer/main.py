@@ -155,6 +155,7 @@ def run(input_file,interactive=False):
         bounds_init, initial_conds, stream_options = init_.init()
     except AttributeError:
         print "Input file does not contain an init() function"
+        import pdb;pdb.set_trace()
         sys.exit()
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     t = 0.
@@ -163,7 +164,7 @@ def run(input_file,interactive=False):
     temp = numpy.zeros((20,streams[0].main_data.shape[1]-2,
                         streams[0].main_data.shape[2]-2,
                         streams[0].main_data.shape[3]-2,1))
-    sol = numpy.array(temp)
+    sol_temp = numpy.array(temp)
 #    temp = numpy.array(errors)
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(nt):
@@ -172,16 +173,18 @@ def run(input_file,interactive=False):
             for inda in range(temp.shape[1]):
                 for indb in range(temp.shape[2]):
                     for indc in range(temp.shape[3]):
-                        sol[:,inda,indb,indc,0] = numpy.array(
+                        sol_temp[:,inda,indb,indc,0] = numpy.array(
                             stream_options['exact_sol_func'](
                                 t,inda,indb,indc))
                         temp[:,inda,indb,indc,0] = (
                             stream.main_data[:-1,inda+1,indb+1,indc+1]-
-                            sol[:,inda,indb,indc,0])
+                            sol_temp[:,inda,indb,indc,0])
             try:
                 errors = numpy.concatenate((errors,temp),axis=4)
+                sol = numpy.concatenate((sol,sol_temp),axis=4)
             except(NameError):
                 errors = numpy.array(temp)
+                sol = numpy.array(sol_temp)
             advance_options = Options()
             advance_options.stream_options = stream_options
             dt_out = stream.advance(t,dt,advance_options)
