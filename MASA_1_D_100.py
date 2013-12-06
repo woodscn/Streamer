@@ -11,7 +11,7 @@ ny = 1
 nz = 1
 dxis = [1,1,1]
 Euler_UCS = Euler_UCS.Euler_UCS(
-    Euler_UCS.MASA_with_pinned_bounds(
+    Euler_UCS.MASA_solution_full(
         ranges=[[xmin,xmax],[ymin,ymax],[zmin,zmax]],nxes=(nx,ny,nz),dxis=dxis))
 manufactured_source_function = Euler_UCS.balance_lambda_init()
 
@@ -119,7 +119,7 @@ def init():
 # [104]: Controls type of time step (constant or CFL)
 # [201-203]: same as [101-103]
     solver_options[0] = 1
-    solver_options[2] = 0
+    solver_options[2] = 5
     solver_options[100] = 1
     solver_options[101] = 1
     solver_options[102] = 0
