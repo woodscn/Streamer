@@ -80,18 +80,18 @@ def init():
     return bounds_init, initial_conds, stream_options
 
 def initial_condition():
-    nx,ny,nz = 60,100,1
+    nx,ny,nz = 30,50,1
     xmin,xmax = 0.,.6
     ymin,ymax = -.5,.5
     zmin,zmax = 0.,0.
     dx,dy,dz = (xmax-xmin)/(nx),(ymax-ymin)/(ny),1
     inputs = np.zeros((21,nx,ny,nz))
     inputs[0,:,:,:] = 1.
-    inputs[0,:,50:,:] = .25
+    inputs[0,:,ny/2:,:] = .25
     inputs[1,:,:,:] = 1.
-    inputs[1,:,50:,:] = .5
+    inputs[1,:,ny/2:,:] = .5
     inputs[2,:,:,:] = 2.4*np.sqrt(1.4)
-    inputs[2,:,50:,:] = 7*np.sqrt(.25/.5*1.4)
+    inputs[2,:,ny/2:,:] = 7*np.sqrt(.25/.5*1.4)
     inputs[5,:,:,:] = dx
     inputs[9,:,:,:] = dy
     inputs[13,:,:,:] = dz

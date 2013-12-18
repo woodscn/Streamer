@@ -9,7 +9,7 @@ xmin,xmax,ymin,ymax,zmin,zmax = 0,100,0,1,0,1
 nx = 26
 ny = 1
 nz = 1
-dxis = [4,1,1]
+dxis = [1,1,1]
 Euler_UCS = Euler_UCS.Euler_UCS(
     Euler_UCS.MASA_solution_full(
         ranges=[[xmin,xmax],[ymin,ymax],[zmin,zmax]],nxes=(nx,ny,nz),dxis=dxis))
@@ -129,9 +129,12 @@ def init():
         'boundary_layers':False,
         'multistream':False,
         'solver_options':solver_options,
-        'manufactured':True,
+        'manufactured':'MMS',
         'source_funcs' : source_funcs,
-        'exact_sol_func' : exact_solution
+        'exact_sol_func' : exact_solution,
+        'manufactured_object' : Euler_UCS,
+        'dxis' : dxis,
+        'discs' : []
         }
     left_face_init.append(
         PatchInit('Dirichlet',

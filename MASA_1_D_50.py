@@ -129,9 +129,12 @@ def init():
         'boundary_layers':False,
         'multistream':False,
         'solver_options':solver_options,
-        'manufactured':True,
+        'manufactured':'MMS',
         'source_funcs' : source_funcs,
-        'exact_sol_func' : exact_solution
+        'exact_sol_func' : exact_solution,
+        'manufactured_object' : Euler_UCS,
+        'dxis' : dxis,
+        'discs' : []
         }
     left_face_init.append(
         PatchInit('Dirichlet',

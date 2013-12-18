@@ -113,7 +113,7 @@ class Stream(object):
             options=opts.stream_options['solver_options'])
         t_out = t_in + dt_out
         try:
-            if opts.stream_options['manufactured']:
+            if opts.stream_options['manufactured']=='MMS':
                 t=0.
                 t_array = [t_in,t_out]
                 for i in range(self.main_data.shape[1]-2):
@@ -123,6 +123,25 @@ class Stream(object):
                                 opts.stream_options['source_funcs'][i,j,k],
                                 self.main_data[:,i+1,j+1,k+1],t_array)
                             self.main_data[:,i+1,j+1,k+1] = out[-1,:]
+            else:
+                if opts.stream_options['manufactured']=='IMMS':
+                    for i in range(self.main_data.shape[1]-2):
+                        for j in range(self.main_data.shape[2]-2):
+                            for k in range(self.main_data.shape[3]-2):
+                                xi_mid = [dxi*ind for dxi, ind in zip(
+                                        opts.stream_options['dxis'],(i,j,k))]
+                                ranges = [[xi-.5*dxi,xi+.5*dxi] for xi,dxi in zip(
+                                        xi_mid,opts.stream_options['dxis'])]
+                                ranges = [[t_in,t_out]]+ranges
+                                ranges = [[var]+range_ for var,range_ in zip(
+                                        opts.stream_options['manufactured_object']
+                                        .vars_,ranges)]
+#                                import pdb;pdb.set_trace()
+                                temp = (
+                                    opts.stream_options['manufactured_object']
+                                    .balance_integrate(ranges,opts.stream_options[
+                                            'discs']))
+                                self.main_data[:-1,i+1,j+1,k+1] += temp
         except(KeyError):
             pass
 #            opts['source_funcs']
@@ -159,7 +178,7 @@ def run(input_file,interactive=False):
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     t = 0.
     dt = .0001 
-    nt = 200
+    nt = 2000
     temp = numpy.zeros((20,streams[0].main_data.shape[1]-2,
                         streams[0].main_data.shape[2]-2,
                         streams[0].main_data.shape[3]-2,1))
@@ -188,7 +207,6 @@ def run(input_file,interactive=False):
             t += dt_out
             TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
                                    0.,first_flag=False)
-    
 #    cgns.write_initial_data(stream.main_data,'test.cgns')
     return streams, errors, sol
     if interactive_flag:
