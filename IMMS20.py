@@ -5,6 +5,7 @@ import numpy
 libpath = os.path.abspath('/Users/woodscn/')
 sys.path.insert(0,libpath)
 libpath = os.path.abspath('/home/woodscn/')
+sys.path.insert(0,libpath)
 from manufactured import Euler_UCS
 xmin,xmax,ymin,ymax,zmin,zmax = 0,100,0,1,0,1
 nx = 21
@@ -13,7 +14,8 @@ nz = 1
 dxis = [5,1,1]
 Euler_UCS = Euler_UCS.Euler_UCS(
     Euler_UCS.MASA_solution_full(
-        ranges=[[xmin,xmax],[ymin,ymax],[zmin,zmax]],nxes=(nx,ny,nz),dxis=dxis))
+        ranges=[[xmin,xmax],[ymin,ymax],[zmin,zmax]],nxes=(nx,ny,nz),dxis=dxis,
+        disc=True))
 manufactured_source_function = Euler_UCS.balance_lambda_init()
 
 class PatchInit:
@@ -135,7 +137,7 @@ def init():
         'exact_sol_func' : exact_solution,
         'manufactured_object' : Euler_UCS,
         'dxis' : dxis,
-        'discs' : []
+        'discs' : [50.]
         }
     left_face_init.append(
         PatchInit('Dirichlet',

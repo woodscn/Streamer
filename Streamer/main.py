@@ -159,7 +159,7 @@ class Stream(object):
                 numpy.empty((dims[0],1,dims[2],dims[3])),self.main_data),axis=1)
             self.main_data[:,1,1:-1,1:-1] = new_column
             self.xi_offset = self.xi_offset + 1
-        TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
+#        TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
 #        import pdb;pdb.set_trace()
         return dt_out
 
@@ -177,14 +177,14 @@ def run(input_file,interactive=False):
         sys.exit()
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     t = 0.
-    dt = .0001 
-    nt = 2000
+    dt = .001 
+    nt = 20
     temp = numpy.zeros((20,streams[0].main_data.shape[1]-2,
                         streams[0].main_data.shape[2]-2,
                         streams[0].main_data.shape[3]-2,1))
     sol = numpy.array(temp)
 #    temp = numpy.array(errors)
-    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
+#    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(nt):
         print "Time step = ",step, t
         for stream in streams:
@@ -198,6 +198,7 @@ def run(input_file,interactive=False):
                             stream.main_data[:-1,inda+1,indb+1,indc+1]-
                             sol[:,inda,indb,indc,0])
             try:
+                #errors = temp
                 errors = numpy.concatenate((errors,temp),axis=4)
             except(NameError):
                 errors = numpy.array(temp)
@@ -205,8 +206,8 @@ def run(input_file,interactive=False):
             advance_options.stream_options = stream_options
             dt_out = stream.advance(t,dt,advance_options)
             t += dt_out
-            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
-                                   0.,first_flag=False)
+#            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
+#                                   0.,first_flag=False)
 #    cgns.write_initial_data(stream.main_data,'test.cgns')
     return streams, errors, sol
     if interactive_flag:
