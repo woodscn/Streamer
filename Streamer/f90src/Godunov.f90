@@ -3,9 +3,9 @@ module Godunov
   use Riemann
   implicit none
   real(8), parameter :: max_dt = 1.d0
-  real(8), dimension(3), parameter :: dxi_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
-  real(8), dimension(3), parameter :: deta_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
-  real(8), dimension(3), parameter :: dzeta_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
+  real(8), dimension(7), parameter :: dxi_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
+  real(8), dimension(7), parameter :: deta_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
+  real(8), dimension(7), parameter :: dzeta_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
   real(8) :: dxi, deta, dzeta, dxi_inv, deta_inv, dzeta_inv, dV_inv
 !  real(8), parameter :: dxi   = 1.d0
 !  real(8), parameter :: deta  = 1.d0
