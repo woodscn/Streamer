@@ -105,11 +105,6 @@ contains
     do dir = 1, 3
        call riemann_solve(test_1_left,test_1_right,dir,1,[0d0],out,max_wave_speed,&
             riemann_middle_states,riemann_wave_speeds)
-       write(*,*) test_1_left(1:5)
-       write(*,*) test_1_right(1:5)
-       write(*,*) riemann_middle_states
-       write(*,*) riemann_wave_speeds
-       read(*,*)
        if(.not.(maxval(abs(riemann_middle_states-test_1_sol))<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs((riemann_wave_speeds-test_1_speeds)/test_1_speeds))<5d-5))&
