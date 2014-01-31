@@ -285,7 +285,7 @@ contains
     real(8), intent(in), dimension(21,ny,nz) :: main_data, bc_state
     real(8), intent(out), dimension(21,ny,nz) :: out
     integer :: i,j
-    logical :: fixed_grid = .true.
+    logical :: fixed_grid = .false.
     real(8), parameter :: dx = 1.d0, dy = 1.d0, dz = 1.d0
     
     out(:,:,:) = bc_state

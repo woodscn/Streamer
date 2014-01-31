@@ -288,6 +288,7 @@ The current implementation is only valid for 2-dimensional simulations.'''
             elif key_ind > prev_pri_max+1:
                 # Average of some kind. For now, just raise an error.
                 print "Side boundary patches do not match up perfectly."
+                print self.which_face, key_ind, prev_pri_max
                 import pdb; pdb.set_trace()
                 raise Error()
                 sysexit()

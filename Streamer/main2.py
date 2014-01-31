@@ -184,7 +184,7 @@ def run(input_file,interactive=False):
                         streams[0].main_data.shape[3]-2,1))
     sol = numpy.array(temp)
 #    temp = numpy.array(errors)
-#    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
+    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(nt):
         print "Time step = ",step, t
         for stream in streams:
@@ -193,7 +193,8 @@ def run(input_file,interactive=False):
                     for indc in range(temp.shape[3]):
                         sol[:,inda,indb,indc,0] = numpy.array(
                             stream_options['exact_sol_func'](
-                                t,inda,indb,indc))
+#                                t,inda,indb,indc))
+                                t,*streams[0].main_data[17:20,inda,indb,indc]))
                         temp[:,inda,indb,indc,0] = (
                             stream.main_data[:-1,inda+1,indb+1,indc+1]-
                             sol[:,inda,indb,indc,0])
@@ -206,8 +207,9 @@ def run(input_file,interactive=False):
             advance_options.stream_options = stream_options
             dt_out = stream.advance(t,dt,advance_options)
             t += dt_out
-#            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
-#                                   0.,first_flag=False)
+            if step%10==0:
+                TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
+                                       0.,first_flag=False)
 #    cgns.write_initial_data(stream.main_data,'test.cgns')
     return streams, errors, sol
     if interactive_flag:

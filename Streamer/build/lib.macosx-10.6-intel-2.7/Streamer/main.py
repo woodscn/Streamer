@@ -113,7 +113,7 @@ class Stream(object):
             options=opts.stream_options['solver_options'])
         t_out = t_in + dt_out
         try:
-            if opts.stream_options['manufactured']:
+            if opts.stream_options['manufactured']=='MMS':
                 t=0.
                 t_array = [t_in,t_out]
                 for i in range(self.main_data.shape[1]-2):
@@ -122,6 +122,26 @@ class Stream(object):
                             out = scipy.integrate.odeint(
                                 opts.stream_options['source_funcs'][i,j,k],
                                 self.main_data[:,i+1,j+1,k+1],t_array)
+                            self.main_data[:,i+1,j+1,k+1] = out[-1,:]
+            else:
+                if opts.stream_options['manufactured']=='IMMS':
+                    for i in range(self.main_data.shape[1]-2):
+                        for j in range(self.main_data.shape[2]-2):
+                            for k in range(self.main_data.shape[3]-2):
+                                xi_mid = [dxi*ind for dxi, ind in zip(
+                                        opts.stream_options['dxis'],(i,j,k))]
+                                ranges = [[xi-.5*dxi,xi+.5*dxi] for xi,dxi in zip(
+                                        xi_mid,opts.stream_options['dxis'])]
+                                ranges = [[t_in,t_out]]+ranges
+                                ranges = [[var]+range_ for var,range_ in zip(
+                                        opts.stream_options['manufactured_object']
+                                        .vars_,ranges)]
+#                                import pdb;pdb.set_trace()
+                                temp = (
+                                    opts.stream_options['manufactured_object']
+                                    .balance_integrate(ranges,opts.stream_options[
+                                            'discs']))
+                                self.main_data[:-1,i+1,j+1,k+1] += temp
         except(KeyError):
             pass
 #            opts['source_funcs']
@@ -139,7 +159,7 @@ class Stream(object):
                 numpy.empty((dims[0],1,dims[2],dims[3])),self.main_data),axis=1)
             self.main_data[:,1,1:-1,1:-1] = new_column
             self.xi_offset = self.xi_offset + 1
-        TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
+#        TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
 #        import pdb;pdb.set_trace()
         return dt_out
 
@@ -157,39 +177,39 @@ def run(input_file,interactive=False):
         sys.exit()
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     t = 0.
-    dt = .0001 
-    nt = 200
+    dt = .001 
+    nt = 20
     temp = numpy.zeros((20,streams[0].main_data.shape[1]-2,
-                          streams[0].main_data.shape[2]-2,
-                          streams[0].main_data.shape[3]-2,1))
+                        streams[0].main_data.shape[2]-2,
+                        streams[0].main_data.shape[3]-2,1))
+    sol = numpy.array(temp)
 #    temp = numpy.array(errors)
-    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
+#    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(nt):
         print "Time step = ",step, t
         for stream in streams:
-#            temp = 0.*stream.main_data[:-1,1:-1,1:-1,1:-1]
             for inda in range(temp.shape[1]):
                 for indb in range(temp.shape[2]):
                     for indc in range(temp.shape[3]):
-                        sol = stream_options['exact_sol_func'](
-                            t,inda,indb,indc)
+                        sol[:,inda,indb,indc,0] = numpy.array(
+                            stream_options['exact_sol_func'](
+                                t,inda,indb,indc))
                         temp[:,inda,indb,indc,0] = (
-                            stream.main_data[:-1,inda+1,indb+1,indc+1]-sol)**2
+                            stream.main_data[:-1,inda+1,indb+1,indc+1]-
+                            sol[:,inda,indb,indc,0])
             try:
+                #errors = temp
                 errors = numpy.concatenate((errors,temp),axis=4)
             except(NameError):
-                errors = temp
-#            import pdb;pdb.set_trace()
-#            if numpy.amax(stream.main_data[17,1:-1,1:-1,1:-1]) >= .5:
-#                import pdb;pdb.set_trace()
+                errors = numpy.array(temp)
             advance_options = Options()
             advance_options.stream_options = stream_options
             dt_out = stream.advance(t,dt,advance_options)
             t += dt_out
-            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=False)
-    
+#            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
+#                                   0.,first_flag=False)
 #    cgns.write_initial_data(stream.main_data,'test.cgns')
-    return errors
+    return streams, errors, sol
     if interactive_flag:
         import pdb; pdb.set_trace()
 

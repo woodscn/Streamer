@@ -95,7 +95,7 @@ def initial_condition():
     inputs[5,:,:,:] = dx
     inputs[9,:,:,:] = dy
     inputs[13,:,:,:] = dz
-    inputs[14:17,:,:,:] = 0.999*inputs[2:5,:,:,:]
+    inputs[14:17,:,:,:] = 0.5*inputs[2:5,:,:,:]
     for inda in range(ny):
         for indb in range(nx):
             inputs[17,indb,inda,0] = (indb+.5)*dx
