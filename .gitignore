@@ -1,0 +1,12 @@
+*.mod
+*.[ao]
+*~
+*.so
+*.dylib
+FortranNormalVectors.f90
+build/
+*.dat
+*.pyc
+*.mat
+*.out
+f90test*
