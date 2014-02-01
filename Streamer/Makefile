@@ -4,7 +4,7 @@ AR = ar
 ARFLAGS = rv
 FC = gfortran
 # Debug options for gfortran
-FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p #-fopenmp
+FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p -fPIC#-fopenmp
 # # Release options for gfortran
 # FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -O3
 # # Profiling options for gfortran
@@ -17,7 +17,7 @@ FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p 
 # # Profiling options for ifort
 # FFLAGS = -I/usr/local/include -module $(MODDIR) -fast -p
 
-LDFLAGS = -L. -llapack -lStreamer -lStreamerTest -lminpack #-lcgns
+LDFLAGS = -L./ -lStreamer -lStreamerTest -lStreamer -lminpack -llapack#-lcgns
 
 MODDIR = ./bindings
 LIBSRCDIR = ./f90src
@@ -58,8 +58,9 @@ check: lib libStreamerTest.a libminpack.a\
 	$(LIBTESTSRCDIR)/test_program.f90 \
 	$(DRVDIR)/Godunov_driver.f90 \
 # 	End dependencies
-	$(FC) $(FFLAGS) $(LDFLAGS) $(LIBTESTSRCDIR)/test_program.f90 \
-	$(DRVDIR)/Godunov_driver.o  -o $(LIBTESTSRCDIR)/f90tests
+	$(FC) $(FFLAGS) $(LIBTESTSRCDIR)/test_program.f90 \
+	$(DRVDIR)/Godunov_driver.o  -o $(LIBTESTSRCDIR)/f90tests \
+	$(LDFLAGS)
 	$(LIBTESTSRCDIR)/f90tests $(DATDIR)
 libStreamerTest.a: $(LIBTESTSRCDIR)/GeneralUtilities_tester.o \
 	$(LIBTESTSRCDIR)/Godunov_tester.o \
