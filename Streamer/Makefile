@@ -81,4 +81,5 @@ $(LIBTESTSRCDIR)/Godunov_tester.o: $(DRVDIR)/Godunov_driver.o
 	$(FC) -c $(FFLAGS) $< -o $@
 clean: 
 	$(RM) $(LIBSRCDIR)/*.o $(LIBTESTSRCDIR)/*.o $(DRVDIR)/Godunov_driver.o \
-	$(MODDIR)/*.mod libStreamer.a libStreamerTest.a *.so *.a *.mod *.o
+	$(MODDIR)/*.mod libStreamer.a libStreamerTest.a *.so *.a *.mod *.o \
+	minpack/*.o
