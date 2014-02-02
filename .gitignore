@@ -10,3 +10,5 @@ build/
 *.mat
 *.out
 f90test*
+**/.DS_Store
+*#
