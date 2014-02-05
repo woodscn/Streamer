@@ -3,9 +3,12 @@ module Godunov
   use Riemann
   implicit none
   real(8), parameter :: max_dt = 1.d0
-  real(8), dimension(7), parameter :: dxi_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
-  real(8), dimension(7), parameter :: deta_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
-  real(8), dimension(7), parameter :: dzeta_a = [1.d0, .5d0, .25d0, .2d0, 2.d0, 4.d0, 5.d0]
+  real(8), dimension(7), parameter :: dxi_a = [1.d0, .5d0, .25d0, .2d0, &
+       2.d0, 4.d0, 5.d0]
+  real(8), dimension(7), parameter :: deta_a = [1.d0, .5d0, .25d0, .2d0, &
+       2.d0, 4.d0, 5.d0]
+  real(8), dimension(7), parameter :: dzeta_a = [1.d0, .5d0, .25d0, .2d0, &
+       2.d0, 4.d0, 5.d0]
   real(8) :: dxi, deta, dzeta, dxi_inv, deta_inv, dzeta_inv, dV_inv
 !  real(8), parameter :: dxi   = 1.d0
 !  real(8), parameter :: deta  = 1.d0
@@ -43,7 +46,7 @@ contains
   subroutine primtoconsarray(main)
     ! Assumes the structure of prim(:) is :
     !   1   2   3  4  5  
-    ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
+    ! [ p, rho, u, v, w ]-pressure, mass density, cartesian velocity components
     ! J is the Jacobian
     ! Returns the structure of cons(:) :
     !     1       2         3         4       5 
@@ -90,7 +93,7 @@ contains
   subroutine constoprimarray(main)
     ! Returns the structure of prim(:) :
     !   1   2   3  4  5  
-    ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
+    ! [ p, rho, u, v, w ]-pressure, mass density, cartesian velocity components
     ! J is the Jacobian
     ! Assume the structure of cons(:) is :
     !     1       2         3         4       5 
@@ -119,7 +122,7 @@ contains
   subroutine constoprimpoint(main)
     ! Returns the structure of prim(:) :
     !   1   2   3  4  5  
-    ! [ p, rho, u, v, w ] - pressure, mass density, cartesian velocity components
+    ! [ p, rho, u, v, w ]-pressure, mass density, cartesian velocity components
     ! J is the Jacobian
     ! Assume the structure of cons(:) is :
     !     1       2         3         4       5 
@@ -148,7 +151,8 @@ contains
   end function invnorm3
 
   subroutine grid_coords(grad, normal, tangential1, tangential2)
-! Compute an orthonormal coordinate system given an initial, unnormalized vector.
+! Compute an orthonormal coordinate system given an initial, 
+! unnormalized vector.
     real(8), dimension(:), intent(in) :: grad
     real(8), dimension(3), intent(out) :: normal, tangential1, tangential2
     real(8) :: temp1, temp3
@@ -166,30 +170,6 @@ contains
        tangential2 = temp1*temp3*temp4
     end if
   end subroutine grid_coords
-
-!!$  subroutine prim_update(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
-!!$    implicit none
-!!$    real(8), dimension(:,:,:,:) :: main
-!!$    !f2py intent(in,out) :: main
-!!$    integer :: bcextent, nx, ny, nz
-!!$    ! options(3) determines which prim_update is called
-!!$    integer, dimension(:), intent(in) :: options 
-!!$    real(8) :: dt_in, CFL, dt_out
-!!$    external :: bc_func
-!!$    !f2py intent (callback) bc_func
-!!$    !f2py external bc_func
-!!$    !f2py dimension(:,:,:,:) real(8) x
-!!$    !f2py 
-!!$    select case(options(3))
-!!$    case(1)
-!!$       call prim_update_FV(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
-!!$    case(2)
-!!$       call prim_update_HUI3D(main,dt_out,bc_func,bcextent,dt_in,CFL,nx,ny,nz,options)
-!!$    case default
-!!$       write(*,*) "Bad update_type value!!!"
-!!$       stop
-!!$    end select
-!!$  end subroutine prim_update
 
 !!$  subroutine prim_update_HUI3D(main,dt_out,dt_in,CFL,nx,ny,nz,options)
 !!$    implicit none
@@ -387,9 +367,10 @@ contains
 
   subroutine prim_update_FV(main,dt_out,dt_in,CFL,nx,ny,nz,opts)
 ! Advance the solution using the integral form of the equations
-! This subroutine assumes that main is the full array of primitive variables. main 
-! must also include the boundary cell values. That is, main contains a 0-index and 
-! an n + 1 index containing the contents prescribed by the boundary conditions.
+! This subroutine assumes that main is the full array of primitive variables. 
+! main must also include the boundary cell values. That is, main contains a 
+! 0-index and an n + 1 index containing the contents prescribed by the 
+! boundary conditions.
     implicit none
     integer, dimension(:), intent(in) :: opts
 !!$    type(prim_update_FV_options), intent(in) :: opts
@@ -428,25 +409,29 @@ contains
     grid_motion = opts(103)
     time_step_scheme = opts(104)
     ! Set module values for dxi, deta, dzeta, based on opts.
-    dxi = dxi_a(opts(3)+1); deta = deta_a(opts(4)+1); dzeta = dzeta_a(opts(5)+1)
+    dxi = dxi_a(opts(3)+1)
+    deta = deta_a(opts(4)+1)
+    dzeta = dzeta_a(opts(5)+1)
     dxi_inv = 1.d0/dxi; deta_inv = 1.d0/deta; dzeta_inv = 1.d0/dzeta
     dV_inv = dxi_inv*deta_inv*dzeta_inv
     
   ! Riemann_solve expects the left and right states to express velocities in
   ! grid-oriented components: normal, tangential, tangential.
     fluxx = 0d0; fluxy = 0d0; fluxz = 0d0
-    select case(grid_motion)
-    case(0)
-       main(15:17,:,:,:) = 0d0
-    case(1)
-       main(15:17,:,:,:) = .999d0*main(3:5,:,:,:)
-    case(2)
-       main(15:17,:,:,:) = .5
-    case default
-       write(*,*) "Invalid grid motion specification!"
-       stop
-    end select
-    if(splitting(1).eq. 1 .or.(splitting(1).eq. 2 .and.splitting(2).eq. 2 ))then
+!! Grid motion has been moved to grid_motion_driver.f90
+!    select case(grid_motion)
+!    case(0)
+!       main(15:17,:,:,:) = 0d0
+!    case(1)
+!       main(15:17,:,:,:) = .999d0*main(3:5,:,:,:)
+!    case(2)
+!       main(15:17,:,:,:) = .5
+!    case default
+!       write(*,*) "Invalid grid motion specification!"
+!       stop
+!    end select
+    if(splitting(1).eq. 1 .or.(splitting(1).eq. 2 .and.splitting(2).eq. 2 ))&
+         then
        do k = 0, nz-1
           do j = 0, ny-1
              do i = 0, nx
@@ -461,7 +446,8 @@ contains
           end do
        end do
     end if
-    if(splitting(1).eq. 1 .or.(splitting(1).eq. 2 .and.splitting(2).eq. 2 ))then
+    if(splitting(1).eq. 1 .or.(splitting(1).eq. 2 .and.splitting(2).eq. 2 ))&
+         then
        do k = 0, nz-1
           do j = 0, ny
              do i = 0, nx-1
@@ -499,7 +485,7 @@ contains
     case(1)
        dt = min(CFL/max_wave_speed,dt_in)
     case default
-       write(*,*) "Error in Godunov prim_update, invalid time step information!"
+       write(*,*) "Error in Godunov prim_update, invalid time step flag!"
        stop
     end select
     dt_out = dt
@@ -519,9 +505,6 @@ contains
      end do
   end do
     call constoprim(main(:,0:nx-1,0:ny-1,0:nz-1))
-!! Update grid velocity
-!!    call grid_velocity_update(main)
-!!    main(15:17,:,:,:) = main(3:5,:,:,:)*.25d0
 ! Update grid position
     main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1) + &
          main(15:17,0:nx-1,0:ny-1,0:nz-1)*dt
@@ -698,26 +681,3 @@ contains
   end subroutine FreeExitConditions
 
 end module Godunov
-
-
-!!$program Godunov_tester_program
-!!$  use Godunov_tester
-!!$  use Riemann_tester
-!!$  integer :: result, junk
-!!$  result = RieTester()
-!!$  write(*,*) "Riemann_tester_program: "
-!!$  junk = RieErrorReader(result)
-!!$  result = GodTester()
-!!$  write(*,*) "Godunov_tester_program: "
-!!$  junk = GodErrorReader(result)
-!!$
-!!$end program Godunov_tester_program
-
-!!$module grid_velocity
-!!$contains
-!!$  subroutine grid_velocity_update(main)
-!!$    implicit none
-!!$    
-!!$
-!!$  end subroutine grid_velocity_update
-!!$end module grid_velocity

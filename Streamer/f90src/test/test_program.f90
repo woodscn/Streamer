@@ -2,6 +2,7 @@ program test_program
   use generalutilitiestester
   use godunov_tester
   use riemann_tester
+  use grid_motion_tester
 !  use ode_solvers_tester
   implicit none
   integer :: result, junk
@@ -13,6 +14,9 @@ program test_program
   write(*,*) "Riemann tester:"
   result = RieTester(output_dir)
   junk = RieErrorReader(result)
+  write(*,*) "Grid Motion Tester:"
+  result = grid_motion_test()
+  junk = grid_motion_reader(result)
   write(*,*) "Godunov tester:"
   result = GodTester(output_dir)
   junk = GodErrorReader(result)

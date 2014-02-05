@@ -6,6 +6,8 @@ import TimeAdvancementStuff as TAS
 TAS = TAS.timeadvancementstuff
 import Godunov_driver
 Godunov = Godunov_driver.godunovdriver
+import grid_motion_driver
+grid_motion = grid_motion_driver.grid_motion_driver
 #import CGNS_Interface
 #cgns = CGNS_Interface.cgns_interface
 import imp, os
@@ -107,6 +109,9 @@ class Stream(object):
             if numpy.isnan(element):
                 print ind
                 import pdb;pdb.set_trace()
+        self.main_data = grid_motion.h_update_driver(
+            self.main_data,opts.stream_options['solver_options'])
+        import pdb;pdb.set_trace()
         [self.main_data,dt_out] = Godunov.prim_update(
             self.main_data,dt_in=dt,cfl=.25,nx=self.main_data.shape[1]-2,
             ny=self.main_data.shape[2]-2,nz=self.main_data.shape[3]-2,

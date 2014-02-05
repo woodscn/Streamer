@@ -46,6 +46,7 @@ libStreamer.a: $(LIBSRCDIR)/GeneralUtilities.o \
 	$(LIBSRCDIR)/Godunov.o \
 	$(LIBSRCDIR)/BoundaryConditionsStuff.o \
 	$(LIBSRCDIR)/FortranNormalVectors.o \
+	$(LIBSRCDIR)/h_update.o
 #	$(LIBSRCDIR)/cgns_interface.o
 #       End dependencies
 	$(AR) $(ARFLAGS) $@ $?
@@ -57,14 +58,16 @@ $(LIBSRCDIR)/BoundaryConditionsStuff.o: $(LIBSRCDIR)/GeneralUtilities.o
 check: lib libStreamerTest.a libminpack.a\
 	$(LIBTESTSRCDIR)/test_program.f90 \
 	$(DRVDIR)/Godunov_driver.f90 \
+	$(DRVDIR)/grid_motion_driver.f90
 # 	End dependencies
 	$(FC) $(FFLAGS) $(LIBTESTSRCDIR)/test_program.f90 \
-	$(DRVDIR)/Godunov_driver.o  -o $(LIBTESTSRCDIR)/f90tests \
-	$(LDFLAGS)
+	$(DRVDIR)/Godunov_driver.o $(DRVDIR)/grid_motion_driver.o \
+	-o $(LIBTESTSRCDIR)/f90tests $(LDFLAGS)
 	$(LIBTESTSRCDIR)/f90tests $(DATDIR)
 libStreamerTest.a: $(LIBTESTSRCDIR)/GeneralUtilities_tester.o \
 	$(LIBTESTSRCDIR)/Godunov_tester.o \
-	$(LIBTESTSRCDIR)/Riemann_tester.o 
+	$(LIBTESTSRCDIR)/Riemann_tester.o \
+	$(LIBTESTSRCDIR)/grid_motion_tester.o
 #	$(LIBTESTSRCDIR)/ODE_Solvers_tester.o
 	$(AR) $(ARFLAGS) $@ $?
 libminpack.a: $(MINPACKSRCDIR)/lmder1.o \
@@ -76,6 +79,7 @@ libminpack.a: $(MINPACKSRCDIR)/lmder1.o \
 	$(MINPACKSRCDIR)/qrfac.o
 	$(AR) $(ARFLAGS) $@ $?
 $(LIBTESTSRCDIR)/Godunov_tester.o: $(DRVDIR)/Godunov_driver.o
+$(LIBTESTSRCDIR)/grid_motion_tester.o: $(DRVDIR)/grid_motion_driver.o
 #$(EXEDIR)/test_program: $(SRCDIR)/test_program.f90 lib
 #	$(FC) $(FFLAGS) $(LDFLAGS) $< -o $@
 %.o: %.f90

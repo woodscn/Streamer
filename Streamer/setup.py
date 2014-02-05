@@ -24,6 +24,13 @@ def configuration(parent_package='',top_path=None,compile_type='debug'):
                          libraries=['Streamer'],
                          library_dirs=['/usr/local/lib','/usr/lib','.']
                          )
+    config.add_extension('grid_motion_driver','grid_motion_driver.f90',
+                         extra_compile_args=['-J./bindings'],
+                         include_dirs=['/usr/local/include',
+                                       '/usr/include','./bindings'],
+                         libraries = ['Streamer'],
+                         library_dirs=['/usr/local/lib','/usr/lib','.']
+                         )
 #    config.add_extension('Godunov',prepend_GU("Godunov.f90"),
 #                         extra_compile_args=["-fbounds-check"],
 #                         include_dirs=['/usr/local/include','/usr/include','..'],
