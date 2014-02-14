@@ -46,7 +46,7 @@ libStreamer.a: $(LIBSRCDIR)/GeneralUtilities.o \
 	$(LIBSRCDIR)/Godunov.o \
 	$(LIBSRCDIR)/BoundaryConditionsStuff.o \
 	$(LIBSRCDIR)/FortranNormalVectors.o \
-	$(LIBSRCDIR)/h_update.o
+	$(LIBSRCDIR)/grid_motion.o
 #	$(LIBSRCDIR)/cgns_interface.o
 #       End dependencies
 	$(AR) $(ARFLAGS) $@ $?

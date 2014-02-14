@@ -7,4 +7,4 @@
 # [101]: reports how many boundary ghost points are present
 # [102]: controls spatial order of accuracy
 # [104]: Controls type of time step (constant or CFL)
-
+# [301]: Controls type of grid motion

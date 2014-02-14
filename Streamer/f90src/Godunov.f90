@@ -3,12 +3,12 @@ module Godunov
   use Riemann
   implicit none
   real(8), parameter :: max_dt = 1.d0
-  real(8), dimension(7), parameter :: dxi_a = [1.d0, .5d0, .25d0, .2d0, &
-       2.d0, 4.d0, 5.d0]
-  real(8), dimension(7), parameter :: deta_a = [1.d0, .5d0, .25d0, .2d0, &
-       2.d0, 4.d0, 5.d0]
-  real(8), dimension(7), parameter :: dzeta_a = [1.d0, .5d0, .25d0, .2d0, &
-       2.d0, 4.d0, 5.d0]
+!  real(8), dimension(7), parameter :: dxi_a = [1.d0, .5d0, .25d0, .2d0, &
+!       2.d0, 4.d0, 5.d0]
+!  real(8), dimension(7), parameter :: deta_a = [1.d0, .5d0, .25d0, .2d0, &
+!       2.d0, 4.d0, 5.d0]
+!  real(8), dimension(7), parameter :: dzeta_a = [1.d0, .5d0, .25d0, .2d0, &
+!       2.d0, 4.d0, 5.d0]
   real(8) :: dxi, deta, dzeta, dxi_inv, deta_inv, dzeta_inv, dV_inv
 !  real(8), parameter :: dxi   = 1.d0
 !  real(8), parameter :: deta  = 1.d0
@@ -409,9 +409,9 @@ contains
     grid_motion = opts(103)
     time_step_scheme = opts(104)
     ! Set module values for dxi, deta, dzeta, based on opts.
-    dxi = dxi_a(opts(3)+1)
-    deta = deta_a(opts(4)+1)
-    dzeta = dzeta_a(opts(5)+1)
+    dxi = dxi_a(opts(3))
+    deta = deta_a(opts(4))
+    dzeta = dzeta_a(opts(5))
     dxi_inv = 1.d0/dxi; deta_inv = 1.d0/deta; dzeta_inv = 1.d0/dzeta
     dV_inv = dxi_inv*deta_inv*dzeta_inv
     

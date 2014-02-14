@@ -65,9 +65,11 @@ def init():
 
     solver_options = np.zeros(300)
     solver_options[0] = 1
+    solver_options[2:5] = 1
+    solver_options[5:7] = 4,3
     solver_options[100] =  1
     solver_options[101] = 1
-    solver_options[102] = 0
+
     solver_options[103] = 0
     stream_options = {
         'solver_type':'euler',

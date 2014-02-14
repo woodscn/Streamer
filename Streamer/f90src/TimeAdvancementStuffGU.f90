@@ -12,7 +12,9 @@ module GeneralUtilities
   real(8), parameter :: gamma5 = (gamma_const-1.d0)/(gamma_const+1.d0)
   real(8), parameter :: gamma6 = 1.d0/(gamma_const+1.d0)
   real(8), parameter :: gamma7 = 1.d0/gamma3
-
+  real(8), dimension(7), parameter :: dxi_a = [1., .5, .25, .2, 2., 4., 5.]
+  real(8), dimension(7), parameter :: deta_a = [1., .5, .25, .2, 2., 4., 5.]
+  real(8), dimension(7), parameter :: dzeta_a = [1., .5, .25, .2, 2., 4., 5.]
 contains
   pure function MetricInverse(Metric)
     implicit none

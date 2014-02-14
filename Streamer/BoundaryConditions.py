@@ -172,7 +172,7 @@ Returns:
         main[:,1:-1, 0,1:-1] = self.bottom_face(main[:,1:-1,1:-1,1:-1], t,
                                                 main[:,1:-1, 0,1:-1],opts)
         main[:,1:-1,-1,1:-1] =    self.top_face(main[:,1:-1,1:-1,1:-1], t,
-                                                main[:,1:-1,-1,1:-1],opts)
+                                                    main[:,1:-1,-1,1:-1],opts)
         main[:,1:-1,1:-1, 0] =   self.back_face(main[:,1:-1,1:-1,1:-1], t,
                                                 main[:,1:-1,1:-1, 0],opts)
         main[:,1:-1,1:-1,-1] =  self.front_face(main[:,1:-1,1:-1,1:-1], t,
