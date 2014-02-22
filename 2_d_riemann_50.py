@@ -64,13 +64,13 @@ def init():
         )
 
     solver_options = np.zeros(300)
-    solver_options[0] = 1
+    solver_options[0] = 2
     solver_options[2:5] = 1
-    solver_options[5:7] = 4,3
+    solver_options[5:7] = 0,4
     solver_options[100] =  1
-    solver_options[101] = 1
+    solver_options[101] = 2
 
-    solver_options[103] = 0
+    solver_options[103] = 1
     stream_options = {
         'solver_type':'euler',
         'boundary_layers':False,
@@ -88,6 +88,7 @@ def initial_condition():
     zmin,zmax = 0.,0.
     dx,dy,dz = (xmax-xmin)/(nx),(ymax-ymin)/(ny),1
     inputs = np.zeros((21,nx,ny,nz))
+    inputs_moving = np.zeros((21,1,ny,nz))
     inputs[0,:,:,:] = 1.
     inputs[0,:,25:,:] = .25
     inputs[1,:,:,:] = 1.
@@ -102,7 +103,9 @@ def initial_condition():
             inputs[17,indb,inda,0] = (indb+.5)*dx
             inputs[18,indb,inda,0] = (inda+.5)*dy 
     inputs[20,:,:,:] = dx*dy*dz
-    return inputs
+    return inputs[:,0:1,:,:]
+#    inputs_moving[:,:,:,:] = inputs[:,0:1,:,:]
+#    return inputs_moving
     
 class SteadyRiemannSolution(object):
     def __init__(self,pL,dL,ML,alphaL,pR,dR,MR,alphaR,gamma):

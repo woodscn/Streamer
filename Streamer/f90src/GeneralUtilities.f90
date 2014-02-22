@@ -59,11 +59,19 @@ contains
     real(8), dimension(9), intent(in) :: Metric
     real(8), dimension(3,3) :: MetrictoMatrix
 
-    MetrictoMatrix = reshape([Metric(1),Metric(4),Metric(7),&
-         Metric(2),Metric(5),Metric(8),Metric(3),Metric(6),&
-         Metric(9)],[3,3])
+    MetrictoMatrix = reshape(Metric,[3,3])
   end function MetrictoMatrix
   
+!!$  function NormalizedMetric(in)
+!!$    implicit none
+!!$    real(8), dimension(9), intent(in) :: in
+!!$    real(8), dimension(9) :: NormalizedMetric
+!!$    integer :: n
+!!$    do n = 1, 3
+!!$       NormalizedMetric(n:9:3) = in(n:9:3)/sqrt(sum(in(n:9:3)**2))
+!!$    end do
+!!$  end function NormalizedMetric
+
   subroutine ComputationalGrads(metric,jac,grad_xi,grad_eta,grad_zeta)
     implicit none
     ! Metric has the form:
@@ -105,17 +113,17 @@ contains
          in(3)*in(4)*in(8) - in(3)*in(5)*in(7)     ! C*L*Q - C*M*P
   end function Jacobian
 
-  function GradstoMatrix(Grad1,Grad2,Grad3)
-    ! 
-    ! matmul(GradstoMatrix,vector) ==
-    ! [ sum(GradstoMatrix(1,:)*vector),
-    !   sum(GradstoMatrix(2,:)*vector),
-    !   sum(GradstoMatrix(3,:)*vector) ]
-    implicit none
-    real(8), dimension(3), intent(in) :: Grad1, Grad2, Grad3
-    real(8), dimension(3,3) :: GradstoMatrix
-    GradstoMatrix = transpose(reshape([Grad1,Grad2,Grad3],[3,3]))
-  end function GradstoMatrix
+!!$  function GradstoMatrix(Grad1,Grad2,Grad3)
+!!$    ! 
+!!$    ! matmul(GradstoMatrix,vector) ==
+!!$    ! [ sum(GradstoMatrix(1,:)*vector),
+!!$    !   sum(GradstoMatrix(2,:)*vector),
+!!$    !   sum(GradstoMatrix(3,:)*vector) ]
+!!$    implicit none
+!!$    real(8), dimension(3), intent(in) :: Grad1, Grad2, Grad3
+!!$    real(8), dimension(3,3) :: GradstoMatrix
+!!$    GradstoMatrix = transpose(reshape([Grad1,Grad2,Grad3],[3,3]))
+!!$  end function GradstoMatrix
   
   subroutine TwoDGradient(in,dx,dy,nx,ny,gradx,grady)
     implicit none
@@ -176,12 +184,12 @@ contains
          in(3,1)*in(1,2)-in(3,2)*in(1,1) , &
          in(2,2)*in(1,1)-in(2,1)*in(1,2) ] &
          ,[3,3])/J)
-    if(.true. .and. maxval(matmul(in,MatrixInverse)&
-            -reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2>1.d-15)then
-          write(*,*) "MatrixInverse failed!!"
-          write(*,*) matmul(in,MatrixInverse)
-          stop
-    end if
+!!$    if(.true. .and. maxval(matmul(in,MatrixInverse)&
+!!$            -reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2>1.d-15)then
+!!$          write(*,*) "MatrixInverse failed!!"
+!!$          write(*,*) matmul(in,MatrixInverse)
+!!$          stop
+!!$    end if
   end function MatrixInverse
 
   function vectorProjection(in,normal)

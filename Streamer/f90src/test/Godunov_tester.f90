@@ -408,6 +408,7 @@ contains
 
     prim_update_options = 0
     prim_update_options(1) = 1
+    prim_update_options(3:5) = [1,1,1]
     prim_update_options(101) = 1
     prim_update_options(102) = 1
     prim_update_options(103) = 0

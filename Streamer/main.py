@@ -134,17 +134,21 @@ class Stream(object):
                             for k in range(self.main_data.shape[3]-2):
                                 xi_mid = [dxi*ind for dxi, ind in zip(
                                         opts.stream_options['dxis'],(i,j,k))]
-                                ranges = [[xi-.5*dxi,xi+.5*dxi] for xi,dxi in zip(
+                                ranges = [[xi-.5*dxi,xi+.5*dxi] 
+                                          for xi,dxi in zip(
                                         xi_mid,opts.stream_options['dxis'])]
                                 ranges = [[t_in,t_out]]+ranges
-                                ranges = [[var]+range_ for var,range_ in zip(
-                                        opts.stream_options['manufactured_object']
-                                        .vars_,ranges)]
+                                ranges = [
+                                    [var]+range_ for var,range_ in 
+                                    zip(
+                                        opts.
+                                        stream_options['manufactured_object'].
+                                        vars_,ranges)]
 #                                import pdb;pdb.set_trace()
                                 temp = (
                                     opts.stream_options['manufactured_object']
-                                    .balance_integrate(ranges,opts.stream_options[
-                                            'discs']))
+                                    .balance_integrate(
+                                        ranges,opts.stream_options['discs']))
                                 self.main_data[:-1,i+1,j+1,k+1] += temp
         except(KeyError):
             pass
@@ -163,6 +167,9 @@ class Stream(object):
                 numpy.empty((dims[0],1,dims[2],dims[3])),self.main_data),axis=1)
             self.main_data[:,1,1:-1,1:-1] = new_column
             self.xi_offset = self.xi_offset + 1
+        check_remove_column = (self.main_data[17,-2,1:-1,1:-1]>.8).any()
+        if check_remove_column:
+            self.main_data = numpy.array(self.main_data[:,:-1,:,:])
 #        TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
 #        import pdb;pdb.set_trace()
         return dt_out
@@ -181,14 +188,14 @@ def run(input_file,interactive=False):
         sys.exit()
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     t = 0.
-    dt = .001 
-    nt = 3000
+    dt = .0001 
+    nt = 2500
     temp = numpy.zeros((20,streams[0].main_data.shape[1]-2,
                         streams[0].main_data.shape[2]-2,
                         streams[0].main_data.shape[3]-2,1))
     sol = numpy.array(temp)
 #    temp = numpy.array(errors)
-#    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
+    TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(nt):
         print "Time step = ",step, t
         for stream in streams:
@@ -210,8 +217,8 @@ def run(input_file,interactive=False):
             advance_options.stream_options = stream_options
             dt_out = stream.advance(t,dt,advance_options)
             t += dt_out
-#            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
-#                                   0.,first_flag=False)
+            TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],
+                                   0.,first_flag=False)
 #    cgns.write_initial_data(stream.main_data,'test.cgns')
     return streams, errors, sol
     if interactive_flag:

@@ -13,6 +13,10 @@ contains
        write(*,*) "   Combined test of metrictomatrix and metricinverse failed"
     case(2)
        write(*,*) "   TwoDGradient does not converge at the expected rate"
+    case(3)
+       write(*,*) "   MetrictoMatrix does not transform correctly"
+    case(4)
+       write(*,*) "   MatrixInverse does not work properly"
     case default
        write(*,*) "   Unexpected error code"
     end select
@@ -32,6 +36,8 @@ contains
     ! 0: All tests passed
     ! 1: Combined test of metrictomatrix and metricinverse failed
     ! 2: TwoDGradient does not converge at the expected rate
+    ! 3: metrictomatrix does not transform correctly.
+    ! 4: NormalizedMetric does not work properly
     implicit none
     real(8), dimension(9) :: metric
     real(8), dimension(3,3) :: matrix
@@ -55,7 +61,13 @@ contains
     call random_number(p2)
     call random_number(p3)
     matrix=matmul(metrictomatrix(metric),metrictomatrix(metricinverse(metric)))
-    if(maxval((matrix-reshape([1.,0.,0.,0.,1.,0.,0.,0.,1.],[3,3]))**2)>1.d-14) out = 1
+    if(maxval((matrix-reshape([1.,0.,0.,0.,1.,0.,0.,0.,1.],[3,3]))**2)>1.d-14)&
+         out = 1
+    if(sqrt(sum((matmul(metrictomatrix([1d0,2d0,3d0,4d0,5d0,6d0,7d0,8d0,9d0])&
+         ,[1.,2.,3.])-[30.,36.,42.])**2))>1d-13)out = 3
+    if(sqrt(sum((matmul(metrictomatrix(metric),matrixinverse(metrictomatrix(metric)))-&
+         reshape([1,0,0,0,1,0,0,0,1],[3,3]))**2))>1d-14)out = 4
+
     nx = size(test,1)
     ny = size(test,2)
     dx = 12./nx

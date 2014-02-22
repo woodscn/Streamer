@@ -171,199 +171,227 @@ contains
     end if
   end subroutine grid_coords
 
-!!$  subroutine prim_update_HUI3D(main,dt_out,dt_in,CFL,nx,ny,nz,options)
-!!$    implicit none
-!!$    !f2py intent(in,out) :: main
-!!$    !f2py integer :: nx, ny, nz
-!!$    !f2py intent(in) :: nx, ny, nz
-!!$    real(8), dimension(21,-1*options(201):nx+options(201)-1,&
-!!$         -1*options(201):ny+options(201)-1,-1*options(201):nz+options(201)-1),&
-!!$         intent(inout) :: main
-!!$    real(8), dimension(21,0:nx-1,0:ny-1,0:nz-1) :: main_temp
-!!$    real(8), intent(out) :: dt_out
-!!$    real(8), intent(in), optional :: dt_in
-!!$    real(8), intent(in), optional :: CFL
-!!$    integer, intent(in) :: nx,ny,nz
-!!$    ! Options values are used to activate specific routine options.
-!!$    ! - Options(202) controls the spatial order of accuracy. 
-!!$    ! - Options(203) controls grid motion.
-!!$    ! - Options(204) controls the boundary conditions 
-!!$    integer, dimension(:), intent(in) :: options
-!!$    integer :: i, j, k, m, n, im, jm, km, ip, jp, kp, case_no
-!!$    real(8) :: area, dv_inv, max_wave_speed_temp
-!!$    real(8), dimension(5) :: cons, prim
-!!$    real(8), dimension(5) :: left_interface, right_interface
-!!$    real(8), dimension(5) :: left_flux, right_flux
-!!$    real(8), dimension(3) :: grid_vel, grid_pos
-!!$    real(8), dimension(3,3) :: row_ops_mat, vels_transform
-!!$    real(8), dimension(9) :: metric, metric_inverse
-!!$    real(8), dimension(21) :: temp, center, left, right, geom_avg
-!!$    integer, parameter :: splitting_type = 1
-!!$    real(8) :: dt, junk
-!!$    real(8), dimension(4) :: riemann_middle_states
-!!$    real(8), dimension(5) :: riemann_wave_speeds
-!!$    integer :: spatial_order
-!!$    integer :: grid_motion
-!!$    spatial_order = options(202)
-!!$    grid_motion = options(203)
-!!$    select case(options(204))
+  subroutine prim_update_HUI3D(main,dt_out,dt_in,CFL,nx,ny,nz,opts)
+    implicit none
+    integer, dimension(:), intent(in) :: opts
+    real(8), dimension(21,-1*opts(101):nx+opts(101)-1,&
+         -1*opts(101):ny+opts(101)-1,-1*opts(101):nz+opts(101)-1),&
+         intent(inout) :: main
+!f2py intent(in,out) :: main
+    real(8), dimension(21,0:nx-1,0:ny-1,0:nz-1) :: main_temp
+    real(8), intent(out) :: dt_out
+    real(8), intent(in), optional :: dt_in
+    real(8), intent(in), optional :: CFL
+    integer, intent(in) :: nx,ny,nz
+    ! Options values are used to activate specific routine options.
+    ! - Options(202) controls the spatial order of accuracy. 
+    ! - Options(203) controls grid motion.
+    ! - Options(204) controls the boundary conditions 
+
+    integer :: i, j, k, m, n, im, jm, km, ip, jp, kp, case_no
+    real(8) :: area, dv_inv, max_wave_speed_temp
+    real(8), dimension(5) :: cons, prim
+    real(8), dimension(5) :: left_interface, right_interface
+    real(8), dimension(5) :: left_flux, right_flux
+    real(8), dimension(3) :: grid_vel, grid_pos
+    real(8), dimension(3,3) :: row_ops_mat, vels_transform
+    real(8), dimension(9) :: metric, metric_inverse
+    real(8), dimension(21) :: temp, center, left, right, geom_avg
+    integer, parameter :: splitting_type = 1
+    real(8) :: dt, junk
+    real(8), dimension(4) :: riemann_middle_states
+    real(8), dimension(5) :: riemann_wave_speeds
+    integer :: spatial_order
+    integer :: grid_motion
+    integer :: time_step_scheme
+    real(8), dimension(3) :: normal, tan1, tan2
+    real(8), parameter :: h=.25d0
+    spatial_order = opts(102)
+    grid_motion = opts(103)
+    time_step_scheme = opts(104)
+!!$    select case(time_step_scheme)
 !!$    case(1)
-!!$       bc_func => 
-!!$    dt = dt_in
-!!$    dt_out = dt_in
-!!$    dv_inv = 1.d0
-!!$    do n = 1, 3
-!!$       if( n .eq. 1 )then
-!!$          case_no = 1
-!!$          area = deta*dzeta
-!!$          im =-1; ip = 1; jm = 0; jp = 0; km = 0; kp = 0
-!!$       elseif( n .eq. 2 )then
-!!$          case_no = 2
-!!$          area = dxi*dzeta
-!!$          jm =-1; jp = 1; im = 0; ip = 0; km = 0; kp = 0
-!!$       elseif( n .eq. 3 )then
-!!$          case_no = 3
-!!$          area = dxi*deta
-!!$          km =-1; kp = 1; im = 0; ip = 0; jm = 0; jp = 0
-!!$       else
-!!$          write(*,*) "Error in prim_update, invalid value for n"
-!!$          stop
-!!$       end if
-!!$
-!!$       call bc_func(main,size(main,2),size(main,3),size(main,4))
-!!$       do k = 0, nz-1
-!!$          do j = 0, ny-1
-!!$             do i = 0, nx-1
-!!$                row_ops_mat = row_ops_mat_func(case_no)
-!!$                center = main(:,i,j,k)
-!!$                left = main(:,i+im,j+jm,k+km)
-!!$
-!!$                if(spatial_order .eq. 2.and.(&
-!!$                     (n==1.and.i>0.and.i<nx-1).or.&
-!!$                     (n==2.and.j>0.and.j<ny-1).or.&
-!!$                     (n==3.and.k>0.and.k<nz-1)))&
-!!$                     call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
-!!$                     main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
-!!$                     main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
-!!$
-!!$                metric = .5d0*(left(6:14)+center(6:14))
-!!$                metric_inverse = MetricInverse(metric)
-!!$                grid_vel = .5d0*(left(15:17)+center(15:17))
-!!$
-!!$                vels_transform = matmul(&
-!!$                     MetrictoMatrix(metric_inverse),row_ops_mat)
-!!$                do m = 1, 3
-!!$                   vels_transform(m,:) = vels_transform(m,:)&
-!!$                        /sqrt(sum(vels_transform(m,:)**2))
-!!$                end do
-!!$
-!!$                left(3:5) = matmul(vels_transform,left(3:5))
-!!$                center(3:5) = matmul(vels_transform,center(3:5))
-!!$                grid_vel = matmul(vels_transform,grid_vel)
-!!$                geom_avg = 0d0
-!!$                geom_avg(6:14) = center(6:14)
-!!$                geom_avg(15:17) = grid_vel
-!!$                call riemann_solve(left,center,n,1,[0d0],left_interface,&
-!!$                     max_wave_speed_temp)
-!!$
-!!$                vels_transform = matmul(transpose(row_ops_mat),&
-!!$                     MetrictoMatrix(metric))
-!!$                do m = 1, 3
-!!$                   vels_transform(m,:) = vels_transform(m,:)&
-!!$                        /sqrt(sum(vels_transform(m,:)**2))
-!!$                end do
-!!$
-!!$                left_interface(3:5) = matmul(vels_transform,left_interface(3:5))
-!!$
-!!$                center = main(:,i,j,k)
-!!$                right = main(:,i+ip,j+jp,k+kp)
-!!$                if(spatial_order .eq. 2.and.(&
-!!$                     (n==1.and.i>0.and.i<nx-1).or.&
-!!$                     (n==2.and.j>0.and.j<ny-1).or.&
-!!$                     (n==3.and.k>0.and.k<nz-1)))&
-!!$                     call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
-!!$                     main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
-!!$                     main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
-!!$
-!!$                metric = .5d0*(center(6:14)+right(6:14))
-!!$                metric_inverse = MetricInverse(metric)
-!!$                grid_vel = .5d0*(center(15:17)+right(15:17))
-!!$
-!!$                vels_transform = matmul(&
-!!$                     MetrictoMatrix(metric_inverse),row_ops_mat)
-!!$                do m = 1, 3
-!!$                   vels_transform(m,:) = vels_transform(m,:)&
-!!$                        /sqrt(sum(vels_transform(m,:)**2))
-!!$                end do
-!!$
-!!$                right(3:5) = matmul(vels_transform,right(3:5))
-!!$                center(3:5) = matmul(vels_transform,center(3:5))
-!!$                grid_vel = matmul(vels_transform,grid_vel)
-!!$                geom_avg = 0d0
-!!$                geom_avg(6:14) = center(6:14)
-!!$                geom_avg(15:17) = grid_vel
-!!$                call riemann_solve(center,right,n,1,[0d0],right_interface,&
-!!$                     max_wave_speed_temp)
-!!$                
-!!$                vels_transform = matmul(transpose(row_ops_mat),&
-!!$                     MetrictoMatrix(metric))
-!!$                do m = 1, 3
-!!$                   vels_transform(m,:) = vels_transform(m,:)&
-!!$                        /sqrt(sum(vels_transform(m,:)**2))
-!!$                end do
-!!$
-!!$                right_interface(3:5)=matmul(vels_transform,right_interface(3:5))
-!!$
-!!$                junk = sum(matmul(matmul(MetrictoMatrix(metric_inverse),&
-!!$                     row_ops_mat),matmul(transpose(row_ops_mat),&
-!!$                     MetrictoMatrix(metric)))&
-!!$                     -reshape([1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0],[3,3])&
-!!$                     **2)
-!!$                if(junk > 1d-14)then
-!!$                   write(*,*) "Inverse not working!!"
-!!$                   write(*,*) junk
-!!$                   stop
-!!$                end if
-!!$                     
-!!$                center = main(:,i,j,k)
-!!$                
-!!$                if(grid_motion .eq. 1)then
-!!$                   if(n==1)then
-!!$                      center(6:8) = center(6:8) + .25d0*dt*area*dv_inv*&
-!!$                           (right_interface(3:5)-left_interface(3:5))
-!!$                   else if(n==2)then
-!!$                      center(9:11) = center(9:11) + .25d0*dt*area*dv_inv*&
-!!$                           (right_interface(3:5)-left_interface(3:5))
-!!$                   else if(n==3)then
-!!$                      center(12:14) = center(12:14) + .25d0*dt*area*dv_inv*&
-!!$                           (right_interface(3:5)-left_interface(3:5))
-!!$                   end if
-!!$                end if
-!!$                left_flux  = flux( left_interface,center,n)
-!!$                right_flux = flux(right_interface,center,n)
-!!$                call primtocons(center)
-!!$                center(1:5) = center(1:5) - dt*area*dv_inv*&
-!!$                     (right_flux-left_flux)
-!!$                call constoprim(center)
+!!$       dt_out = dt_in
+!!$    case default
+!!$       write(*,*) "Invalid time_step_scheme!"
+!!$       stop
+!!$    end select
+    dxi = dxi_a(opts(3))
+    deta = deta_a(opts(4))
+    dzeta = dzeta_a(opts(5))
+    dxi_inv = 1d0/dxi;deta_inv=1d0/deta;dzeta_inv=1d0/dzeta
+    dV_inv = dxi_inv*deta_inv*dzeta_inv
+    dt = dt_in
+    dt_out = dt_in
+    do n = 1, 3
+       if( n .eq. 1 )then
+          case_no = 1
+          area = deta*dzeta
+          im =-1; ip = 1; jm = 0; jp = 0; km = 0; kp = 0
+       elseif( n .eq. 2 )then
+          case_no = 2
+          area = dxi*dzeta
+          jm =-1; jp = 1; im = 0; ip = 0; km = 0; kp = 0
+       elseif( n .eq. 3 )then
+          case_no = 3
+          area = dxi*deta
+          km =-1; kp = 1; im = 0; ip = 0; jm = 0; jp = 0
+       else
+          write(*,*) "Error in prim_update, invalid value for n"
+          stop
+       end if
+
+       if(.not.opts(101)==1)stop
+       main(:,nx,:,:) = main(:,nx-1,:,:)
+       main(:,:,-1,:) = main(:,:,0,:)
+       main(:,:,ny,:) = main(:,:,ny-1,:)
+       main(:,:,:,-1) = main(:,:,:,0)
+       main(:,:,:,nz) = main(:,:,:,nz-1)
+       main(15:17,:,:,:) = h*main(3:5,:,:,:)
+       do k = 0, nz-1
+          do j = 0, ny-1
+             do i = 0, nx-1
+                center = main(:,i,j,k)
+                left = main(:,i+im,j+jm,k+km)
+
+                if(spatial_order .eq. 2.and.(&
+                     (n==1.and.i>0.and.i<nx-1).or.&
+                     (n==2.and.j>0.and.j<ny-1).or.&
+                     (n==3.and.k>0.and.k<nz-1)))&
+                     call MUSCL_HUI(main(1:5,i+2*im,j+2*jm,k+2*km),&
+                     main(1:5,i+im,j+jm,k+km),main(1:5,i,j,k),&
+                     main(1:5,i+ip,j+jp,k+kp),left(1:5),center(1:5))
+
+                metric_inverse = .5d0*(MetricInverse(left(6:14))+&
+                     MetricInverse(center(6:14)))
+                grid_vel = .5d0*(left(15:17)+center(15:17))
+                
+                select case(case_no)
+                case(1)
+                   normal = metric_inverse(1:9:3)
+                   tan1 = metric_inverse(2:9:3)
+                   tan2 = metric_inverse(3:9:3)
+                case(2)
+                   normal = metric_inverse(2:9:3)
+                   tan1 = metric_inverse(3:9:3)
+                   tan2 = metric_inverse(1:9:3)
+                case(3)
+                   normal = metric_inverse(3:9:3)
+                   tan1 = metric_inverse(1:9:3)
+                   tan2 = metric_inverse(2:9:3)
+                end select
+
+                vels_transform(1,:) = normal/sqrt(sum(normal**2))
+                vels_transform(2,:) = tan1/sqrt(sum(tan1**2))
+                vels_transform(3,:) = tan2/sqrt(sum(tan2**2))
+
+                left(3:5) = matmul(vels_transform,left(3:5))
+                center(3:5) = matmul(vels_transform,center(3:5))
+                grid_vel = matmul(vels_transform,grid_vel)
+                geom_avg = 0d0
+                geom_avg(6:14) = center(6:14)
+                geom_avg(15:17) = grid_vel
+                left(6:21) = geom_avg(6:21); center(6:21) = geom_avg(6:21)
+                call riemann_solve(left,center,n,1,[0d0],left_interface,&
+                     max_wave_speed_temp)
+
+                vels_transform = MatrixInverse(vels_transform)
+                left_interface(3:5) = matmul(&
+                     vels_transform,left_interface(3:5))
+
+                center = main(:,i,j,k)
+                right = main(:,i+ip,j+jp,k+kp)
+                if(spatial_order .eq. 2.and.(&
+                     (n==1.and.i>0.and.i<nx-1).or.&
+                     (n==2.and.j>0.and.j<ny-1).or.&
+                     (n==3.and.k>0.and.k<nz-1)))&
+                     call MUSCL_HUI(main(1:5,i+im,j+jm,k+km),&
+                     main(1:5,i,j,k),main(1:5,i+ip,j+jp,k+kp),&
+                     main(1:5,i+2*ip,j+2*jp,k+2*kp),center(1:5),right(1:5))
+
+                metric = .5d0*(center(6:14)+right(6:14))
+                metric_inverse = .5d0*(MetricInverse(center(6:14))+&
+                     MetricInverse(right(6:14)))
+                grid_vel = .5d0*(center(15:17)+right(15:17))
+
+                select case(case_no)
+                case(1)
+                   normal = metric_inverse(1:9:3)
+                   tan1 = metric_inverse(2:9:3)
+                   tan2 = metric_inverse(3:9:3)
+                case(2)
+                   normal = metric_inverse(2:9:3)
+                   tan1 = metric_inverse(3:9:3)
+                   tan2 = metric_inverse(1:9:3)
+                case(3)
+                   normal = metric_inverse(3:9:3)
+                   tan1 = metric_inverse(1:9:3)
+                   tan2 = metric_inverse(2:9:3)
+                end select
+       
+                vels_transform(1,:) = normal/sqrt(sum(normal**2))
+                vels_transform(2,:) = tan1/sqrt(sum(tan1**2))
+                vels_transform(3,:) = tan2/sqrt(sum(tan2**2))
+
+                right(3:5) = matmul(vels_transform,right(3:5))
+                center(3:5) = matmul(vels_transform,center(3:5))
+                grid_vel = matmul(vels_transform,grid_vel)
+                geom_avg = 0d0
+                geom_avg(6:14) = center(6:14)
+                geom_avg(15:17) = grid_vel
+                right(6:21) = geom_avg(6:21); center(6:21) = geom_avg(6:21)
+                call riemann_solve(center,right,n,1,[0d0],right_interface,&
+                     max_wave_speed_temp)
+                
+                vels_transform = MatrixInverse(vels_transform)
+
+                right_interface(3:5)=matmul(&
+                     vels_transform,right_interface(3:5))
+
+                center = main(:,i,j,k)
+                
+!                if(grid_motion .eq. 1)then
+                   if(n==1)then
+                      center(6:8) = center(6:8) + h*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   else if(n==2)then
+                      center(9:11) = center(9:11) + h*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   else if(n==3)then
+                      center(12:14) = center(12:14) + h*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   end if
+!                end if
+                left_flux  = flux( left_interface,center,n)
+                right_flux = flux(right_interface,center,n)
+                call primtocons(center)
+                center(1:5) = center(1:5) - dt*area*dv_inv*&
+                     (right_flux-left_flux)
+                call constoprim(center)
 !!$                if(grid_motion .eq. 0)then
 !!$                   center(15:17) = 0d0
 !!$                elseif(grid_motion .eq. 1)then
 !!$                   center(15:17) = center(3:5)*.25d0
 !!$                end if
-!!$                center(18:20) = center(18:20) + dt*center(15:17)
-!!$                center(21) = Jacobian(center(6:14))
-!!$
-!!$                main_temp(:,i,j,k) = center
-!!$             end do
-!!$          end do
-!!$       end do
-!!$       main(:,0:nx-1,0:ny-1,0:nz-1) = main_temp
-!!$       
-!!$!       main(15:17,0:nx-1,0:ny-1,0:nz-1) = main(3:5,0:nx-1,0:ny-1,0:nz-1)*.0d0
-!!$!       main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1)&
-!!$!            *dt*area*dv_inv*main(15:17,0:nx-1,0:ny-1,0:nz-1)
-!!$    end do
-!!$  end subroutine prim_update_HUI3D
+                center(15:17) = h*center(3:5)
+                center(21) = Jacobian(center(6:14))
+!!$                if(i==5.and.j==49)then
+!!$                   write(*,*) center
+!!$                   read(*,*)
+!!$                end if
+
+                main_temp(:,i,j,k) = center
+             end do
+          end do
+       end do
+       main(:,0:nx-1,0:ny-1,0:nz-1) = main_temp
+       main(18:20,:,:,:) = main(18:20,:,:,:) + dt*main(15:17,:,:,:)
+       
+!       main(15:17,0:nx-1,0:ny-1,0:nz-1) = main(3:5,0:nx-1,0:ny-1,0:nz-1)*.0d0
+!       main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1)&
+!            *dt*area*dv_inv*main(15:17,0:nx-1,0:ny-1,0:nz-1)
+    end do
+  end subroutine prim_update_HUI3D
 
   subroutine prim_update_FV(main,dt_out,dt_in,CFL,nx,ny,nz,opts)
 ! Advance the solution using the integral form of the equations
@@ -483,7 +511,8 @@ contains
        write(*,*) "Using given timestep", time_step_scheme
        dt = dt_in
     case(1)
-       dt = min(CFL/max_wave_speed,dt_in)
+!       dt = min(CFL/max_wave_speed,dt_in)
+       dt = minval([dxi,deta,dzeta])/max_wave_speed*CFL
     case default
        write(*,*) "Error in Godunov prim_update, invalid time step flag!"
        stop
@@ -497,25 +526,25 @@ contains
          (fluxz(:,:,:,1:nz)-fluxz(:,:,:,0:nz-1))*dxi*deta &
          )*dt*dV_inv
 ! Update extra variables
-  do k = 0, nz-1
-     do j = 0, ny-1
-        do i = 0, nx-1
-           main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
-        end do
-     end do
-  end do
+    do k = 0, nz-1
+       do j = 0, ny-1
+          do i = 0, nx-1
+             main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+          end do
+       end do
+    end do
     call constoprim(main(:,0:nx-1,0:ny-1,0:nz-1))
 ! Update grid position
     main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1) + &
          main(15:17,0:nx-1,0:ny-1,0:nz-1)*dt
-! Update extra variables
-  do k = 0, nz-1
-     do j = 0, ny-1
-        do i = 0, nx-1
-           main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
-        end do
-     end do
-  end do
+!!$! Update extra variables
+!!$  do k = 0, nz-1
+!!$     do j = 0, ny-1
+!!$        do i = 0, nx-1
+!!$           main(21,i,j,k) = Jacobian(main(6:14,i,j,k))
+!!$        end do
+!!$     end do
+!!$  end do
   end subroutine prim_update_FV
 
   subroutine compute_fluxes_FV(inL, inR, flux_vec, case_no,&
@@ -542,36 +571,50 @@ contains
     real(8), dimension(3,3) :: vels_transform
     real(8), dimension(3) :: grid_vel
     integer :: m
+    real(8), dimension(9) :: metric_inv_l, metric_inv_r
+    real(8), dimension(3) :: normal, tan1, tan2
     StateL = inL
     StateR = inR
     geom_avg = .5d0*(inL+inR)
     flux_vec = 0.d0
     dV_inv = 1.d0/(product(dV_in))
-    row_ops_mat = row_ops_mat_func(case_no)
-    metric = geom_avg(6:14)
-    metric_inverse = MetricInverse(metric)
+!    row_ops_mat = row_ops_mat_func(case_no)
+    metric_inverse = MetricInverse(inL(6:14))+MetricInverse(inR(6:14))
+    select case(case_no)
+    case(1)
+       normal = metric_inverse(1:9:3)
+       tan1 = metric_inverse(2:9:3)
+       tan2 = metric_inverse(3:9:3)
+    case(2)
+       normal = metric_inverse(2:9:3)
+       tan1 = metric_inverse(3:9:3)
+       tan2 = metric_inverse(1:9:3)
+    case(3)
+       normal = metric_inverse(3:9:3)
+       tan1 = metric_inverse(1:9:3)
+       tan2 = metric_inverse(2:9:3)
+    end select
+       
+    vels_transform(1,:) = normal/sqrt(sum(normal**2))
+    vels_transform(2,:) = tan1/sqrt(sum(tan1**2))
+    vels_transform(3,:) = tan2/sqrt(sum(tan2**2))
+!    vels_transform = transpose(vels_transform)
 
-    vels_transform = matmul(MetrictoMatrix(metric_inverse),row_ops_mat)
-    do m = 1, 3
-       vels_transform(m,:) = vels_transform(m,:)&
-            /sqrt(sum(vels_transform(m,:)**2))
-    end do
-    
-    StateL(3:5) = matmul(vels_transform,StateL(3:5))
-    StateR(3:5) = matmul(vels_transform,StateR(3:5))
-    StateL(15:17) = matmul(vels_transform,StateL(15:17))
-    StateR(15:17) = matmul(vels_transform,StateR(15:17))
+    StateL(3:5) = matmul(vels_transform,inL(3:5))
+    StateR(3:5) = matmul(vels_transform,inR(3:5))
+    StateL(15:17) = matmul(vels_transform,inL(15:17))
+    StateR(15:17) = matmul(vels_transform,inR(15:17))
     
     call riemann_solve(StateL,StateR,case_no,1,[0d0],interface_vars,&
          temp_wave_speed)
 
-    vels_transform = matmul(transpose(row_ops_mat),MetrictoMatrix(metric))
-    do m = 1, 3
-       vels_transform(m,:) = vels_transform(m,:)&
-            /sqrt(sum(vels_transform(m,:)**2))
-    end do
+    vels_transform = MatrixInverse(vels_transform)
+!!$    do m = 1, 3
+!!$       vels_transform(m,:) = vels_transform(m,:)&
+!!$            /sqrt(sum(vels_transform(m,:)**2))
+!!$    end do
     interface_vars(3:5) = matmul(vels_transform, interface_vars(3:5))
-!    geom_avg(15:17) = .25d0*interface_vars(3:5)
+!    geom_avg(15:17) = .999d0*interface_vars(3:5)
     flux_vec(1:5) = flux(interface_vars,geom_avg,case_no)
     select case(case_no)
     case(1)
@@ -615,27 +658,20 @@ contains
     integer, intent(in) :: case_no
     real(8), dimension(5) :: flux
     real(8) :: D, grads(3,3), grad(3), J, Jinv
-!!$    write(*,*) "Got this far"
     J = Jacobian(geom_avg(6:14))
     Jinv = 1.d0/J
-    call ComputationalGrads(geom_avg(6:14),J,grads(:,1),grads(:,2),grads(:,3))
-    grad = grads(:,case_no)
-    D = sum(([ in(3), in(4), in(5) ] - &
-         [ geom_avg(15), geom_avg(16), geom_avg(17) ])*grad)
+!    call ComputationalGrads(geom_avg(6:14),J,grads(:,1),grads(:,2),grads(:,3))
+    grads = MetrictoMatrix(MetricInverse(geom_avg(6:14)))
+    grad = grads(case_no,:)
+    D = dot_product(in(3:5)-geom_avg(15:17),grad)
+!sum(([ in(3), in(4), in(5) ] - &
+!         [ geom_avg(15), geom_avg(16), geom_avg(17) ])*grad)
     flux = [&
          in(2)*J*D, &
          in(2)*J*D*in(3) + J*grad(1)*in(1), &
          in(2)*J*D*in(4) + J*grad(2)*in(1), &
          in(2)*J*D*in(5) + J*grad(3)*in(1), &
          in(2)*J*D*energy_func(in(1:5)) + J*sum(grad*in(3:5))*in(1) ]
-!!$    write(*,*) "J = ", J
-!!$    write(*,*) "D = ", D
-!!$    write(*,*) "e = ", energy_func(in(1:5))
-!!$    write(*,*) "v = ", in(3:5)
-!!$    write(*,*) "V = ", geom_avg(15:17)
-!!$    write(*,*) "grad = ", grad
-!!$    write(*,*) "Energy term = ", J*in(2)*D*energy_func(in(1:5))
-!!$    write(*,*) "Case No. = ", case_no
   end function flux
 
   subroutine MUSCL_HUI(leftleft, left, right, rightright, outleft, outright)

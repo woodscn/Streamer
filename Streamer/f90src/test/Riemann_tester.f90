@@ -46,6 +46,8 @@ contains
     real(8), dimension(5) :: test_5_speeds
     real(8), dimension(21) :: moving_test_1_left
     real(8), dimension(21) :: moving_test_1_right
+    real(8), dimension(21) :: complicated_grid_left
+    real(8), dimension(21) :: complicated_grid_right
     real(8), dimension(4) :: moving_test_1_sol
     real(8), dimension(5) :: moving_test_1_speeds
     integer, parameter :: nx = 1
@@ -95,56 +97,78 @@ contains
     ! compared (eyeballed) with Toro's plots. This leaves the solutions within
     ! the expansion fan untested.
     test_flag = .true.
-    ! I need to test this with more complex geometric variables
-    test_geom = [0d0,0d0,0d0,0d0,0d0,&
-         1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0,&
-         0d0,0d0,0d0,0d0,0d0,0d0,1d0]
 !    test_sol = test_1_sol
 !      subroutine riemann_solve(left, right, dir, nx, x, out, max_wave_speed,&
 !       riemann_middle_states, riemann_wave_speeds)
     do dir = 1, 3
-       call riemann_solve(test_1_left,test_1_right,dir,1,[0d0],out,max_wave_speed,&
-            riemann_middle_states,riemann_wave_speeds)
+       call riemann_solve(test_1_left,test_1_right,dir,1,[0d0],out,&
+            max_wave_speed,riemann_middle_states,riemann_wave_speeds)
        if(.not.(maxval(abs(riemann_middle_states-test_1_sol))<5d-6))&
             RieTester = 1
-       if(.not.(maxval(abs((riemann_wave_speeds-test_1_speeds)/test_1_speeds))<5d-5))&
+       if(.not.(maxval(&
+            abs((riemann_wave_speeds-test_1_speeds)/test_1_speeds))<5d-5))&
             RieTester = 1
-       call riemann_solve(test_2_left,test_2_right,dir,1,[0d0],out,max_wave_speed,&
-            riemann_middle_states,riemann_wave_speeds)
-       if(.not.(maxval(abs(riemann_middle_states-test_2_sol)/test_2_sol)<5d-3))&
+       call riemann_solve(test_2_left,test_2_right,dir,1,[0d0],out,&
+            max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(&
+            abs(riemann_middle_states-test_2_sol)/test_2_sol)<5d-3))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_2_speeds))<5d-4))&
             RieTester = 1
-       call riemann_solve(test_3_left,test_3_right,dir,1,[0d0],out,max_wave_speed,&
-            riemann_middle_states,riemann_wave_speeds)
-       if(.not.(maxval(abs(riemann_middle_states-test_3_sol)/test_3_sol)<5d-6))&
+       call riemann_solve(test_3_left,test_3_right,dir,1,[0d0],out,&
+            max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(&
+            abs(riemann_middle_states-test_3_sol)/test_3_sol)<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_3_speeds))<7d-5))&
             RieTester = 1
-       call riemann_solve(test_4_left,test_4_right,dir,1,[0d0],out,max_wave_speed,&
-            riemann_middle_states,riemann_wave_speeds)
-       if(.not.(maxval(abs(riemann_middle_states-test_4_sol)/test_4_sol)<5d-6))&
+       call riemann_solve(test_4_left,test_4_right,dir,1,[0d0],out,&
+            max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(&
+            abs(riemann_middle_states-test_4_sol)/test_4_sol)<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_4_speeds))<5d-5))&
             RieTester = 1
-       call riemann_solve(test_5_left,test_5_right,dir,1,[0d0],out,max_wave_speed,&
-            riemann_middle_states,riemann_wave_speeds)
-       if(.not.(maxval(abs(riemann_middle_states-test_5_sol)/test_5_sol)<5d-6))&
+       call riemann_solve(test_5_left,test_5_right,dir,1,[0d0],out,&
+            max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+       if(.not.(maxval(&
+            abs(riemann_middle_states-test_5_sol)/test_5_sol)<5d-6))&
             RieTester = 1
        if(.not.(maxval(abs(riemann_wave_speeds-test_5_speeds))<8d-5))&
             RieTester = 1
     end do
-    ! Visual tests are possible to check that the solution within the fan is correct.
-    ! This writes the density to a file that can then be plotted.
+    ! Visual tests are possible to check that the solution within the fan is 
+    !correct. This writes the density to a file that can then be plotted.
     do n = 1, nxfull
        xfull(n) = 0d0+1d0/(nxfull-1d0)*(n-1)
     end do
-    call riemann_solve(test_1_left,test_1_right,1,nxfull,(xfull-.5d0)/.15d0,outfull,&
-         max_wave_speed,riemann_middle_states,riemann_wave_speeds)
+    call riemann_solve(test_1_left,test_1_right,1,nxfull,(xfull-.5d0)/.15d0,&
+         outfull,max_wave_speed,riemann_middle_states,riemann_wave_speeds)
     open(unit=9492, file=trim(output_dir)//'riemann_test.dat')
     write(9492,*) outfull(2,:)
     write(9492,*) xfull
     close(9492)
+
+    ! I need to test this with more complex geometric variables
+    test_geom = [0d0,0d0,0d0,0d0,0d0,&
+         1d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,1d0,&
+         0d0,0d0,0d0,0d0,0d0,0d0,1d0]
+
+    complicated_grid_left = test_1_left
+    complicated_grid_left(6:21) = test_geom(6:21)
+    complicated_grid_right = test_1_right
+    complicated_grid_right(6:21) = test_geom(6:21)
+    do n = 1, nxfull
+       xfull(n) = 0d0+1d0/(nxfull-1)*(n-1)
+    end do
+    call riemann_solve(complicated_grid_left,complicated_grid_right,1,nxfull,&
+         (xfull-.5d0)/.15d0,outfull,max_wave_speed,riemann_middle_states,&
+         riemann_wave_speeds)
+    open(unit=9493,file=trim(output_dir)//'complicated_riemann_test.dat')
+    write(9493,*)outfull(2,:)
+    write(9493,*)xfull
+    close(9493)
+
 
 !!$    moving_test_1_left = test_1_left
 !!$    moving_test_1_left(3) = moving_test_1_left(3) + .3d0

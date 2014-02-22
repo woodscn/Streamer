@@ -150,15 +150,12 @@ contains
     wave_speeds(3) = S/J*(Ustar-Uavg)
     if(Pstar/right(1)>1d0)then
        wave_speeds(5) = S/J*(right(3)-Uavg+sqrt(right(1)*gamma_const/right(2))&
-            *sqrt((gamma_const+1d0)/(2d0*gamma_const)*(Pstar/right(1)-1d0)+1d0))
+            *sqrt(&
+            (gamma_const+1d0)/(2d0*gamma_const)*(Pstar/right(1)-1d0)+1d0))
     else
        wave_speeds(4) = S/J*(Ustar-Uavg+sqrt(Pstar*gamma_const/DstarR))
        wave_speeds(5) = S/J*(right(3)-Uavg+sqrt(right(1)*gamma_const/right(2)))
-!!$       if(abs(S/J-99d0)>1d0)then
-!!$          write(*,*) "S = ", S,"    J = ", J
-!!$       end if
     end if
-    
   end function wave_speeds
 
   real(8) pure function guessp(left,right)
@@ -206,7 +203,8 @@ contains
        f = in(1)*(psi-1.d0)*sqrt(A/(in(1)*psi+B))
        df= sqrt(A/(B+in(1)*psi))*(1.d0-in(1)*(psi-1.d0)/(2.*(B+psi*in(1))))
     else
-       f = 2.d0*a0/(gamma_const-1.d0)*(psi**((gamma_const-1.d0)/(2.d0*gamma_const))-1.d0)
+       f = 2.d0*a0/(gamma_const-1.d0)*(psi**((gamma_const-1.d0)/&
+            (2.d0*gamma_const))-1.d0)
        df= 1.d0/(in(2)*a0)*psi**((gamma_const+1.d0)/(-2.d0*gamma_const))
     end if
   end subroutine u_fun
@@ -216,14 +214,15 @@ contains
     real(8), intent(in) :: psi
     real(8) :: beta
     if( psi .gt. 1 )then
-       beta = ((gamma_const+1.)*psi+gamma_const-1.)/(gamma_const+1.+(gamma_const-1.)*psi)
+       beta = ((gamma_const+1.)*psi+gamma_const-1.)/&
+            (gamma_const+1.+(gamma_const-1.)*psi)
     else
        beta = psi**(1.d0/gamma_const)
     end if
   end function beta
 
-  pure subroutine sample(x,left,right,riemann_middle_states,riemann_wave_speeds,&
-       Uavg,J,S,out)    
+  pure subroutine sample(x,left,right,riemann_middle_states,&
+       riemann_wave_speeds,Uavg,J,S,out)    
     implicit none
     real(8), dimension(:), intent(in) :: left, right, riemann_middle_states
     real(8), dimension(:), intent(in) :: riemann_wave_speeds
@@ -279,7 +278,8 @@ contains
              out(2) = DstarL
           else
 !!$             write(*,*) "The boundary lies within the left expansion wave"
-             out(1) = left(1)*( 2.d0*gamma6 + gamma5/aL*(left(3)-Uavg-J/S*x) )**gamma7
+             out(1) = left(1)*(2d0*gamma6+gamma5/aL*&
+                  (left(3)-Uavg-J/S*x))**gamma7
              out(3) = left(3) - 2.d0*aL/(gamma_const-1.d0)*((out(1)/left(1))&
                   **((gamma_const-1.d0)/(2.d0*gamma_const))-1.d0)
              out(2) = left(2)*(out(1)/left(1))**(1.d0/gamma_const)
@@ -287,7 +287,7 @@ contains
        end if
     else
 !!$       write(*,*) " The boundary lies to the right of the contact wave"
-       out(4) = right(4) ; out(5) = right(5)
+       out(4) = right(4); out(5) = right(5)
        if( PsiR .gt. 1.d0 )then
 !!$          if(test_flag) write(*,*) " Right shock"
           cR = riemann_wave_speeds(5)
@@ -321,9 +321,10 @@ contains
              out(2) = DstarR
           else
 !!$             write(*,*) " The boundary lies within the right expansion wave"
-             out(1) = right(1)*( 2.d0*gamma6 - gamma5/aR*(right(3)-Uavg-J/S*x) )**gamma7
-             out(3) = right(3) + 2.d0*aR/(gamma_const-1.d0)*((out(1)/right(1))**&
-                  ((gamma_const-1.d0)/(2.d0*gamma_const))-1.d0)
+             out(1) = right(1)*(2d0*gamma6-gamma5/&
+                  aR*(right(3)-Uavg-J/S*x))**gamma7
+             out(3) = right(3) + 2.d0*aR/(gamma_const-1.d0)*((out(1)/right(1))&
+                  **((gamma_const-1.d0)/(2.d0*gamma_const))-1.d0)
              out(2) = right(2)*(out(1)/right(1))**(1.d0/gamma_const)
           end if
        end if

@@ -26,10 +26,10 @@ contains
     case(1)
        call prim_update_FV(main,dt_out,dt_in,CFL,nx,ny,nz,options)
     case(2)
-       write(*,*) "Error in prim_update: "
-       write(*,*) "-Dimensionally split algorithms not yet implemented!"
-       stop
-!       call prim_update_HUI3D(main,dt_out,dt_in,CFL,nx,ny,nz,options)
+!!$       write(*,*) "Error in prim_update: "
+!!$       write(*,*) "-Dimensionally split algorithms not yet implemented!"
+!!$       stop
+       call prim_update_HUI3D(main,dt_out,dt_in,CFL,nx,ny,nz,options)
     case default
        write(*,*) "Bad update_type value!!!"
        stop
