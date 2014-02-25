@@ -30,8 +30,8 @@ contains
     
     ! Set simulation options
     opts = 0
-    opts(1:5) = [1,0,1,1,1]
-    opts(6:7) = [0,4]
+    opts(1:5) = [2,0,1,1,1]
+    opts(6:7) = [1,4]
     opts(101) = 1
     opts(102) = 2
     opts(104) = 1
@@ -62,14 +62,18 @@ contains
     call write_files_matlab(main(:,2:nx+1,2:ny+1,2:nz+1),0d0,nx,ny,&
          first_flag=.true.)
     do n = 1, nt
-       ! Apply boundary conditions
-       call SteadyRiemannBCs(main)
-       ! Set grid motion
-!       call grid_motion_driver(main,opts)
-       ! Advance flow variables
-       call prim_update(main,dt_out,dt,.25d0,nx,ny,nz,opts)
+       do m = 1, 3
+          opts(2) = m
+          ! Apply boundary conditions
+          call SteadyRiemannBCs(main)
+          ! Set grid motion
+          call grid_motion_driver(main,opts)
+!          main(15:17,:,:,:) = main(3:5,:,:,:)*.999
+          ! Advance flow variables
+          call prim_update(main,dt_out,dt,.25d0,nx,ny,nz,opts)
 !       if(CheckCreateColumn(main(:,2,2:ny+1,2:nz+1),&
 !            main(:,1,2:ny+1,2:nz+1),nx,ny))then
+       end do
        if(maxval(main(18,2,2:ny+1,2:nz+1))>.01d0)then
           write(*,*) "Creating a column"
           allocate(main2(21,nx+2,ny+2,nz+2))
@@ -80,12 +84,12 @@ contains
           main(:,2:nx+2,:,:) = main2
           main(:,1,:,:) = main2(:,1,:,:)
           deallocate(main2)
-!          call SteadyRiemannBCs(main)
+          call SteadyRiemannBCs(main)
 !          allocate(new_column(21,ny,nz))
 !          call CreateColumn(main(:,3,2:ny+1,2:nz+1),&
 !               main(:,1,2:ny+1,2:nz+1),ny,nz,new_column)
           call SteadyRiemannBCs(main)
-          main(:,2,2:ny+1,2:nz+1) = main(:,1,2:ny+1,2:nz+1)
+!          main(:,2,2:ny+1,2:nz+1) = main(:,1,2:ny+1,2:nz+1)
 !          main(6,2,2:ny+1,2:nz+1) = main(18,2,2:ny+1,2:nz+1)/dxi
 
           call SteadyRiemannBCs(main)
@@ -108,8 +112,8 @@ contains
           main(:,:,:,:) = main2(:,1:nx+2,:,:)
           deallocate(main2)
        end if
-       if(mod(n,10)==0)call write_files_matlab(main(:,2:nx+1,2:ny+1,2),0d0,nx,ny,&
-            first_flag=.false.)
+       if(mod(n,10)==0)call write_files_matlab(main(:,2:nx+1,2:ny+1,2),&
+            0d0,nx,ny,first_flag=.false.)
     end do
     Steady2DRiemann = 1
   end function Steady2DRiemann

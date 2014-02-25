@@ -205,7 +205,9 @@ contains
     integer :: grid_motion
     integer :: time_step_scheme
     real(8), dimension(3) :: normal, tan1, tan2
-    real(8), parameter :: h=.25d0
+    real(8), parameter :: h=.999d0
+
+    n = opts(2)
     spatial_order = opts(102)
     grid_motion = opts(103)
     time_step_scheme = opts(104)
@@ -223,7 +225,7 @@ contains
     dV_inv = dxi_inv*deta_inv*dzeta_inv
     dt = dt_in
     dt_out = dt_in
-    do n = 1, 3
+!    do n = 1, 3
        if( n .eq. 1 )then
           case_no = 1
           area = deta*dzeta
@@ -241,13 +243,13 @@ contains
           stop
        end if
 
-       if(.not.opts(101)==1)stop
-       main(:,nx,:,:) = main(:,nx-1,:,:)
-       main(:,:,-1,:) = main(:,:,0,:)
-       main(:,:,ny,:) = main(:,:,ny-1,:)
-       main(:,:,:,-1) = main(:,:,:,0)
-       main(:,:,:,nz) = main(:,:,:,nz-1)
-       main(15:17,:,:,:) = h*main(3:5,:,:,:)
+!!$       if(.not.opts(101)==1)stop
+!!$       main(:,nx,:,:) = main(:,nx-1,:,:)
+!!$       main(:,:,-1,:) = main(:,:,0,:)
+!!$       main(:,:,ny,:) = main(:,:,ny-1,:)
+!!$       main(:,:,:,-1) = main(:,:,:,0)
+!!$       main(:,:,:,nz) = main(:,:,:,nz-1)
+!!$       main(15:17,:,:,:) = h*main(3:5,:,:,:)
        do k = 0, nz-1
           do j = 0, ny-1
              do i = 0, nx-1
@@ -350,47 +352,46 @@ contains
 
                 center = main(:,i,j,k)
                 
-!                if(grid_motion .eq. 1)then
-                   if(n==1)then
-                      center(6:8) = center(6:8) + h*dt*area*dv_inv*&
-                           (right_interface(3:5)-left_interface(3:5))
-                   else if(n==2)then
-                      center(9:11) = center(9:11) + h*dt*area*dv_inv*&
-                           (right_interface(3:5)-left_interface(3:5))
-                   else if(n==3)then
-                      center(12:14) = center(12:14) + h*dt*area*dv_inv*&
-                           (right_interface(3:5)-left_interface(3:5))
-                   end if
-!                end if
+!!$                if(grid_motion .eq. 1)then
+!!$                   if(n==1)then
+!!$                      center(6:8) = center(6:8) + h*dt*area*dv_inv*&
+!!$                           (right_interface(3:5)-left_interface(3:5))
+!!$                   else if(n==2)then
+!!$                      center(9:11) = center(9:11) + h*dt*area*dv_inv*&
+!!$                           (right_interface(3:5)-left_interface(3:5))
+!!$                   else if(n==3)then
+!!$                      center(12:14) = center(12:14) + h*dt*area*dv_inv*&
+!!$                           (right_interface(3:5)-left_interface(3:5))
+!!$                   end if
+!!$                end if
+                if(n==1)then
+                   center(6:8) = center(6:8) + dt*area*dv_inv*center(15:17)
+                else if(n==2)then
+                   center(9:11) = center(9:11) + dt*area*dv_inv*center(15:17)
+                else if(n==3)then
+                   center(12:14) = center(12:14) + dt*area*dv_inv*center(15:17)
+                end if
+                
                 left_flux  = flux( left_interface,center,n)
                 right_flux = flux(right_interface,center,n)
                 call primtocons(center)
                 center(1:5) = center(1:5) - dt*area*dv_inv*&
                      (right_flux-left_flux)
                 call constoprim(center)
-!!$                if(grid_motion .eq. 0)then
-!!$                   center(15:17) = 0d0
-!!$                elseif(grid_motion .eq. 1)then
-!!$                   center(15:17) = center(3:5)*.25d0
-!!$                end if
-                center(15:17) = h*center(3:5)
                 center(21) = Jacobian(center(6:14))
-!!$                if(i==5.and.j==49)then
-!!$                   write(*,*) center
-!!$                   read(*,*)
-!!$                end if
 
                 main_temp(:,i,j,k) = center
              end do
           end do
        end do
        main(:,0:nx-1,0:ny-1,0:nz-1) = main_temp
-       main(18:20,:,:,:) = main(18:20,:,:,:) + dt*main(15:17,:,:,:)
+       if(n==3)&
+            main(18:20,:,:,:) = main(18:20,:,:,:) + dt*main(15:17,:,:,:)
        
 !       main(15:17,0:nx-1,0:ny-1,0:nz-1) = main(3:5,0:nx-1,0:ny-1,0:nz-1)*.0d0
 !       main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1)&
 !            *dt*area*dv_inv*main(15:17,0:nx-1,0:ny-1,0:nz-1)
-    end do
+!    end do
   end subroutine prim_update_HUI3D
 
   subroutine prim_update_FV(main,dt_out,dt_in,CFL,nx,ny,nz,opts)
