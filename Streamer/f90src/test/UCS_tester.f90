@@ -11,7 +11,7 @@ contains
 
   integer function UCS_test_main()
     implicit none
-    UCS_test_main = Steady2DRiemann(100,5000,.0001d0)
+    UCS_test_main = Steady2DRiemann(100,2500,.0001d0)
   end function UCS_test_main
 
   function Steady2DRiemann(ny,nt,dt)
@@ -34,6 +34,7 @@ contains
     opts(6:7) = [1,4]
     opts(101) = 1
     opts(102) = 2
+    opts(103) = 2
     opts(104) = 1
     ! Initialize the main data array
     nx = 1; nz = 1
@@ -71,10 +72,9 @@ contains
 !          main(15:17,:,:,:) = main(3:5,:,:,:)*.999
           ! Advance flow variables
           call prim_update(main,dt_out,dt,.25d0,nx,ny,nz,opts)
+!       if(CheckCreateColumn(main(:,2,2:ny+1,2:nz+1),&
+!            main(:,1,2:ny+1,2:nz+1),nx,ny))then
        end do
-       call SteadyRiemannBCs(main)
-!!$       if(CheckCreateColumn(main(:,2,2:ny+1,2:nz+1),&
-!!$            main(:,1,2:ny+1,2:nz+1),ny,nz))then
        if(maxval(main(18,2,2:ny+1,2:nz+1))>.01d0)then
           write(*,*) "Creating a column"
           allocate(main2(21,nx+2,ny+2,nz+2))
@@ -85,15 +85,15 @@ contains
           main(:,2:nx+2,:,:) = main2
           main(:,1,:,:) = main2(:,1,:,:)
           deallocate(main2)
-!          call SteadyRiemannBCs(main)
+          call SteadyRiemannBCs(main)
 !          allocate(new_column(21,ny,nz))
 !          call CreateColumn(main(:,3,2:ny+1,2:nz+1),&
 !               main(:,1,2:ny+1,2:nz+1),ny,nz,new_column)
-!          call SteadyRiemannBCs(main)
+          call SteadyRiemannBCs(main)
 !          main(:,2,2:ny+1,2:nz+1) = main(:,1,2:ny+1,2:nz+1)
 !          main(6,2,2:ny+1,2:nz+1) = main(18,2,2:ny+1,2:nz+1)/dxi
 
-!          call SteadyRiemannBCs(main)
+          call SteadyRiemannBCs(main)
 !          deallocate(new_column)
        end if
        check_remove_column = .false.

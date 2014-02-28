@@ -15,11 +15,6 @@ contains
                gradXi, gradEta, gradZeta)
           if(dot_product(gradXi,main_data(18:20,i,j)-bc_state(18:20,i,j))&
                >= 1.d0)then
-!!$          write(*,*) main_data(6:14,i,j)
-!!$          write(*,*) gradXi,gradEta,gradZeta
-!!$          write(*,*) main_data(18:20,i,j)-bc_state(18:20,i,j)
-!!$          write(*,*) i,j
-!!$          read(*,*)
              CheckCreateColumn = .true.
              return
           end if
