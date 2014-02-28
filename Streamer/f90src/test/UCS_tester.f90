@@ -69,13 +69,11 @@ contains
           call SteadyRiemannBCs(main)
           ! Set grid motion
           call grid_motion_driver(main,opts)
-!          main(15:17,:,:,:) = main(3:5,:,:,:)*.999
           ! Advance flow variables
           call prim_update(main,dt_out,dt,.25d0,nx,ny,nz,opts)
-!       if(CheckCreateColumn(main(:,2,2:ny+1,2:nz+1),&
-!            main(:,1,2:ny+1,2:nz+1),nx,ny))then
        end do
-       if(maxval(main(18,2,2:ny+1,2:nz+1))>.01d0)then
+       if(CheckCreateColumn(main(:,2,2:ny+1,2:nz+1),&
+            main(:,1,2:ny+1,2:nz+1),ny,nz))then
           write(*,*) "Creating a column"
           allocate(main2(21,nx+2,ny+2,nz+2))
           main2 = main
@@ -85,16 +83,6 @@ contains
           main(:,2:nx+2,:,:) = main2
           main(:,1,:,:) = main2(:,1,:,:)
           deallocate(main2)
-          call SteadyRiemannBCs(main)
-!          allocate(new_column(21,ny,nz))
-!          call CreateColumn(main(:,3,2:ny+1,2:nz+1),&
-!               main(:,1,2:ny+1,2:nz+1),ny,nz,new_column)
-          call SteadyRiemannBCs(main)
-!          main(:,2,2:ny+1,2:nz+1) = main(:,1,2:ny+1,2:nz+1)
-!          main(6,2,2:ny+1,2:nz+1) = main(18,2,2:ny+1,2:nz+1)/dxi
-
-          call SteadyRiemannBCs(main)
-!          deallocate(new_column)
        end if
        check_remove_column = .false.
        do k = 2, nz+1
