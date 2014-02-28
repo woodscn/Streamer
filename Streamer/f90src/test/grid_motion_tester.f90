@@ -18,9 +18,9 @@ contains
     real(8), dimension(len_nx_a) :: dx_a, dy_a
     real(8) :: order
 
-    integer, parameter ::  len_nt_a = 2
-    integer, parameter, dimension(len_nt_a) :: nt_a = [11,1001]
-    real(8), dimension(len_nt_a) :: dt_a = [.1, .1]
+    integer, parameter ::  len_nt_a = 4
+    integer, parameter, dimension(len_nt_a) :: nt_a = [1,3,5,7]
+    real(8), dimension(len_nt_a) :: dt_a = [.01,.01,.01,.01]
     real(8), dimension(len_nt_a) :: orthogonality
     real(8), dimension(21,53,53,3) :: main_data
     integer, dimension(1000) :: options
@@ -34,7 +34,7 @@ contains
             dx_a(n), dy_a(n))
     end do
     order = (log(err(2))-log(err(1)))/(log(dx_a(2))-log(dx_a(1)))
-    if (order < .5d0)then
+    if (order < .4d0)then
        grid_motion_test = 1
     end if
 
@@ -67,11 +67,14 @@ contains
           main_data( 9,2:52,2:52,2) = main_data( 9,2:52,2:52,2)+dt_a(n)*fluxL
           main_data(10,2:52,2:52,2) = main_data(10,2:52,2:52,2)+dt_a(n)*fluxM
        end do
-       orthogonality(n) = sqrt(sum((&
+       orthogonality(n) = sqrt(sum(((&
             main_data(6,2:52,2:52,2)*main_data( 9,2:52,2:52,2)+&
-            main_data(7,2:52,2:52,2)*main_data(10,2:52,2:52,2))**2)/(51*51))
+            main_data(7,2:52,2:52,2)*main_data(10,2:52,2:52,2))**2)/(&
+            sqrt(main_data(6,2:52,2:52,2)**2+main_data(7,2:52,2:52,2)**2)*&
+            sqrt(main_data(9,2:52,2:52,2)**2+main_data(10,2:52,2:52,2)**2)))/&
+            (51*51))
     end do
-    if (maxval(abs(orthogonality))>1d-12)then
+    if (maxval(abs(orthogonality))>1d-2)then
        grid_motion_test = 2
     end if
   end function grid_motion_test
@@ -162,6 +165,10 @@ contains
     select case(in)
     case(0)
        write(*,*) "Grid_motion_test passed "
+    case(1)
+       write(*,*) "Grid_motion order of convergence is too low."
+    case(2)
+       write(*,*) "Grid_motion orthogonality not preserved."
     case default
        write(*,*) "Error in grid_motion_test"
     end select

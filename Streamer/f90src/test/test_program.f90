@@ -15,9 +15,9 @@ program test_program
   write(*,*) "Riemann tester:"
   result = RieTester(output_dir)
   junk = RieErrorReader(result)
-!!$  write(*,*) "Grid Motion Tester:"
-!!$  result = grid_motion_test()
-!!$  junk = grid_motion_reader(result)
+  write(*,*) "Grid Motion Tester:"
+  result = grid_motion_test()
+  junk = grid_motion_reader(result)
 !!$  write(*,*) "Godunov tester:"
 !!$  result = GodTester(output_dir)
 !!$  junk = GodErrorReader(result)
