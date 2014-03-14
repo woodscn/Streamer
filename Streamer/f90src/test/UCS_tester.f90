@@ -112,22 +112,57 @@ contains
     real(8), dimension(:,:,:,:), intent(inout) :: main
     integer :: j, k
 
-    main(:,1,:,:) = main(:,2,:,:)
-    do j = 2,size(main,3)-1
-       do k = 2, size(main,4)-1
-          if(j > (size(main,3)-2)/2+1)then
-             main(:,1,j,k) = top_state+base_state
-          else
-             main(:,1,j,k) = bottom_state+base_state
-          end if
-          main(18,1,j,k) = 0d0
-          main(19:20,1,j,k) = main(19:20,2,j,k)
-       end do
-    end do
+!!$    main(:,1,:,:) = main(:,2,:,:)
+!!$    do j = 2,size(main,3)-1
+!!$       do k = 2, size(main,4)-1
+!!$          if(j > (size(main,3)-2)/2+1)then
+!!$             main(:,1,j,k) = top_state+base_state
+!!$          else
+!!$             main(:,1,j,k) = bottom_state+base_state
+!!$          end if
+!!$          main(18,1,j,k) = 0d0
+!!$          main(19:20,1,j,k) = main(19:20,2,j,k)
+!!$       end do
+!!$    end do
+    main(:,1,2:size(main,3)-1,:) = RiemannUpstreamBC(size(main,3)-2)
+!!$    main(:,1,1,:) = main(:,2,2,:)
+!!$    main(:,1,size(main,3)+2,:) = main(:,1,size(main,3)+1,:)
     main(:,size(main,2),:,:) = main(:,size(main,2)-1,:,:)
     main(:,:,1,:) = main(:,:,2,:)
     main(:,:,size(main,3),:) = main(:,:,size(main,3)-1,:)
     main(:,:,:,1) = main(:,:,:,2)
     main(:,:,:,size(main,4)) = main(:,:,:,size(main,4)-1)
   end subroutine SteadyRiemannBCs
+  
+  function RiemannUpstreamBC(ny)
+    implicit none
+    integer, intent(in) :: ny
+    real(8), dimension(21,ny,3) :: RiemannUpstreamBC
+
+    real(8), dimension(21,ny) :: out
+    real(8), dimension(21) :: top_state, bottom_state, base_state
+    real(8) :: dx, dy, dz, dxi, deta, dzeta
+    integer :: i, j
+    dx = .6d0/((ny*6)/10); dy = 1d0/(ny); dz = dx
+    dxi = 1d0; deta = 1d0; dzeta = 1d0
+    top_state = 0d0; bottom_state = 0d0; base_state = 0d0
+    top_state(1:5) = [.25d0,.5d0,7d0*sqrt(.25d0/.5d0*1.4d0),0d0,0d0]
+    bottom_state(1:5) = [1d0,1d0,2.4d0*sqrt(1.4d0),0d0,0d0]
+    base_state(6:21) = [dx/dxi,0d0,0d0,0d0,dy/deta,0d0,0d0,0d0,dz/dzeta,&
+         0d0,0d0,0d0,0d0,0d0,0d0,dx*dy*dz/(dxi*deta*dzeta)]
+    do j = 1, ny
+       if(j>=ny/2)then
+          out(:,j) = top_state+base_state
+       else
+          out(:,j) = bottom_state+base_state
+       end if
+       out(18,j) = 0
+       out(19,j) = (j-1)*dy
+       out(20,j) = 0
+    end do
+    do i = 1,3
+       RiemannUpstreamBC(:,:,i) = out
+    end do
+  end function RiemannUpstreamBC
+    
 end module UCS_tester
