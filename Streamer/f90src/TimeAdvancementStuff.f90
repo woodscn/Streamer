@@ -104,7 +104,7 @@ contains
        do j = 1 , ny
           current = main_data(:,i,j)
           write(3141,*) ' ', current(18) , current(19) , current(3) , current(4) , current(2) , current(1) &
-               , current(6) , current(7) , current(9) , current(10) , current(21)
+               , current(6) , current(7) , current(9) , current(10) , current(15)/current(3)
        end do
     end do
   end subroutine write_files_matlab
