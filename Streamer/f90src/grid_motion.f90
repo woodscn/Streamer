@@ -61,7 +61,9 @@ contains
        main(15:16, nxi,:,:) = main(15:16, nxi-1,:,:)
        main(15:16,:,   1,:) = main(15:16,:,     2,:)
        main(15:16,:,neta,:) = main(15:16,:,neta-1,:)
-
+    case(5)
+       call U_update(main(:,2:nxi-1,2:neta-1,2),2.5d0,nxi-2,neta-2,dxi,deta)
+!         subroutine U_update(main,nx,ny,dx,dy)
     case default
        write(*,*) "Invalid grid motion specification!"
        stop
@@ -90,6 +92,7 @@ contains
 ! The PDE has better continuity properties when written in terms of g 
 ! rather than h.
     g = log(q*h0)
+    g = min(minval(g(1,:)),minval(g(:,1)))
     S2 = L**2 + M**2 ; T2 = A**2 + B**2 ! Define useful parameters.
     tol = 1.0e-12 ! Define convergence criterion.
     call TwoDGradient(theta,dxi,deta,nx,ny,dthetadxi,dthetadeta)
@@ -107,12 +110,12 @@ contains
     err = 1 ; 
     allocate( temp(nx,ny) )
     temp = g
-    do iter = 1, 100
+    do iter = 1, 100000
        if (err < tol)then 
           exit
        end if
-       do i = 2 , nx
           do j = 2 , ny
+       do i = 2 , nx
              temp(i,j) = (alpha(i,j)*g(i-1,j)/dxi + beta(i,j)*g(i,j-1) &
                    /deta - gamma(i,j) )/(alpha(i,j)/dxi + beta(i,j)/deta)
           end do
@@ -120,7 +123,7 @@ contains
        err = maxval(abs(temp-g))
        g   = temp
     end do
-    if (iter == 100)then
+    if (iter == 10000)then
        write(*,*) "Maximum number of iterations exceeded"
        stop
     end if
@@ -144,5 +147,63 @@ contains
     theta = atan2(v,u)
   end subroutine vpolar
 
+  subroutine U_update(main,U0,nx,ny,dx,dy)
+    implicit none
+    real(8), dimension(21,nx,ny), intent(inout) :: main
+    integer, intent(in) :: nx, ny
+    real(8), intent(in) :: U0, dx, dy
+
+    integer :: i, j, k
+    real(8), dimension(nx,ny) :: S2, T2, Jac, dAdx, dAdy, dBdx, dBdy, &
+         dudx, dudy, dvdx, dvdy
+    
+!!$    if(size(main,4) .ne. 3)then
+!!$       write(*,*) "Error in U_update, three-dimensional array received!"
+!!$       stop
+!!$    end if
+    
+    S2 = main(9,:,:)**2+main(10,:,:)**2
+    T2 = main(6,:,:)**2+main(7,:,:)**2
+    do i = 1, nx
+       do j = 1, ny
+          Jac(i,j) = Jacobian(main(6:14,i,j))
+       end do
+    end do
+    
+    call TwoDGradient(main(6,:,:),dx,dy,nx,ny,dAdx,dAdy)
+    call TwoDGradient(main(7,:,:),dx,dy,nx,ny,dBdx,dBdy)
+    call TwoDGradient(main(3,:,:),dx,dy,nx,ny,dudx,dudy)
+    call TwoDGradient(main(4,:,:),dx,dy,nx,ny,dvdx,dvdy)
+
+    main(15,:,:) = U0
+    do i = 1, nx
+       do j = 2, ny
+          main(15,i,j) = dy*q_func(i,j)+(1d0-dy*p_func(i,j))*main(15,i,j-1)
+       end do
+    end do
+    main(16,:,:) = main(4,:,:) - &
+         main(7,:,:)/main(6,:,:)*(main(3,:,:)-main(15,:,:))
+  contains
+    function p_func(i,j)
+      real(8) :: p_func
+      integer :: i, j
+      p_func = S2(i,j)/(T2(i,j)*Jac(i,j))&
+           * (main(6,i,j)*dBdx(i,j) - main(7,i,j)*dAdx(i,j)) &
+           - main(9,i,j)/(main(6,i,j)*Jac(i,j))&
+           * (main(6,i,j)*dBdy(i,j) - main(7,i,j)*dAdy(i,j))
+    end function p_func
+
+    function q_func(i,j)
+      real(8) :: q_func
+      integer :: i,j
+      q_func = S2(i,j)*main(6,i,j)/(T2(i,j)*Jac(i,j)) &
+           * (main(7,i,j)*dudx(i,j)-main(6,i,j)*dvdx(i,j)) &
+           + main(9,i,j)/Jac(i,j) &
+           * (main(6,i,j)*dvdy(i,j)-main(7,i,j)*dudy(i,j)) &
+           + p_func(i,j)*main(3,i,j)
+    end function q_func
+
+  end subroutine U_update
+  
 end module grid_motion_mod
 
