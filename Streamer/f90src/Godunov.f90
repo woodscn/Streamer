@@ -356,9 +356,9 @@ contains
        end do
     end do
     main(:,0:nx-1,0:ny-1,0:nz-1) = main_temp
-    if(n==3)&
-         main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1&
-         ) + dt*main(15:17,0:nx-1,0:ny-1,0:nz-1)
+!!$    if(n==3)&
+!!$         main(18:20,0:nx-1,0:ny-1,0:nz-1) = main(18:20,0:nx-1,0:ny-1,0:nz-1&
+!!$         ) + dt*main(15:17,0:nx-1,0:ny-1,0:nz-1)
        
   end subroutine prim_update_HUI3D
 

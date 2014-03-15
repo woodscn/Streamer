@@ -19,7 +19,7 @@ contains
     integer :: Steady2DRiemann
     integer, intent(in) :: ny, nt
     real(8), intent(in) :: dt
-    real(8), dimension(:,:,:,:), allocatable :: main, main2
+    real(8), dimension(:,:,:,:), allocatable :: main, main2, main_old
     real(8), dimension(:,:,:), allocatable :: new_column
     integer :: nx, nz
     integer :: i, j, k, l, m, n
@@ -31,38 +31,42 @@ contains
     ! Set simulation options
     opts = 0
     opts(1:5) = [2,0,1,1,1]
-    opts(6:7) = [1,4]
+    opts(6:7) = [5,4]
     opts(101) = 1
     opts(102) = 2
     opts(103) = 2
     opts(104) = 1
     ! Initialize the main data array
+
     nx = 1; nz = 1
-    dx = .6d0/((ny*6)/10); dy = 1d0/(ny); dz = dx
-    dxi = 1d0; deta = 1d0; dzeta = 1d0
-    top_state = 0d0; bottom_state = 0d0; base_state = 0d0
-    top_state(1:5) = [.25d0,.5d0,7d0*sqrt(.25d0/.5d0*1.4d0),0d0,0d0]
-    bottom_state(1:5) = [1d0,1d0,2.4d0*sqrt(1.4d0),0d0,0d0]
-    base_state(6:21) = [dx/dxi,0d0,0d0,0d0,dy/deta,0d0,0d0,0d0,dz/dzeta,&
-         0d0,0d0,0d0,0d0,0d0,0d0,dx*dy*dz/(dxi*deta*dzeta)]
+!!$    dx = .6d0/((ny*6)/10); dy = 1d0/(ny); dz = dx
+!!$    dxi = 1d0; deta = 1d0; dzeta = 1d0
+!!$    top_state = 0d0; bottom_state = 0d0; base_state = 0d0
+!!$    top_state(1:5) = [.25d0,.5d0,7d0*sqrt(.25d0/.5d0*1.4d0),0d0,0d0]
+!!$    bottom_state(1:5) = [1d0,1d0,2.4d0*sqrt(1.4d0),0d0,0d0]
+!!$    base_state(6:21) = [dx/dxi,0d0,0d0,0d0,dy/deta,0d0,0d0,0d0,dz/dzeta,&
+!!$         0d0,0d0,0d0,0d0,0d0,0d0,dx*dy*dz/(dxi*deta*dzeta)]
     allocate(main(21,nx+2,ny+2,nz+2))
-    do k = 2, nz+1
-       do j = 2, ny+1
-          do i = 2, nx+1
-             if(j>ny/2)then
-                main(:,i,j,k) = top_state+base_state
-             else
-                main(:,i,j,k) = bottom_state+base_state
-             end if
-             main(18,i,j,k) = (i-2)*dx
-             main(19,i,j,k) = (j-2)*dy
-             main(20,i,j,k) = (k-2)*dz
-          end do
-       end do
-    end do
+    main(:,2,2:ny+1,:) = RiemannUpstreamBC(ny)
+!!$    do k = 2, nz+1
+!!$       do j = 2, ny+1
+!!$          do i = 2, nx+1
+!!$             if(j>ny/2)then
+!!$                main(:,i,j,k) = top_state+base_state
+!!$             else
+!!$                main(:,i,j,k) = bottom_state+base_state
+!!$             end if
+!!$             main(18,i,j,k) = (i-2)*dx
+!!$             main(19,i,j,k) = (j-2)*dy
+!!$             main(20,i,j,k) = (k-2)*dz
+!!$          end do
+!!$       end do
+!!$    end do
     call write_files_matlab(main(:,2:nx+1,2:ny+1,2:nz+1),0d0,nx,ny,&
          first_flag=.true.)
     do n = 1, nt
+       allocate(main_old(size(main,1),size(main,2),size(main,3),size(main,4)))
+       main_old = main
        do m = 1, 3
           opts(2) = m
           ! Apply boundary conditions
@@ -72,6 +76,13 @@ contains
           ! Advance flow variables
           call prim_update(main,dt_out,dt,.25d0,nx,ny,nz,opts)
        end do
+       main(18:20,2:nx+1,2:ny+1,2:nz+1) = main(18:20,2:nx+1,2:ny+1,2:nz+1)&
+            + dt*.5d0*(main_old(15:17,2:nx+1,2:ny+1,2:nz+1)&
+            +main(15:17,2:nx+1,2:ny+1,2:nz+1)&
+            )
+       deallocate(main_old)
+       if(mod(n,10)==0)call write_files_matlab(main(:,2:nx+1,2:ny+1,2),&
+            0d0,nx,ny,first_flag=.false.)
        if(CheckCreateColumn(main(:,2,2:ny+1,2:nz+1),&
             main(:,1,2:ny+1,2:nz+1),ny,nz))then
           write(*,*) "Creating a column"
@@ -101,8 +112,6 @@ contains
           main(:,:,:,:) = main2(:,1:nx+2,:,:)
           deallocate(main2)
        end if
-       if(mod(n,10)==0)call write_files_matlab(main(:,2:nx+1,2:ny+1,2),&
-            0d0,nx,ny,first_flag=.false.)
     end do
     Steady2DRiemann = 1
   end function Steady2DRiemann
