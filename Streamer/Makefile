@@ -4,7 +4,7 @@ AR = ar
 ARFLAGS = rv
 FC = gfortran
 # Debug options for gfortran
-FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p -fPIC#-fopenmp
+FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p -fPIC -arch x86_64 -ff2c -framework Accelerate #-fopenmp
 # # Release options for gfortran
 # FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -O3
 # # Profiling options for gfortran
@@ -17,7 +17,7 @@ FFLAGS = -I$(MODDIR) -I/usr/local/include -J$(MODDIR) -fbounds-check -O0 -g3 -p 
 # # Profiling options for ifort
 # FFLAGS = -I/usr/local/include -module $(MODDIR) -fast -p
 
-LDFLAGS = -L./ -lStreamer -lStreamerTest -lStreamer -lminpack -llapack#-lcgns
+LDFLAGS = -L./ -llapack -lStreamer -lStreamerTest -lStreamer -lminpack -llapack#-lcgns
 
 MODDIR = ./bindings
 LIBSRCDIR = ./f90src

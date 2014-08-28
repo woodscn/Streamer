@@ -65,6 +65,8 @@ def init():
 
     solver_options = np.zeros(300)
     solver_options[0] = 1
+    solver_options[2:5] = 1
+    solver_options[6] = 1
     solver_options[100] =  1
     solver_options[101] = 1
     solver_options[102] = 0

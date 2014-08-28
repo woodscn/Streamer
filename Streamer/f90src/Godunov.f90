@@ -103,6 +103,7 @@ contains
     real(8), dimension(:,:,:,:), intent(inout) :: main
     integer, dimension(4) :: p_shape
     real(8), allocatable, dimension(:,:,:) :: temp1, temp2, p
+    p_shape = [size(main,1),size(main,2),size(main,3),size(main,4)]
     allocate( temp1(p_shape(2), p_shape(3), p_shape(4)) )
     allocate( temp2(p_shape(2), p_shape(3), p_shape(4)) )
     allocate(     p(p_shape(2), p_shape(3), p_shape(4)) )

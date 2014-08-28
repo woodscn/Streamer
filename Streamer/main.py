@@ -104,7 +104,9 @@ class Stream(object):
         
     def advance(self,t_in,dt,opts=Options()):
         opts.xi_offset = self.xi_offset
-        self.bounds(self.main_data,opts)
+#        self.bounds(self.main_data,opts)
+        from BoundaryConditions2 import steady_riemann
+        self.main_data[:,:,:,:] = steady_riemann(self.main_data)
         for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
             if numpy.isnan(element):
                 print ind
