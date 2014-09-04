@@ -350,28 +350,34 @@ contains
 
                 right_interface(3:5)=matmul(&
                      vels_transform,right_interface(3:5))
-
-                center = main(:,i,j,k)
                 
-!!$                if(grid_motion .eq. 1)then
-!!$                   if(n==1)then
-!!$                      center(6:8) = center(6:8) + h*dt*area*dv_inv*&
-!!$                           (right_interface(3:5)-left_interface(3:5))
-!!$                   else if(n==2)then
-!!$                      center(9:11) = center(9:11) + h*dt*area*dv_inv*&
-!!$                           (right_interface(3:5)-left_interface(3:5))
-!!$                   else if(n==3)then
-!!$                      center(12:14) = center(12:14) + h*dt*area*dv_inv*&
-!!$                           (right_interface(3:5)-left_interface(3:5))
-!!$                   end if
-!!$                end if
-                if(n==1)then
-                   center(6:8) = center(6:8) + dt*area*dv_inv*center(15:17)
-                else if(n==2)then
-                   center(9:11) = center(9:11) + dt*area*dv_inv*center(15:17)
-                else if(n==3)then
-                   center(12:14) = center(12:14) + dt*area*dv_inv*center(15:17)
+                left = main(:,i+im,j+jm,k+km)
+                center = main(:,i,j,k)
+                right = main(:,i+ip,j+jp,k+kp)
+                
+                
+                if(grid_motion .eq. 1)then
+                   if(n==1)then
+                      center(6:8) = center(6:8) + h*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   else if(n==2)then
+                      center(9:11) = center(9:11) + h*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   else if(n==3)then
+                      center(12:14) = center(12:14) + h*dt*area*dv_inv*&
+                           (right_interface(3:5)-left_interface(3:5))
+                   end if
                 end if
+!!$                if(n==1)then
+!!$                   center(6:8) = center(6:8) + &
+!!$                        dt*area*dv_inv*.5d0*(right(15:17)-left(15:17))!center(15:17)
+!!$                else if(n==2)then
+!!$                   center(9:11) = center(9:11) + &
+!!$                        dt*area*dv_inv*.5d0*(right(15:17)-left(15:17))!center(15:17)
+!!$                else if(n==3)then
+!!$                   center(12:14) = center(12:14) + &
+!!$                        dt*area*dv_inv*.5d0*(right(15:17)-left(15:17))!center(15:17)
+!!$                end if
                 
                 left_flux  = flux( left_interface,center,n)
                 right_flux = flux(right_interface,center,n)
