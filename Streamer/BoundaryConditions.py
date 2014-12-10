@@ -2,10 +2,10 @@ import numpy as np
 from numpy import f2py
 import scipy.io as sio
 #import STLA_IO as stl
-import BoundaryConditionsStuff
+import Streamer.BoundaryConditionsStuff 
 from sys import exit as sysexit
 from main import Stream
-bcs = BoundaryConditionsStuff.boundaryconditionsstuff
+bcs = Streamer.BoundaryConditionsStuff.boundaryconditionsstuff
 import os
 
 class Error(Exception):

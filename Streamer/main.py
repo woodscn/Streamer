@@ -2,12 +2,12 @@ import sys
 import numpy
 import scipy
 import BoundaryConditions
-import TimeAdvancementStuff as TAS
+import Streamer.TimeAdvancementStuff as TAS
 TAS = TAS.timeadvancementstuff
-import Godunov_driver
-Godunov = Godunov_driver.godunovdriver
-import grid_motion_driver
-grid_motion = grid_motion_driver.grid_motion_driver_mod
+import Streamer.Godunov_driver
+Godunov = Streamer.Godunov_driver.godunovdriver
+import Streamer.grid_motion_driver
+grid_motion = Streamer.grid_motion_driver.grid_motion_driver_mod
 #import CGNS_Interface
 #cgns = CGNS_Interface.cgns_interface
 import imp, os
@@ -105,6 +105,7 @@ class Stream(object):
     def advance(self,t_in,dt,opts=Options()):
         opts.xi_offset = self.xi_offset
 #        self.bounds(self.main_data,opts)
+#        import Streamer.BoundaryConditions2
         from BoundaryConditions2 import steady_riemann
         self.main_data[:,:,:,:] = steady_riemann(self.main_data)
         for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
