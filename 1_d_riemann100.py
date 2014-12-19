@@ -50,8 +50,8 @@ def init():
                              bof=bottom_face_init,tf=top_face_init,
                              baf=back_face_init,ff=front_face_init)
 
-    exact_sol_kwargs = {'pR':.25,'dR':.5,'MR':7,'alphaR':np.pi*.5,
-                        'pL':1.,'dL':1.,'ML':2.4,'alphaL':np.pi*.5,
+    exact_sol_kwargs = {'pR':.1,'dR':.125,'MR':0,'alphaR':np.pi*.5,
+                        'pL':1.,'dL':1.,'ML':0,'alphaL':np.pi*.5,
                         'gamma':1.4}
     exact_solution_obj = SteadyRiemannSolution(**exact_sol_kwargs)
     exact_solution = lambda t,indxi,indeta,indzeta :(
@@ -267,8 +267,8 @@ class SteadyRiemannSolution(object):
         return np.pi*.5-alpha+np.arcsin(1./M)
 
 if __name__=='__main__':
-    kwargs = {'pR':.25,'dR':.5,'MR':7,'alphaR':np.pi*.5,
-              'pL':1.,'dL':1.,'ML':2.4,'alphaL':np.pi*.5,
+    kwargs = {'pR':.1,'dR':.125,'MR':0,'alphaR':np.pi*.5,
+              'pL':1.,'dL':1.,'ML':0,'alphaL':np.pi*.5,
               'gamma':1.4}
     sol = SteadyRiemannSolution(**kwargs)
 #    import pdb;pdb.set_trace()

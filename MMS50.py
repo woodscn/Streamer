@@ -1,6 +1,7 @@
 import os, sys
 
 import numpy
+import sympy
 
 libpath = os.path.abspath('/Users/woodscn/')
 sys.path.insert(0,libpath)
@@ -122,7 +123,8 @@ def init():
 # [104]: Controls type of time step (constant or CFL)
 # [201-203]: same as [101-103]
     solver_options[0] = 1
-    solver_options[2] = 5
+    solver_options[2:5] = 5
+    solver_options[5:7] = 0,1
     solver_options[100] = 1
     solver_options[101] = 1
     solver_options[102] = 0
@@ -137,7 +139,7 @@ def init():
         'exact_sol_func' : exact_solution,
         'manufactured_object' : Euler_UCS,
         'dxis' : dxis,
-        'discs' : [50.]
+        'discs' : [sympy.Float(50.)]
         }
     left_face_init.append(
         PatchInit('Dirichlet',

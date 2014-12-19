@@ -2,11 +2,11 @@ import sys
 import numpy
 import scipy
 import BoundaryConditions
-import TimeAdvancementStuff as TAS
+from Streamer import TimeAdvancementStuff as TAS
 TAS = TAS.timeadvancementstuff
-import Godunov_driver
+from Streamer import Godunov_driver
 Godunov = Godunov_driver.godunovdriver
-import grid_motion_driver
+from Streamer import grid_motion_driver
 grid_motion = grid_motion_driver.grid_motion_driver_mod
 #import CGNS_Interface
 #cgns = CGNS_Interface.cgns_interface
@@ -104,9 +104,12 @@ class Stream(object):
         
     def advance(self,t_in,dt,opts=Options()):
         opts.xi_offset = self.xi_offset
-#        self.bounds(self.main_data,opts)
-        from BoundaryConditions2 import steady_riemann
-        self.main_data[:,:,:,:] = steady_riemann(self.main_data)
+        self.bounds(self.main_data,opts)
+#        from BoundaryConditions2 import steady_riemann
+#        try:
+#            self.main_data[:,:,:,:] = steady_riemann(self.main_data)
+#        except IndexError:
+#            import pdb;pdb.set_trace()
         for ind,element in numpy.ndenumerate(self.main_data[:,1:-1,1:-1,1:-1]):
             if numpy.isnan(element):
                 print ind
@@ -146,7 +149,7 @@ class Stream(object):
                                         opts.
                                         stream_options['manufactured_object'].
                                         vars_,ranges)]
-#                                import pdb;pdb.set_trace()
+                                #import pdb;pdb.set_trace()
                                 temp = (
                                     opts.stream_options['manufactured_object']
                                     .balance_integrate(
@@ -158,6 +161,7 @@ class Stream(object):
         #! Check to see if a new column needs to be created
         check_create_column = TAS.checkcreatecolumn(
             self.main_data[:,1,1:-1,1:-1],self.main_data[:,0,1:-1,1:-1])
+        check_create_colum = False
         if check_create_column:
             print "Creating a column"
             pass
@@ -170,6 +174,7 @@ class Stream(object):
             self.main_data[:,1,1:-1,1:-1] = new_column
             self.xi_offset = self.xi_offset + 1
         check_remove_column = (self.main_data[17,-2,1:-1,1:-1]>.8).any()
+        check_remove_column = False
         if check_remove_column:
             self.main_data = numpy.array(self.main_data[:,:-1,:,:])
 #        TAS.write_files_matlab(self.main_data[:,1:-1,1:-1,1],0.)
@@ -191,7 +196,7 @@ def run(input_file,interactive=False):
     streams = [Stream(bounds_init, initial_conds,stream_options)]
     t = 0.
     dt = .0001 
-    nt = 2500
+    nt = 201
     temp = numpy.zeros((20,streams[0].main_data.shape[1]-2,
                         streams[0].main_data.shape[2]-2,
                         streams[0].main_data.shape[3]-2,1))
@@ -200,6 +205,7 @@ def run(input_file,interactive=False):
     TAS.write_files_matlab(streams[0].main_data[:,1:-1,1:-1,1],0.,first_flag=True)
     for step in range(nt):
         print "Time step = ",step, t
+#        import pdb;pdb.set_trace()
         for stream in streams:
             for inda in range(temp.shape[1]):
                 for indb in range(temp.shape[2]):
